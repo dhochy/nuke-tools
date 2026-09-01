@@ -1,0 +1,944 @@
+Gizmo {
+ name VectorEdgeExtend1
+ knobChanged "\nimport nuke\n\ndef getiDisKnobs(n):\n    knobs = \[]\n    knobs.append(n\['iduv_value'])\n    knobs.append(n\['iduv_scaleX'])\n    knobs.append(n\['iduv_scaleY'])\n    knobs.append(n\['filter'])\n    return knobs\n\n\ndef getSTMapKnobs(n):\n    knobs = \[]\n    knobs.append(n\['STMapValue'])\n    knobs.append(n\['STMapX'])\n    knobs.append(n\['STMapY'])\n    return knobs\n\n\ndef hideShowKnobs(knobs, v):\n    for knob in knobs:\n        knob.setVisible(v)\n\n\ndef main():\n    n = nuke.thisNode()\n    k = nuke.thisKnob()\n\n    if 'method' in k.name():\n        knobs = \{\n        'iDisKnobs' : getiDisKnobs(n),\n        'STMapKnobs' : getSTMapKnobs(n)\n        \}\n\n\n        # SHOW IDISTORT KNOBS\n        if \"iDistort\" in k.value():\n            hideShowKnobs(knobs\['iDisKnobs'], True)\n            hideShowKnobs(knobs\['STMapKnobs'], False)\n\n\n        # SHOW STMAP KNOBS\n        if \"STMap\" in k.value():\n            hideShowKnobs(knobs\['iDisKnobs'], False)\n            hideShowKnobs(knobs\['STMapKnobs'], True)\n\n\n\n    elif \"filter\" in k.name():\n        with n:\n            iDis = nuke.toNode(\"IDistort1\")\n            iDis\['filter'].setValue(k.value())\n\n\nmain()\n\n"
+ tile_color 0x8e42ff
+ label "-\[value method]-"
+ selected true
+ xpos 34
+ ypos 270
+ addUserKnob {20 EdgeExtend l "Edge Extend"}
+ addUserKnob {68 view l View t "<b>OUTPUT VIEW</b>\n\n<b>Result</b>- edge extend result\n<b>Extend From</b>- from where to extend" M {Result "Extend From" Vectors "" "" ""}}
+ addUserKnob {4 method l Method M {iDistort STMap "" "" ""}}
+ addUserKnob {26 ""}
+ addUserKnob {6 useRGBAlpha l "use alpha from RGB input" +STARTLINE}
+ addUserKnob {6 outputAlpha l "output extended alpha" +STARTLINE}
+ outputAlpha true
+ addUserKnob {6 seamlessMask l "seamless mask" +STARTLINE}
+ seamlessMask true
+ addUserKnob {26 ""}
+ addUserKnob {26 methodParam l "" +STARTLINE T "Method Parameters"}
+ addUserKnob {3 iterations +HIDDEN}
+ iterations 6
+ addUserKnob {7 scaleIters l scale +HIDDEN R 0 100}
+ scaleIters 8
+ addUserKnob {7 multxIters l "multiply X" +HIDDEN}
+ multxIters 1
+ addUserKnob {7 multyIters l "multiply Y" +HIDDEN}
+ multyIters 1
+ addUserKnob {7 iduv_value l scale R 0 100}
+ iduv_value 10
+ addUserKnob {7 iduv_scaleX l "multiply X" R 0 10}
+ iduv_scaleX 1
+ addUserKnob {7 iduv_scaleY l "multiply Y" R 0 10}
+ iduv_scaleY 1
+ addUserKnob {68 filter M {Impulse Cubic Keys Simon Rifman Mitchell Parzen Notch Lanczos4 Lanczos6 Sinc4}}
+ filter Cubic
+ addUserKnob {7 STMapValue l scale +HIDDEN R 0 100}
+ STMapValue 10
+ addUserKnob {7 STMapX l "multiply X" +HIDDEN R 0 10}
+ STMapX 1
+ addUserKnob {7 STMapY l "multiply Y" +HIDDEN R 0 10}
+ STMapY 1
+ addUserKnob {26 ""}
+ addUserKnob {7 extendFrom l "Extend From" R 0.001 50}
+ extendFrom 0.001
+ addUserKnob {7 expandVectors l "Expand Vectors" R 0 15}
+ expandVectors 5
+ addUserKnob {7 blurVectors l "Blur Vectors" R 0 30}
+ blurVectors 20
+ addUserKnob {26 ""}
+ addUserKnob {7 mix l Mix}
+ mix 1
+ addUserKnob {20 extras l "" +STARTLINE}
+ addUserKnob {7 vectorsLenght l "Find Vectors" t "increase this number the closer to the camera the subject(edge) is to the camera." R 0 100}
+ vectorsLenght 15
+ addUserKnob {26 ""}
+ addUserKnob {26 tname l "" +STARTLINE T "@VectorEdgeExtend V1.0\n\n-Jordan B. Richard-"}
+}
+ BackdropNode {
+  inputs 0
+  name BackdropNode1
+  tile_color 0x8e42ff
+  label vectors
+  note_font_size 42
+  xpos -125
+  ypos 6865
+  bdwidth 387
+  bdheight 346
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode2
+  tile_color 0x998cff
+  label Xp
+  note_font_size 42
+  xpos -152
+  ypos -494
+  bdwidth 647
+  bdheight 742
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode3
+  tile_color 0x961f1fff
+  label Xm
+  note_font_size 42
+  xpos -1213
+  ypos -476
+  bdwidth 880
+  bdheight 748
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode4
+  tile_color 0x842584ff
+  label Yp
+  note_font_size 42
+  xpos 1562
+  ypos -504
+  bdwidth 903
+  bdheight 767
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode5
+  tile_color 0xc600ff
+  label Ym
+  note_font_size 42
+  xpos 746
+  ypos -491
+  bdwidth 766
+  bdheight 743
+ }
+ BackdropNode {
+  inputs 0
+  name BackdropNode6
+  tile_color 0x8e42ff
+  label "extend From"
+  note_font_size 42
+  xpos -279
+  ypos 6464
+  bdwidth 696
+  bdheight 317
+ }
+ Input {
+  inputs 0
+  name RGB
+  xpos 376
+  ypos -1523
+ }
+ Dot {
+  name Dot28
+  tile_color 0xffff0000
+  label RGB
+  note_font_size 31
+  xpos 404
+  ypos -1461
+ }
+set Na06f6400 [stack 0]
+push $Na06f6400
+ Shuffle {
+  red black
+  green black
+  blue black
+  name Shuffle1
+  label "\[value in]>\[value out]"
+  xpos 582
+  ypos -1464
+ }
+ Input {
+  inputs 0
+  name ALPHA
+  xpos 729
+  ypos -1617
+  number 1
+ }
+ Remove {
+  operation keep
+  channels alpha
+  name Remove1
+  xpos 729
+  ypos -1560
+ }
+ Switch {
+  inputs 2
+  which {{parent.useRGBAlpha}}
+  name Switch2
+  label "\[value which]"
+  xpos 729
+  ypos -1464
+ }
+set N871e2000 [stack 0]
+ Dot {
+  name Dot11
+  tile_color 0xff00
+  label "output alpha"
+  note_font_size 21
+  xpos 1093
+  ypos -1461
+ }
+ Dot {
+  name Dot12
+  tile_color 0xff00
+  label "output alpha"
+  note_font_size 21
+  xpos 533
+  ypos 5995
+  hide_input true
+ }
+set Na06f6c00 [stack 0]
+ Viewer {
+  inputs 2
+  frame_range 1001-1053
+  fps 23.97602463
+  full_frame_processing true
+  colour_sample_bbox {0.08403361589 0.07043994218 0.08452793211 0.0709342584}
+  samplepoints {
+   {0.3267424703 0.09762728959}
+  }
+  name Viewer1
+  xpos 6351
+  ypos 371
+ }
+ Input {
+  inputs 0
+  name Mask
+  tile_color 0xff000000
+  xpos 429
+  ypos 3029
+  number 2
+ }
+set Na0646880 [stack 0]
+push $N871e2000
+ Expression {
+  expr3 a<0.05?0:a
+  name Expression8
+  xpos 729
+  ypos -1381
+ }
+ Dot {
+  name Dot17
+  xpos 757
+  ypos -1008
+ }
+ Blur {
+  size {{"parent.extendFrom < 10? 0: parent.extendFrom-10"}}
+  quality 7
+  name Blur1
+  label "\[value size]"
+  xpos 729
+  ypos -860
+ }
+ Expression {
+  temp_name0 v
+  temp_expr0 "parent.extendFrom < 10 ? parent.extendFrom/10 : 1"
+  expr3 a>=v?1:0
+  name hardedge
+  tile_color 0xff00ff00
+  xpos 729
+  ypos -767
+ }
+set N87254500 [stack 0]
+ Dot {
+  name Dot8
+  tile_color 0xff00ff00
+  xpos 657
+  ypos 2285
+  hide_input true
+ }
+set Na06f7400 [stack 0]
+ Invert {
+  channels rgba
+  name Invert4
+  xpos 613
+  ypos 2892
+ }
+push $Na06f7400
+push $N87254500
+ Dot {
+  name Dot21
+  xpos -447
+  ypos -324
+  hide_input true
+ }
+push $N87254500
+ Position {
+  translate {{-1*parent.vectorsLenght} 0}
+  name Position2
+  xpos -707
+  ypos -348
+ }
+set N87254f00 [stack 0]
+push $N87254f00
+ Merge2 {
+  inputs 2
+  bbox B
+  name Merge2
+  xpos -707
+  ypos -249
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+ Merge2 {
+  inputs 2
+  operation stencil
+  name Merge41
+  xpos -475
+  ypos -27
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+ Expression {
+  expr0 a
+  expr3 0
+  name Expression1
+  xpos 603
+  ypos 1115
+ }
+push $N87254500
+ Dot {
+  name Dot18
+  xpos 339
+  ypos -353
+  hide_input true
+ }
+push $N87254500
+ Position {
+  translate {{parent.vectorsLenght} 0}
+  name Position1
+  xpos -60
+  ypos -360
+ }
+ Merge2 {
+  inputs 2
+  operation stencil
+  name Merge39
+  xpos 311
+  ypos 138
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+ Expression {
+  expr0 a*-1
+  expr3 0
+  name Expression4
+  xpos 963
+  ypos 1118
+ }
+ Merge2 {
+  inputs 2
+  name Merge47
+  xpos 761
+  ypos 1376
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+push $N87254500
+ Dot {
+  name Dot26
+  xpos 1299
+  ypos -373
+  hide_input true
+ }
+push $N87254500
+ Position {
+  translate {0 {-1*parent.vectorsLenght}}
+  name Position4
+  xpos 905
+  ypos -423
+ }
+ Merge2 {
+  inputs 2
+  operation stencil
+  name Merge45
+  xpos 1271
+  ypos 172
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+ Expression {
+  expr1 a
+  expr3 0
+  name Expression5
+  xpos 1246
+  ypos 1123
+ }
+ Merge2 {
+  inputs 2
+  name Merge48
+  xpos 761
+  ypos 1568
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+push $N87254500
+ Dot {
+  name Dot23
+  xpos 1918
+  ypos -357
+  hide_input true
+ }
+push $N87254500
+ Position {
+  translate {0 {parent.vectorsLenght}}
+  name Position3
+  xpos 1703
+  ypos -408
+ }
+ Merge2 {
+  inputs 2
+  operation stencil
+  name Merge43
+  xpos 1890
+  ypos 71
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+ Expression {
+  expr1 a*-1
+  expr3 0
+  name Expression7
+  xpos 1591
+  ypos 1135
+ }
+ Merge2 {
+  inputs 2
+  name Merge49
+  xpos 761
+  ypos 1742
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+ Dot {
+  name Dot4
+  xpos 794
+  ypos 2123
+ }
+ Expression {
+  expr3 "r !=0 || b!=0 ? 1 : 0"
+  name Expression18
+  xpos 768
+  ypos 2243
+ }
+ Merge2 {
+  inputs 2
+  name Merge1
+  xpos 767
+  ypos 2288
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+ Blur {
+  size {{parent.expandVectors/4}}
+  quality 7
+  name Blur15
+  label "\[value size]"
+  xpos 774
+  ypos 2323
+ }
+ Unpremult {
+  name Unpremult5
+  xpos 768
+  ypos 2390
+ }
+ Expression {
+  expr3 "isnan(a/a) ? 0 : a/a"
+  name Expression24
+  xpos 768
+  ypos 2430
+ }
+ Blur {
+  size {{parent.expandVectors/4}}
+  quality 7
+  name Blur16
+  label "\[value size]"
+  xpos 768
+  ypos 2468
+ }
+ Unpremult {
+  name Unpremult6
+  xpos 768
+  ypos 2518
+ }
+ Expression {
+  expr3 "isnan(a/a) ? 0 : a/a"
+  name Expression25
+  xpos 768
+  ypos 2558
+ }
+ Blur {
+  size {{parent.expandVectors/4}}
+  quality 7
+  name Blur17
+  label "\[value size]"
+  xpos 768
+  ypos 2597
+ }
+ Unpremult {
+  name Unpremult7
+  xpos 768
+  ypos 2657
+ }
+ Expression {
+  expr3 "isnan(a/a) ? 0 : a/a"
+  name Expression26
+  xpos 768
+  ypos 2691
+ }
+ Blur {
+  size {{parent.expandVectors/4}}
+  quality 7
+  name Blur18
+  label "\[value size]"
+  xpos 768
+  ypos 2715
+ }
+ Unpremult {
+  name Unpremult8
+  xpos 768
+  ypos 2775
+ }
+ Expression {
+  expr3 "isnan(a/a) ? 0 : a/a"
+  name Expression27
+  xpos 761
+  ypos 2799
+ }
+ MergeExpression {
+  inputs 2
+  expr0 "Br * Aa"
+  expr1 "Bg * Aa"
+  name MergeExpression3
+  xpos 761
+  ypos 2904
+ }
+ Expression {
+  expr0 "r > 0 ? 1 : r < 0 ? -1 : 0"
+  expr1 "g > 0 ? 1 : g < 0 ? -1 : 0"
+  name Expression28
+  xpos 761
+  ypos 2944
+ }
+ Blur {
+  size {{parent.blurVectors}}
+  quality 7
+  name Blur3
+  label "\[value size]"
+  xpos 763
+  ypos 2966
+ }
+ MergeExpression {
+  inputs 2
+  expr0 Br*Aa
+  expr1 Bg*Aa
+  name MergeExpression2
+  xpos 761
+  ypos 3029
+  disable {{!seamlessMask}}
+ }
+ Dot {
+  name Dot3
+  tile_color 0xff0000
+  label Vectors
+  note_font_size 31
+  xpos 789
+  ypos 3123
+ }
+set N872c4c00 [stack 0]
+ Dot {
+  name Dot16
+  tile_color 0xff0000
+  xpos -62
+  ypos 6945
+  hide_input true
+ }
+set N872c5000 [stack 0]
+ Expression {
+  expr0 "r < 0 ? 0 : r"
+  expr1 "g < 0 ? 0 : g"
+  name Expression2
+  xpos -117
+  ypos 7070
+ }
+push $N872c5000
+ Expression {
+  expr0 0
+  expr1 "r < 0 ? r *-1: 0"
+  expr2 "r < 0 ? r *-1: 0"
+  name Expression3
+  xpos 21
+  ypos 7071
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge3
+  xpos -43
+  ypos 7132
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+push $N872c5000
+ Expression {
+  expr0 "g < 0 ? g*-1  :  0"
+  expr1 "g < 0 ? g*-1  :  0"
+  name Expression6
+  xpos 172
+  ypos 7078
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge5
+  xpos 43
+  ypos 7183
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+push $N87254500
+ Dot {
+  name Dot9
+  label "hard edge"
+  note_font_size 31
+  xpos -220
+  ypos 6688
+  hide_input true
+ }
+push $Na06f6400
+ Dot {
+  name Dot6
+  tile_color 0xffff0000
+  xpos 972
+  ypos 6290
+  hide_input true
+ }
+set N872c5800 [stack 0]
+ Dot {
+  name Dot10
+  tile_color 0xffff0000
+  label RGB
+  note_font_size 31
+  xpos 210
+  ypos 6570
+  hide_input true
+ }
+ MergeExpression {
+  inputs 2
+  expr1 "Bg * Aa*2"
+  name MergeExpression1
+  xpos 182
+  ypos 6691
+ }
+push $N872c5800
+push $Na0646880
+ Dot {
+  name Dot13
+  tile_color 0xff000000
+  xpos 457
+  ypos 6290
+  hide_input true
+ }
+push $N872c5800
+push $Na06f6c00
+push $Na06f6400
+ Remove {
+  name Remove3
+  xpos -629
+  ypos 3731
+  hide_input true
+ }
+ Expression {
+  expr0 (x+0.5)/width
+  expr1 (y+0.5)/height
+  name Expression9
+  xpos -629
+  ypos 3808
+ }
+push $N872c4c00
+ Dot {
+  name Dot7
+  tile_color 0xff0000
+  xpos -437
+  ypos 3567
+  hide_input true
+ }
+ Expression {
+  temp_name0 X
+  temp_expr0 parent.STMapX*STMapX*STMapValue
+  temp_name1 Y
+  temp_expr1 parent.STMapY*STMapY*STMapValue
+  expr0 X*0.0001*r
+  expr1 Y*0.0001*g
+  expr2 0
+  name Expression10
+  xpos -465
+  ypos 3697
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  name Merge4
+  xpos -465
+  ypos 3808
+  addUserKnob {20 Blending_Mode}
+  addUserKnob {22 push_over l over T "nuke.thisNode()\['operation'].setValue('over')" +STARTLINE}
+  addUserKnob {22 push_under l under -STARTLINE T "nuke.thisNode()\['operation'].setValue('under')"}
+  addUserKnob {22 push_mask l mask T "nuke.thisNode()\['operation'].setValue('mask')" +STARTLINE}
+  addUserKnob {22 push_stencil l stencil -STARTLINE T "nuke.thisNode()\['operation'].setValue('stencil')"}
+  addUserKnob {22 push_min l min T "nuke.thisNode()\['operation'].setValue('min')" +STARTLINE}
+  addUserKnob {22 push_max l max -STARTLINE T "nuke.thisNode()\['operation'].setValue('max')"}
+  addUserKnob {22 push_from l from T "nuke.thisNode()\['operation'].setValue('from')" +STARTLINE}
+  addUserKnob {22 push_plus l plus -STARTLINE T "nuke.thisNode()\['operation'].setValue('plus')"}
+  addUserKnob {22 push_screen l screen T "nuke.thisNode()\['operation'].setValue('screen')" +STARTLINE}
+  addUserKnob {22 push_overlay l overlay -STARTLINE T "nuke.thisNode()\['operation'].setValue('overlay')"}
+  addUserKnob {22 push_atop l atop T "nuke.thisNode()\['operation'].setValue('atop')" +STARTLINE}
+  addUserKnob {22 push_geometric l geometric -STARTLINE T "nuke.thisNode()\['operation'].setValue('geometric')"}
+  addUserKnob {22 push_divide l divide T "nuke.thisNode()\['operation'].setValue('divide')" +STARTLINE}
+  addUserKnob {22 push_multiply l multiply -STARTLINE T "nuke.thisNode()\['operation'].setValue('multiply')"}
+ }
+push $Na06f6400
+ Dot {
+  name Dot1
+  tile_color 0xffff0000
+  label RGB
+  note_font_size 41
+  xpos -255
+  ypos 3727
+  hide_input true
+ }
+ STMap {
+  inputs 2
+  channels rgba
+  uv rgb
+  name STMap1
+  xpos -283
+  ypos 3808
+ }
+push $N872c4c00
+ Dot {
+  name Dot5
+  tile_color 0xff0000
+  xpos 1633
+  ypos 3851
+  hide_input true
+ }
+push $Na06f6400
+ Dot {
+  name Dot2
+  tile_color 0xffff0000
+  label RGB
+  note_font_size 41
+  xpos 1771
+  ypos 3743
+  hide_input true
+ }
+add_layer {vectors vectors.red vectors.green vectors.blue vectors.alpha}
+ ShuffleCopy {
+  inputs 2
+  red red
+  green green
+  blue black
+  alpha black
+  out vectors
+  name ShuffleCopy4
+  label "\[value in]>\[value out]"
+  xpos 1743
+  ypos 3848
+ }
+ IDistort {
+  uv vectors
+  uv_scale {{iduv_value*iduv_scaleX} {iduv_value*iduv_scaleY}}
+  name IDistort1
+  xpos 1743
+  ypos 3900
+ }
+ Switch {
+  inputs 2
+  which {{parent.method}}
+  name method
+  label "\[value which]"
+  xpos 750
+  ypos 4075
+ }
+ Copy {
+  inputs 2
+  from0 rgba.alpha
+  to0 rgba.alpha
+  name Copy1
+  xpos 749
+  ypos 5992
+  disable {{parent.outputAlpha}}
+ }
+ Keymix {
+  inputs 3
+  invertMask true
+  name Keymix1
+  xpos 749
+  ypos 6287
+  disable {{"seamlessMask ? 1 : !\[exists parent.input2]"}}
+ }
+ Blend {
+  inputs 2
+  weight0 {{parent.mix}}
+  weight1 {{1-parent.mix}}
+  name Blend2
+  xpos 749
+  ypos 6482
+ }
+ Switch {
+  inputs 3
+  which {{parent.view}}
+  name Switch1
+  label "\[value which]"
+  xpos 749
+  ypos 6857
+ }
+ Output {
+  name Output1
+  xpos 750
+  ypos 7308
+ }
+end_group
