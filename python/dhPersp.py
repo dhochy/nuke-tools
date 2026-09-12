@@ -92,6 +92,45 @@ def node_format(node):
     return w, h
 
 
+def _canonical(w, h):
+    """Where a fresh fit puts the four base points for a given format."""
+    return {"p1a": (0.0, 0.0),
+            "p1b": (w / 3.0, h / 3.0),
+            "p2a": (2.0 * w / 3.0, h / 3.0),
+            "p2b": (w, 0.0)}
+
+
+def _extra_canonical(w, h, slot):
+    frac = 0.12 + 0.76 * (slot / float(max(MAX_LINES - 1, 1)))
+    return (w * frac, h * 0.15)
+
+
+def is_pristine(node, tol=0.5):
+    """True only if every point still sits exactly where the last fit put it.
+
+    This is the guard that lets a format change re-fit automatically without ever
+    disturbing points the user has placed. If anything has been nudged, even one
+    extra line, the answer is False and nothing is touched.
+    """
+    fw = node.knobs().get("_fitw")
+    fh = node.knobs().get("_fith")
+    if fw is None or fh is None:
+        return False
+    w, h = fw.value(), fh.value()
+    if w < 1 or h < 1:
+        return False
+    for name, (cx, cy) in _canonical(w, h).items():
+        v = node[name].value()
+        if abs(v[0] - cx) > tol or abs(v[1] - cy) > tol:
+            return False
+    for slot, i in enumerate(active_lines(node)):
+        cx, cy = _extra_canonical(w, h, slot)
+        v = node["add%d" % i].value()
+        if abs(v[0] - cx) > tol or abs(v[1] - cy) > tol:
+            return False
+    return True
+
+
 def fit_to_format(node=None, quiet=True):
     """Place the guide points against the actual format instead of 2048x1556.
 
@@ -100,15 +139,17 @@ def fit_to_format(node=None, quiet=True):
     """
     node = node or nuke.thisNode()
     w, h = node_format(node)
-    node["p1a"].setValue([0.0, 0.0])
-    node["p1b"].setValue([w / 3.0, h / 3.0])
-    node["p2a"].setValue([2.0 * w / 3.0, h / 3.0])
-    node["p2b"].setValue([w, 0.0])
+    for name, (cx, cy) in _canonical(w, h).items():
+        node[name].setValue([cx, cy])
     for slot, i in enumerate(active_lines(node)):
-        frac = 0.12 + 0.76 * (slot / float(max(MAX_LINES - 1, 1)))
-        node["add%d" % i].setValue([w * frac, h * 0.15])
+        node["add%d" % i].setValue(list(_extra_canonical(w, h, slot)))
     if "_fitted" in node.knobs():
         node["_fitted"].setValue(True)
+    # remember what we fitted to, so a later format change can tell whether the
+    # points are still untouched
+    if "_fitw" in node.knobs():
+        node["_fitw"].setValue(w)
+        node["_fith"].setValue(h)
     if not quiet:
         nuke.message("Guide points fitted to %dx%d." % (int(w), int(h)))
     return w, h
@@ -171,16 +212,35 @@ def on_knob_changed(node=None, knob=None):
     name = knob.name()
 
     if name == "inputChange":
-        fitted = node.knobs().get("_fitted")
-        if fitted is None or fitted.value() or node.input(0) is None:
+        if node.input(0) is None:
             return
-        if "vp1" in node.knobs():
-            if not node["vp1"].hasExpression(0):
+        fitted = node.knobs().get("_fitted")
+        if fitted is None:
+            return
+
+        if "vp1" in node.knobs():                       # dhPerspSolve
+            if not fitted.value() and not node["vp1"].hasExpression(0):
                 fit_solve_to_format(node)
-        else:
-            fit_to_format(node)          # sets _fitted
+            return
+
+        if not fitted.value():                          # first connection
+            fit_to_format(node)
             with _Busy(node):
                 sync_vp_handle(node)
+            return
+
+        # already fitted: re-fit only if the plate changed AND nothing was moved
+        w, h = node_format(node)
+        fw = node.knobs().get("_fitw")
+        if fw is None:
+            return
+        if abs(w - fw.value()) < 0.5 and abs(h - node["_fith"].value()) < 0.5:
+            return                                      # same format, nothing to do
+        if not is_pristine(node):
+            return                                      # user has placed points, leave them
+        fit_to_format(node)
+        with _Busy(node):
+            sync_vp_handle(node)
         return
 
     if name == "vp_drag":
