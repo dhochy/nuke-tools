@@ -26,7 +26,7 @@ Group {
  gridsize 40
  addUserKnob {13 gridoffset l "grid offset" t "Slide the grid along the ground plane to line it up with the floor in the plate."}
  addUserKnob {26 d2 l "" +STARTLINE}
- addUserKnob {6 swap_solution l "swap solution" t "The solve has two answers. If the grid sits wrong, try the other one." +STARTLINE}
+ addUserKnob {4 axis_from l "ground X axis runs toward" t "The geometry cannot tell which horizontal direction is X and which is Z, so there are always two valid cameras. Their yaws are complementary and add up to ninety degrees. If the floor grid looks turned against the plate, switch this. The Horizon tab shows which guide feeds each vanishing point." M {"vanishing point 1" "vanishing point 2"}}
  addUserKnob {20 solve l "Camera Solve"}
  addUserKnob {6 use_known_focal l "I know the focal length" t "Use a measured focal length instead of solving one from the vanishing points. The vanishing points then only set the orientation." +STARTLINE}
  addUserKnob {7 known_focal l "focal (mm)" t "Focal length from the camera report or lens metadata." R 4 300}
@@ -74,7 +74,7 @@ Group {
  addUserKnob {7 _rx +INVISIBLE}
  _rx {{"atan((height/2 - _viy)/_f)*180/3.14159265358979"}}
  addUserKnob {7 _ry +INVISIBLE}
- _ry {{"atan((swap_solution ? max(_v1,_v2) : min(_v1,_v2))/_f)*180/3.14159265358979"}}
+ _ry {{"atan((axis_from ? _v2 : _v1)/_f)*180/3.14159265358979"}}
  addUserKnob {7 _rz +INVISIBLE}
  _rz {{"(abs(_dx) > 1e-9 ? -atan(_dy/_dx)*180/3.14159265358979 : 0)"}}
 }
@@ -82,7 +82,7 @@ Group {
   inputs 0
   name Input1
  }
-set Nccc58000 [stack 0]
+set N3b668000 [stack 0]
  Camera {
   inputs 0
   translate {0 1 0}
@@ -103,7 +103,7 @@ set Nccc58000 [stack 0]
   uniform_scale {{parent.gridsize}}
   name floorgrid
  }
-push $Nccc58000
+push $N3b668000
  ScanlineRender {
   inputs 3
   antialiasing low
