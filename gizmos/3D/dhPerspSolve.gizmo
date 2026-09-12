@@ -1,0 +1,124 @@
+version 17.0 v1
+Group {
+ name dhPerspSolve
+ addUserKnob {20 main l Horizon}
+ addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
+ show_horizon true
+ addUserKnob {19 horizoncolor l color}
+ horizoncolor {0 1 1 1}
+ addUserKnob {7 horizonwidth l "line width" R 0.5 10}
+ horizonwidth 2
+ addUserKnob {26 d0 l "" +STARTLINE}
+ addUserKnob {26 t1 l "vanishing points"}
+ addUserKnob {12 vp1 l "vp 1" t "Expression-linked to a PerspLines vp knob by the menu command."}
+ vp1 {-600 900}
+ addUserKnob {12 vp2 l "vp 2"}
+ vp2 {2600 900}
+ addUserKnob {20 floor l "3D Floor"}
+ addUserKnob {6 show_floor l "show 3D floor" -STARTLINE}
+ show_floor true
+ addUserKnob {3 rows l "grid divisions" R 2 60}
+ rows 20
+ addUserKnob {7 gridsize l "grid size" R 1 200}
+ gridsize 40
+ addUserKnob {13 gridoffset l "grid offset" t "Slide the grid along the ground plane to line it up with the floor in the plate."}
+ addUserKnob {26 d2 l "" +STARTLINE}
+ addUserKnob {6 swap_solution l "swap solution" t "The solve has two answers. If the grid sits wrong, try the other one." +STARTLINE}
+ addUserKnob {20 solve l "Camera Solve"}
+ addUserKnob {6 use_known_focal l "I know the focal length" t "Use a measured focal length instead of solving one from the vanishing points. The vanishing points then only set the orientation." +STARTLINE}
+ addUserKnob {7 known_focal l "focal (mm)" t "Focal length from the camera report or lens metadata." R 4 300}
+ known_focal 35
+ addUserKnob {7 filmback l "film back (mm)" t "Horizontal sensor size. Needed to turn millimetres into pixels. Nuke's default 35mm Academy is 24.576." R 4 70}
+ filmback 24.576
+ addUserKnob {26 dsolve l "" +STARTLINE}
+ addUserKnob {26 tsolve l result}
+ addUserKnob {7 cam_focal l "focal (mm)" +DISABLED}
+ cam_focal {{"_f * sqrt(pow(cam.haperture,2)+pow(cam.vaperture,2)) / max(sqrt(width*width + height*height),1e-6)"}}
+ addUserKnob {7 cam_rx l "rotate X" +DISABLED}
+ cam_rx {{_rx}}
+ addUserKnob {7 cam_ry l "rotate Y" +DISABLED}
+ cam_ry {{_ry}}
+ addUserKnob {7 cam_rz l "rotate Z" +DISABLED}
+ cam_rz {{_rz}}
+ addUserKnob {26 d3 l "" +STARTLINE}
+ addUserKnob {22 export_cam l "export camera" t "Put a copy of the solved camera in the node graph. It stays linked to this node, and carries a 'bake values' button to freeze it." -STARTLINE T "import dhPersp\ndhPersp.export_camera(nuke.thisNode())"}
+ addUserKnob {7 _dx +INVISIBLE}
+ _dx {{"vp2.x - vp1.x"}}
+ addUserKnob {7 _dy +INVISIBLE}
+ _dy {{"vp2.y - vp1.y"}}
+ addUserKnob {7 _t +INVISIBLE}
+ _t {{"((width/2 - vp1.x)*_dx + (height/2 - vp1.y)*_dy) / (max(_dx*_dx + _dy*_dy, 1e-9))"}}
+ addUserKnob {7 _vix +INVISIBLE}
+ _vix {{"vp1.x + _t*_dx"}}
+ addUserKnob {7 _viy +INVISIBLE}
+ _viy {{"vp1.y + _t*_dy"}}
+ addUserKnob {7 _v1 +INVISIBLE}
+ _v1 {{"sqrt(pow(_vix-vp1.x,2) + pow(_viy-vp1.y,2))"}}
+ addUserKnob {7 _v2 +INVISIBLE}
+ _v2 {{"sqrt(pow(_vix-vp2.x,2) + pow(_viy-vp2.y,2))"}}
+ addUserKnob {7 _oivi +INVISIBLE}
+ _oivi {{"sqrt(pow(width/2-_vix,2) + pow(height/2-_viy,2))"}}
+ addUserKnob {7 _va +INVISIBLE}
+ _va {{"filmback * height / max(width,1e-6)"}}
+ addUserKnob {7 _fknown +INVISIBLE}
+ _fknown {{"known_focal * sqrt(width*width + height*height) / max(sqrt(filmback*filmback + _va*_va),1e-6)"}}
+ addUserKnob {7 _fsolved +INVISIBLE}
+ _fsolved {{"sqrt(max(_v1*_v2 - _oivi*_oivi, 1e-6))"}}
+ addUserKnob {7 _f +INVISIBLE}
+ _f {{"(use_known_focal ? _fknown : _fsolved)"}}
+ addUserKnob {7 _rx +INVISIBLE}
+ _rx {{"atan((height/2 - _viy)/_f)*180/3.14159265358979"}}
+ addUserKnob {7 _ry +INVISIBLE}
+ _ry {{"atan((swap_solution ? max(_v1,_v2) : min(_v1,_v2))/_f)*180/3.14159265358979"}}
+ addUserKnob {7 _rz +INVISIBLE}
+ _rz {{"(abs(_dx) > 1e-9 ? -atan(_dy/_dx)*180/3.14159265358979 : 0)"}}
+}
+ Input {
+  inputs 0
+  name Input1
+ }
+set Ncc0d8000 [stack 0]
+ Camera {
+  inputs 0
+  translate {0 1 0}
+  rotate {{parent._rx} {parent._ry} {parent._rz}}
+  focal {{"parent._f * sqrt(pow(haperture,2)+pow(vaperture,2)) / max(sqrt(parent.width*parent.width + parent.height*parent.height),1e-6)"}}
+  haperture {{parent.filmback}}
+  vaperture {{parent._va}}
+  name cam
+ }
+ Card {
+  inputs 0
+  display wireframe
+  render_mode wireframe
+  orientation ZX
+  rows {{parent.rows}}
+  columns {{parent.rows}}
+  translate {{parent.gridoffset.x} {parent.gridoffset.y} {parent.gridoffset.z}}
+  uniform_scale {{parent.gridsize}}
+  name floorgrid
+ }
+push $Ncc0d8000
+ ScanlineRender {
+  inputs 3
+  antialiasing low
+  name render3d
+ }
+ Switch {
+  inputs 2
+  which {{!parent.show_floor}}
+  name floor_onoff
+ }
+ Expression {
+  temp_name0 hz
+  temp_expr0 "(parent.show_horizon ? clamp((parent.horizonwidth/2 + 0.5) - (abs((parent.vp2.y-parent.vp1.y)*(x-parent.vp1.x) - (parent.vp2.x-parent.vp1.x)*(y-parent.vp1.y))/max(sqrt((parent.vp2.y-parent.vp1.y)*(parent.vp2.y-parent.vp1.y) + (parent.vp2.x-parent.vp1.x)*(parent.vp2.x-parent.vp1.x)),1e-6)),0,1) : 0) * parent.horizoncolor.a"
+  expr0 "parent.horizoncolor.r*hz + r*(1-hz)"
+  expr1 "parent.horizoncolor.g*hz + g*(1-hz)"
+  expr2 "parent.horizoncolor.b*hz + b*(1-hz)"
+  expr3 "max(hz, a)"
+  name horizon_line
+ }
+ Output {
+  name Output1
+ }
+end_group

@@ -1,0 +1,111 @@
+version 17.0 v1
+Group {
+ name dhPerspGuide
+ onCreate "try:\n    import dhPersp\n    dhPersp.sync_lines(nuke.thisNode())\nexcept Exception:\n    pass"
+ addUserKnob {20 main l PerspLines}
+ addUserKnob {19 linecolor l color}
+ linecolor {1 0 0 1}
+ addUserKnob {22 setR l R -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[1, 0, 0, 1])"}
+ addUserKnob {22 setG l G -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[0, 1, 0, 1])"}
+ addUserKnob {22 setB l B -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[0, 0, 1, 1])"}
+ addUserKnob {7 opacity}
+ opacity 1
+ addUserKnob {7 linewidth l "line width" R 0.5 10}
+ linewidth 2
+ addUserKnob {6 lines_only l "output lines only" +STARTLINE}
+ addUserKnob {26 d1 l "" +STARTLINE}
+ addUserKnob {26 l1 l "line 1"}
+ addUserKnob {12 p1a l "point A"}
+ addUserKnob {12 p1b l "point B"}
+ p1b {682 518}
+ addUserKnob {26 l2 l "line 2"}
+ addUserKnob {12 p2a l "point A"}
+ p2a {1365 518}
+ addUserKnob {12 p2b l "point B"}
+ p2b {2048 0}
+ addUserKnob {26 d2 l "" +STARTLINE}
+ addUserKnob {12 vp l "vanishing point" t "Computed from line 1 and line 2. PerspHorizon links to this." +DISABLED}
+ vp {{"(p1a.x + (((p2a.x-p1a.x)*(p2b.y-p2a.y) - (p2a.y-p1a.y)*(p2b.x-p2a.x))/(abs(((p1b.x-p1a.x)*(p2b.y-p2a.y) - (p1b.y-p1a.y)*(p2b.x-p2a.x)))<1e-9 ? 1e-9 : ((p1b.x-p1a.x)*(p2b.y-p2a.y) - (p1b.y-p1a.y)*(p2b.x-p2a.x))))*(p1b.x-p1a.x))"} {"(p1a.y + (((p2a.x-p1a.x)*(p2b.y-p2a.y) - (p2a.y-p1a.y)*(p2b.x-p2a.x))/(abs(((p1b.x-p1a.x)*(p2b.y-p2a.y) - (p1b.y-p1a.y)*(p2b.x-p2a.x)))<1e-9 ? 1e-9 : ((p1b.x-p1a.x)*(p2b.y-p2a.y) - (p1b.y-p1a.y)*(p2b.x-p2a.x))))*(p1b.y-p1a.y))"}}
+ addUserKnob {26 d3 l "" +STARTLINE}
+ addUserKnob {26 l3 l "additional lines"}
+ addUserKnob {22 addline l "add line" t "Add a guide line running from the vanishing point through a new point. Up to 12." -STARTLINE T "import dhPersp\ndhPersp.add_line(nuke.thisNode())"}
+ addUserKnob {22 clearlines l "clear all" -STARTLINE T "import dhPersp\ndhPersp.clear_lines(nuke.thisNode())"}
+ addUserKnob {6 use_add1 l "" -STARTLINE}
+ addUserKnob {12 add1 l "line 1"}
+ add1 {1024 400}
+ addUserKnob {22 del1 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(1, nuke.thisNode())"}
+ addUserKnob {6 use_add2 l "" -STARTLINE}
+ addUserKnob {12 add2 l "line 2"}
+ add2 {1024 400}
+ addUserKnob {22 del2 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(2, nuke.thisNode())"}
+ addUserKnob {6 use_add3 l "" -STARTLINE}
+ addUserKnob {12 add3 l "line 3"}
+ add3 {1024 400}
+ addUserKnob {22 del3 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(3, nuke.thisNode())"}
+ addUserKnob {6 use_add4 l "" -STARTLINE}
+ addUserKnob {12 add4 l "line 4"}
+ add4 {1024 400}
+ addUserKnob {22 del4 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(4, nuke.thisNode())"}
+ addUserKnob {6 use_add5 l "" -STARTLINE}
+ addUserKnob {12 add5 l "line 5"}
+ add5 {1024 400}
+ addUserKnob {22 del5 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(5, nuke.thisNode())"}
+ addUserKnob {6 use_add6 l "" -STARTLINE}
+ addUserKnob {12 add6 l "line 6"}
+ add6 {1024 400}
+ addUserKnob {22 del6 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(6, nuke.thisNode())"}
+ addUserKnob {6 use_add7 l "" -STARTLINE}
+ addUserKnob {12 add7 l "line 7"}
+ add7 {1024 400}
+ addUserKnob {22 del7 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(7, nuke.thisNode())"}
+ addUserKnob {6 use_add8 l "" -STARTLINE}
+ addUserKnob {12 add8 l "line 8"}
+ add8 {1024 400}
+ addUserKnob {22 del8 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(8, nuke.thisNode())"}
+ addUserKnob {6 use_add9 l "" -STARTLINE}
+ addUserKnob {12 add9 l "line 9"}
+ add9 {1024 400}
+ addUserKnob {22 del9 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(9, nuke.thisNode())"}
+ addUserKnob {6 use_add10 l "" -STARTLINE}
+ addUserKnob {12 add10 l "line 10"}
+ add10 {1024 400}
+ addUserKnob {22 del10 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(10, nuke.thisNode())"}
+ addUserKnob {6 use_add11 l "" -STARTLINE}
+ addUserKnob {12 add11 l "line 11"}
+ add11 {1024 400}
+ addUserKnob {22 del11 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(11, nuke.thisNode())"}
+ addUserKnob {6 use_add12 l "" -STARTLINE}
+ addUserKnob {12 add12 l "line 12"}
+ add12 {1024 400}
+ addUserKnob {22 del12 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(12, nuke.thisNode())"}
+}
+ Input {
+  inputs 0
+  name Input1
+ }
+set N4a9c8000 [stack 0]
+ Expression {
+  temp_name0 cov
+  temp_expr0 "(max(max(max(max(max(max(max(max(max(max(max(max(max(clamp((parent.linewidth/2 + 0.5) - (abs((parent.p1b.y-parent.p1a.y)*(x-parent.p1a.x) - (parent.p1b.x-parent.p1a.x)*(y-parent.p1a.y))/max(sqrt((parent.p1b.y-parent.p1a.y)*(parent.p1b.y-parent.p1a.y) + (parent.p1b.x-parent.p1a.x)*(parent.p1b.x-parent.p1a.x)),1e-6)),0,1),clamp((parent.linewidth/2 + 0.5) - (abs((parent.p2b.y-parent.p2a.y)*(x-parent.p2a.x) - (parent.p2b.x-parent.p2a.x)*(y-parent.p2a.y))/max(sqrt((parent.p2b.y-parent.p2a.y)*(parent.p2b.y-parent.p2a.y) + (parent.p2b.x-parent.p2a.x)*(parent.p2b.x-parent.p2a.x)),1e-6)),0,1)),(parent.use_add1 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.vp.y)*(x-parent.vp.x) - (parent.add1.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add1.y-parent.vp.y)*(parent.add1.y-parent.vp.y) + (parent.add1.x-parent.vp.x)*(parent.add1.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add2 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.vp.y)*(x-parent.vp.x) - (parent.add2.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add2.y-parent.vp.y)*(parent.add2.y-parent.vp.y) + (parent.add2.x-parent.vp.x)*(parent.add2.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add3 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.vp.y)*(x-parent.vp.x) - (parent.add3.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add3.y-parent.vp.y)*(parent.add3.y-parent.vp.y) + (parent.add3.x-parent.vp.x)*(parent.add3.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add4 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.vp.y)*(x-parent.vp.x) - (parent.add4.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add4.y-parent.vp.y)*(parent.add4.y-parent.vp.y) + (parent.add4.x-parent.vp.x)*(parent.add4.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add5 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.vp.y)*(x-parent.vp.x) - (parent.add5.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add5.y-parent.vp.y)*(parent.add5.y-parent.vp.y) + (parent.add5.x-parent.vp.x)*(parent.add5.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add6 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.vp.y)*(x-parent.vp.x) - (parent.add6.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add6.y-parent.vp.y)*(parent.add6.y-parent.vp.y) + (parent.add6.x-parent.vp.x)*(parent.add6.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add7 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.vp.y)*(x-parent.vp.x) - (parent.add7.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add7.y-parent.vp.y)*(parent.add7.y-parent.vp.y) + (parent.add7.x-parent.vp.x)*(parent.add7.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add8 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.vp.y)*(x-parent.vp.x) - (parent.add8.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add8.y-parent.vp.y)*(parent.add8.y-parent.vp.y) + (parent.add8.x-parent.vp.x)*(parent.add8.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.vp.y)*(x-parent.vp.x) - (parent.add9.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add9.y-parent.vp.y)*(parent.add9.y-parent.vp.y) + (parent.add9.x-parent.vp.x)*(parent.add9.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add10 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.vp.y)*(x-parent.vp.x) - (parent.add10.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add10.y-parent.vp.y)*(parent.add10.y-parent.vp.y) + (parent.add10.x-parent.vp.x)*(parent.add10.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add11 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.vp.y)*(x-parent.vp.x) - (parent.add11.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add11.y-parent.vp.y)*(parent.add11.y-parent.vp.y) + (parent.add11.x-parent.vp.x)*(parent.add11.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add12 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.vp.y)*(x-parent.vp.x) - (parent.add12.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add12.y-parent.vp.y)*(parent.add12.y-parent.vp.y) + (parent.add12.x-parent.vp.x)*(parent.add12.x-parent.vp.x)),1e-6)),0,1) : 0))) * parent.opacity * parent.linecolor.a"
+  expr0 "parent.linecolor.r * cov"
+  expr1 "parent.linecolor.g * cov"
+  expr2 "parent.linecolor.b * cov"
+  expr3 cov
+  name lines
+ }
+set N4a9ce000 [stack 0]
+push $N4a9ce000
+push $N4a9c8000
+ Merge2 {
+  inputs 2
+  name overlay
+ }
+ Switch {
+  inputs 2
+  which {{parent.lines_only}}
+  name outmode
+ }
+ Output {
+  name Output1
+ }
+end_group
