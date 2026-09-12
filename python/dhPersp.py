@@ -1,15 +1,34 @@
 """Helpers for the dhPerspGuide / dhPerspSolve tools.
 
-Perspective toolkit by David Hochstadter. The camera maths originates in
-Den Gheiko's dg_PerspLines. The camera maths is his, with the
-ViV2 typo corrected (it used V1[1] for its second coordinate) and the Python 2
-print statements converted.
+Perspective toolkit by David Hochstadter.
+
+The camera solve originates in Den Gheiko's dg_PerspLines, with three corrections:
+the ViV2 typo (it used V1[1] for its second coordinate), the Python 2 print
+statements, and the division by 1/K that failed on a level horizon.
 
 Lives in ~/.nuke/python, which init.py puts on the plugin path, so these names
 resolve in both GUI and -t sessions.
 """
 import nuke
-from math import sqrt, atan, pi as PI
+from math import sqrt, atan, hypot, pi as PI
+
+# Nodes currently being updated by our own knobChanged handler. Dragging the
+# vanishing point rewrites the points, which fires knobChanged again, which would
+# rewrite the handle, which fires again. This breaks that loop.
+_BUSY = set()
+
+
+class _Busy(object):
+    def __init__(self, node):
+        self.key = node.fullName()
+
+    def __enter__(self):
+        _BUSY.add(self.key)
+        return self
+
+    def __exit__(self, *a):
+        _BUSY.discard(self.key)
+        return False
 
 CLASS = "dhPerspGuide"
 
@@ -58,6 +77,122 @@ def sync_lines(node, refresh=False):
         use.setVisible(False)
     if refresh:
         _refresh_panel(node)
+
+
+def node_format(node):
+    """Working width/height for a node.
+
+    node.width() already resolves to the connected input's format, and falls back
+    to the project format when nothing is connected, so this covers all three
+    cases: attached image, selected Read (which auto-connects), or project setting.
+    """
+    w = float(node.width() or 0)
+    h = float(node.height() or 0)
+    if w < 1 or h < 1:
+        r = nuke.root()
+        w, h = float(r.width()), float(r.height())
+    return w, h
+
+
+def fit_to_format(node=None, quiet=True):
+    """Place the guide points against the actual format instead of 2048x1556.
+
+    Proportions match the original tool: line 1 from the bottom-left corner to a
+    third in, line 2 mirrored to the bottom-right corner.
+    """
+    node = node or nuke.thisNode()
+    w, h = node_format(node)
+    node["p1a"].setValue([0.0, 0.0])
+    node["p1b"].setValue([w / 3.0, h / 3.0])
+    node["p2a"].setValue([2.0 * w / 3.0, h / 3.0])
+    node["p2b"].setValue([w, 0.0])
+    for slot, i in enumerate(active_lines(node)):
+        frac = 0.12 + 0.76 * (slot / float(max(MAX_LINES - 1, 1)))
+        node["add%d" % i].setValue([w * frac, h * 0.15])
+    if "_fitted" in node.knobs():
+        node["_fitted"].setValue(True)
+    if not quiet:
+        nuke.message("Guide points fitted to %dx%d." % (int(w), int(h)))
+    return w, h
+
+
+def on_create(node=None):
+    """Node creation and script load.
+
+    Fits to whatever format is visible now, but does NOT set _fitted: at creation
+    time the node is not connected yet, so width() can only report the project
+    format. The real fit happens on the first inputChange.
+    """
+    node = node or nuke.thisNode()
+    fitted = node.knobs().get("_fitted")
+    if fitted is not None and not fitted.value():
+        fit_to_format(node)
+        fitted.setValue(False)          # still provisional
+    sync_lines(node)
+
+
+ANCHORED = (("p1a", "p1b"), ("p2a", "p2b"))
+VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infinity
+
+
+def sync_vp_handle(node):
+    """Mirror the computed vp onto the draggable handle."""
+    if "vp_drag" not in node.knobs():
+        return
+    v = node["vp"].value()
+    if abs(v[0]) > VP_LIMIT or abs(v[1]) > VP_LIMIT:
+        return          # parallel lines: nothing finite to point at, leave the handle
+    node["vp_drag"].setValue([float(v[0]), float(v[1])])
+
+
+def drag_vp(node):
+    """Swing each line about its anchor so both pass through the dragged point.
+
+    The anchors p1a and p2a hold still because those are the ones you place on a
+    real feature in the plate. Each far point keeps its distance from its anchor,
+    so the handles stay where you can grab them.
+    """
+    v = node["vp_drag"].value()
+    for anchor, far in ANCHORED:
+        A = node[anchor].value()
+        B = node[far].value()
+        dx, dy = v[0] - A[0], v[1] - A[1]
+        d = hypot(dx, dy)
+        if d < 1e-6:
+            continue                     # handle sitting on the anchor, nothing to aim at
+        L = hypot(B[0] - A[0], B[1] - A[1]) or d
+        node[far].setValue([A[0] + dx / d * L, A[1] + dy / d * L])
+
+
+def on_knob_changed(node=None, knob=None):
+    """Input connection, and the draggable vanishing point."""
+    node = node or nuke.thisNode()
+    knob = knob or nuke.thisKnob()
+    if knob is None or node.fullName() in _BUSY:
+        return
+    name = knob.name()
+
+    if name == "inputChange":
+        fitted = node.knobs().get("_fitted")
+        if fitted is None or fitted.value() or node.input(0) is None:
+            return
+        if "vp1" in node.knobs():
+            if not node["vp1"].hasExpression(0):
+                fit_solve_to_format(node)
+        else:
+            fit_to_format(node)          # sets _fitted
+            with _Busy(node):
+                sync_vp_handle(node)
+        return
+
+    if name == "vp_drag":
+        with _Busy(node):
+            drag_vp(node)
+        return
+
+    if name in ("p1a", "p1b", "p2a", "p2b"):
+        with _Busy(node):
+            sync_vp_handle(node)
 
 
 def active_lines(node):
@@ -127,11 +262,7 @@ def _selected_persplines(n=2):
 
 
 def horizon():
-    """Create a PerspHorizon linked to the vanishing points of two PerspLines.
-
-    Also seeds the floor plane, so the grid lands somewhere usable instead of on
-    defaults that have nothing to do with this shot.
-    """
+    """Create a dhPerspSolve linked to the vanishing points of two dhPerspGuides."""
     nodes = _selected_persplines(2)
     if not nodes:
         return
@@ -142,16 +273,9 @@ def horizon():
     h["vp1"].setExpression(a.name() + ".vp.y", 1)
     h["vp2"].setExpression(b.name() + ".vp.x", 0)
     h["vp2"].setExpression(b.name() + ".vp.y", 1)
-
-    w, ht = float(a.width() or 2048), float(a.height() or 1556)
-    ox, oy = w * 0.5, ht * 0.18
-    h["origin"].setValue([ox, oy])
-    v1 = h["vp1"].value()
-    v2 = h["vp2"].value()
-    # one grid step = 18% of the way to each vanishing point: near enough to read,
-    # far enough that the foreshortening is visible
-    h["unit1"].setValue([ox + 0.18 * (v1[0] - ox), oy + 0.18 * (v1[1] - oy)])
-    h["unit2"].setValue([ox + 0.18 * (v2[0] - ox), oy + 0.18 * (v2[1] - oy)])
+    # linked now, so never auto-fit these on top of the link
+    if "_fitted" in h.knobs():
+        h["_fitted"].setValue(True)
     return h
 
 
@@ -352,3 +476,25 @@ def floor_3d(rows=20, size=40.0):
         "If the grid does not lie flat on the floor of the plate, press "
         "'swap' on the camera's alternate tab, or nudge the PerspLines points.")
     return cam, card, sr
+
+def fit_solve_to_format(node=None, quiet=True):
+    """Place dhPerspSolve's default vanishing points against the actual format."""
+    node = node or nuke.thisNode()
+    w, h = node_format(node)
+    node["vp1"].setValue([-0.30 * w, 0.58 * h])
+    node["vp2"].setValue([1.30 * w, 0.58 * h])
+    if "_fitted" in node.knobs():
+        node["_fitted"].setValue(True)
+    if not quiet:
+        nuke.message("Vanishing points fitted to %dx%d." % (int(w), int(h)))
+    return w, h
+
+
+def on_create_solve(node=None):
+    """Fit once on creation; never move points the user has already set."""
+    node = node or nuke.thisNode()
+    fitted = node.knobs().get("_fitted")
+    if fitted is not None and not fitted.value():
+        # only fit if the vp knobs are not already driven by a dhPerspGuide
+        if not node["vp1"].hasExpression(0):
+            fit_solve_to_format(node)

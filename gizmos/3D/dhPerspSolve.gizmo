@@ -1,6 +1,8 @@
 version 17.0 v1
 Group {
  name dhPerspSolve
+ onCreate "try:\n    import dhPersp\n    dhPersp.on_create_solve(nuke.thisNode())\nexcept Exception:\n    pass"
+ knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
@@ -42,6 +44,8 @@ Group {
  cam_rz {{_rz}}
  addUserKnob {26 d3 l "" +STARTLINE}
  addUserKnob {22 export_cam l "export camera" t "Put a copy of the solved camera in the node graph. It stays linked to this node, and carries a 'bake values' button to freeze it." -STARTLINE T "import dhPersp\ndhPersp.export_camera(nuke.thisNode())"}
+ addUserKnob {6 _fitted l "" -STARTLINE +INVISIBLE}
+ addUserKnob {22 fitformat l "fit to format" t "Re-place the vanishing points against the current format." -STARTLINE T "import dhPersp\ndhPersp.fit_solve_to_format(nuke.thisNode(), quiet=False)"}
  addUserKnob {7 _dx +INVISIBLE}
  _dx {{"vp2.x - vp1.x"}}
  addUserKnob {7 _dy +INVISIBLE}
@@ -77,7 +81,7 @@ Group {
   inputs 0
   name Input1
  }
-set Ncc0d8000 [stack 0]
+set Nd8908000 [stack 0]
  Camera {
   inputs 0
   translate {0 1 0}
@@ -98,7 +102,7 @@ set Ncc0d8000 [stack 0]
   uniform_scale {{parent.gridsize}}
   name floorgrid
  }
-push $Ncc0d8000
+push $Nd8908000
  ScanlineRender {
   inputs 3
   antialiasing low
