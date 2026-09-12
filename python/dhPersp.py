@@ -46,17 +46,15 @@ def _slot_knobs(node, i):
 
 
 def _refresh_panel(node):
-    """Force an open properties panel to rebuild after visibility changes.
+    """No-op.
 
-    Nuke does not always redraw the panel when knob visibility changes under it,
-    which shows up as 'I pressed add line and nothing appeared'.
+    This used to hide and re-show the properties panel to force a rebuild, which
+    was needed while the slot knobs carried +INVISIBLE in the gizmo file and never
+    got a widget built. They are created visible now and hidden at load instead,
+    so setVisible updates live and the forced rebuild only closed the panel under
+    the user mid-click.
     """
-    try:
-        if node.shown():
-            node.hideControlPanel()
-            node.showControlPanel()
-    except Exception:
-        pass
+    return
 
 
 def sync_lines(node, refresh=False):
