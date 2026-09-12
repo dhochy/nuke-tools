@@ -274,7 +274,29 @@ def horizon():
     # linked now, so never auto-fit these on top of the link
     if "_fitted" in h.knobs():
         h["_fitted"].setValue(True)
+    set_link_label(h)
     return h
+
+
+def set_link_label(node):
+    """Say which guide drives which vanishing point.
+
+    nuke.selectedNodes() does not return click order, so which guide lands on vp1
+    is effectively arbitrary. Showing it removes the 'I moved one and nothing
+    happened' confusion.
+    """
+    k = node.knobs().get("linked_to")
+    if k is None:
+        return
+    parts = []
+    for name in ("vp1", "vp2"):
+        kn = node[name]
+        if kn.hasExpression(0):
+            src = kn.animation(0).expression().split(".")[0]
+            parts.append("%s &larr; %s" % (name, src))
+        else:
+            parts.append("%s: not linked" % name)
+    k.setValue("   ".join(parts))
 
 
 def align_camera():
@@ -366,10 +388,21 @@ def export_camera(node=None):
         nuke.message("No solved camera inside this node.")
         return
 
-    cam = nuke.nodes.Camera2() if "Camera2" in dir(nuke.nodes) else nuke.nodes.Camera()
-    cam.setName("dhPerspCamera")
-    cam.setXYpos(node.xpos() + 160, node.ypos())
-    cam["tile_color"].setValue(884320767)
+    # A button on a Group fires with that Group as the current context, so a plain
+    # nuke.nodes.Camera() would be created INSIDE the gizmo. Force root.
+    root = nuke.root()
+    root.begin()
+    try:
+        cam = nuke.nodes.Camera2() if "Camera2" in dir(nuke.nodes) else nuke.nodes.Camera()
+        cam.setName("dhPerspCamera")
+        cam.setXYpos(node.xpos() + 160, node.ypos())
+        cam["tile_color"].setValue(884320767)
+    finally:
+        root.end()
+
+    if "." in cam.fullName():
+        nuke.message("Could not place the camera in the main node graph.\n"
+                     "It ended up at: " + cam.fullName())
 
     n = node.name()
     cam["focal"].setExpression("%s.cam_focal" % n)

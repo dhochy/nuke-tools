@@ -12,10 +12,11 @@ Group {
  horizonwidth 2
  addUserKnob {26 d0 l "" +STARTLINE}
  addUserKnob {26 t1 l "vanishing points"}
- addUserKnob {12 vp1 l "vp 1" t "Expression-linked to a PerspLines vp knob by the menu command."}
+ addUserKnob {12 vp1 l "vp 1" t "Expression-linked to a dhPerspGuide vp knob by the menu command."}
  vp1 {-600 900}
  addUserKnob {12 vp2 l "vp 2"}
  vp2 {2600 900}
+ addUserKnob {26 linked_to l "" t "Which dhPerspGuide drives each vanishing point. Selection order is not click order, so check here before wondering why moving a guide did nothing." +STARTLINE T "vp1: not linked   vp2: not linked"}
  addUserKnob {20 floor l "3D Floor"}
  addUserKnob {6 show_floor l "show 3D floor" -STARTLINE}
  show_floor true
@@ -81,7 +82,7 @@ Group {
   inputs 0
   name Input1
  }
-set Nd8908000 [stack 0]
+set Nccc58000 [stack 0]
  Camera {
   inputs 0
   translate {0 1 0}
@@ -98,11 +99,11 @@ set Nd8908000 [stack 0]
   orientation ZX
   rows {{parent.rows}}
   columns {{parent.rows}}
-  translate {{parent.gridoffset.x} {parent.gridoffset.y} {parent.gridoffset.z}}
+  translate {{"parent.gridoffset.x - sin((parent.cam_ry*3.14159265358979/180))*parent.gridsize/2"} {parent.gridoffset.y} {"parent.gridoffset.z - cos((parent.cam_ry*3.14159265358979/180))*parent.gridsize/2"}}
   uniform_scale {{parent.gridsize}}
   name floorgrid
  }
-push $Nd8908000
+push $Nccc58000
  ScanlineRender {
   inputs 3
   antialiasing low
