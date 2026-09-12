@@ -16,12 +16,18 @@ Group {
  vp1 {-600 900}
  addUserKnob {12 vp2 l "vp 2"}
  vp2 {2600 900}
- addUserKnob {26 linked_to l "" t "Which dhPerspGuide drives each vanishing point. Selection order is not click order, so check here before wondering why moving a guide did nothing." +STARTLINE T "vp1: not linked   vp2: not linked"}
+ addUserKnob {26 linked_to l "" t "Which dhPerspGuide drives each vanishing point. Selection order is not click order, so check here before wondering why moving a guide did nothing." +STARTLINE T "vp1: set by hand   vp2: set by hand"}
+ addUserKnob {22 link_guides l "link to selected guides" t "Select two dhPerspGuide nodes in the node graph, then press this. Same as Tools > Perspective > Horizon, without leaving the node." T "import dhPersp\ndhPersp.link_guides(nuke.thisNode())" +STARTLINE}
+ addUserKnob {22 unlink_guides l unlink t "Keep the current vanishing points as plain numbers and stop following the guides." -STARTLINE T "import dhPersp\ndhPersp.unlink_guides(nuke.thisNode())"}
  addUserKnob {20 floor l "3D Floor"}
  addUserKnob {6 show_floor l "show 3D floor" -STARTLINE}
  show_floor true
- addUserKnob {3 rows l "grid divisions" R 2 60}
- rows 20
+ addUserKnob {19 gridcolor l color}
+ gridcolor {1 0.65 0.1 1}
+ addUserKnob {7 gridwidth l "line width" t "Thickness of the wireframe in pixels. The 3D renderer draws hairlines, so this thickens them afterwards." R 1 6}
+ gridwidth 1
+ addUserKnob {7 cellsize l "cell size" t "Size of one floor tile in world units. Held constant as the plane grows, so existing lines do not move when you change the grid size." R 0.25 20}
+ cellsize 2
  addUserKnob {7 gridsize l "grid size" R 1 200}
  gridsize 40
  addUserKnob {13 gridoffset l "grid offset" t "Slide the grid along the ground plane to line it up with the floor in the plate."}
@@ -82,7 +88,7 @@ Group {
   inputs 0
   name Input1
  }
-set N51728000 [stack 0]
+set Nd0bc8000 [stack 0]
  Camera {
   inputs 0
   translate {0 1 0}
@@ -97,17 +103,30 @@ set N51728000 [stack 0]
   display wireframe
   render_mode wireframe
   orientation ZX
-  rows {{parent.rows}}
-  columns {{parent.rows}}
+  rows {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
+  columns {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
   translate {{"parent.gridoffset.x - sin((parent.cam_ry*3.14159265358979/180))*parent.gridsize/2"} {parent.gridoffset.y} {"parent.gridoffset.z - cos((parent.cam_ry*3.14159265358979/180))*parent.gridsize/2"}}
   uniform_scale {{parent.gridsize}}
   name floorgrid
  }
-push $N51728000
+push 0
  ScanlineRender {
   inputs 3
-  antialiasing low
+  antialiasing high
   name render3d
+ }
+ Dilate {
+  size {{"parent.gridwidth - 1"}}
+  name linewidth
+ }
+ Multiply {
+  value {{parent.gridcolor.r} {parent.gridcolor.g} {parent.gridcolor.b} {parent.gridcolor.a}}
+  name gridtint
+ }
+push $Nd0bc8000
+ Merge2 {
+  inputs 2
+  name overlay
  }
  Switch {
   inputs 2

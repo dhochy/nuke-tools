@@ -166,7 +166,13 @@ def on_create(node=None):
     fitted = node.knobs().get("_fitted")
     if fitted is not None and not fitted.value():
         fit_to_format(node)
-        fitted.setValue(False)          # still provisional
+        # Created with a Read selected? Nuke connects during creation, so the
+        # format we just read is the real one and there may be no inputChange
+        # coming. Only stay provisional when nothing is attached yet.
+        if node.input(0) is None:
+            fitted.setValue(False)
+        with _Busy(node):
+            sync_vp_handle(node)
     sync_lines(node)
 
 
@@ -355,8 +361,11 @@ def set_link_label(node):
             src = kn.animation(0).expression().split(".")[0]
             parts.append("%s &larr; %s" % (name, src))
         else:
-            parts.append("%s: not linked" % name)
-    k.setValue("   ".join(parts))
+            parts.append("%s: set by hand" % name)
+    label = "   ".join(parts)
+    if not any("&larr;" in p for p in parts):
+        label += "      (select two %s nodes and press 'link to selected guides')" % CLASS
+    k.setValue(label)
 
 
 def align_camera():
@@ -582,10 +591,61 @@ def fit_solve_to_format(node=None, quiet=True):
 
 
 def on_create_solve(node=None):
-    """Fit once on creation; never move points the user has already set."""
+    """Creation and script load.
+
+    Like the guide, this fits to whatever format is visible but leaves _fitted
+    False: at creation the node is not connected yet, so width() can only report
+    the project format. The real fit happens on the first inputChange.
+    """
     node = node or nuke.thisNode()
     fitted = node.knobs().get("_fitted")
     if fitted is not None and not fitted.value():
-        # only fit if the vp knobs are not already driven by a dhPerspGuide
         if not node["vp1"].hasExpression(0):
             fit_solve_to_format(node)
+            # created with a plate selected? then the format just read is real and
+            # no inputChange is coming, so stop treating the fit as provisional
+            if node.input(0) is None:
+                fitted.setValue(False)
+    set_link_label(node)
+
+
+def link_guides(node=None):
+    """Link this node's vanishing points to two selected dhPerspGuide nodes.
+
+    Same as the Tools > Perspective menu command, but reachable from the node
+    itself, which is where you are when you notice it says 'not linked'.
+    """
+    node = node or nuke.thisNode()
+    guides = [n for n in nuke.selectedNodes() if is_persplines(n)]
+    if len(guides) != 2:
+        nuke.message(
+            "Select exactly two %s nodes in the node graph, then press this "
+            "again.\n\nSelected %s guide%s.\n\nEach guide gives one vanishing "
+            "point, and two are needed to solve a camera."
+            % (CLASS, len(guides), "" if len(guides) == 1 else "s"))
+        return
+    a, b = guides
+    node["vp1"].setExpression(a.name() + ".vp.x", 0)
+    node["vp1"].setExpression(a.name() + ".vp.y", 1)
+    node["vp2"].setExpression(b.name() + ".vp.x", 0)
+    node["vp2"].setExpression(b.name() + ".vp.y", 1)
+    if "_fitted" in node.knobs():
+        node["_fitted"].setValue(True)
+    set_link_label(node)
+    return node
+
+
+def unlink_guides(node=None):
+    """Drop the links and keep the current vanishing points as plain values."""
+    node = node or nuke.thisNode()
+    for name in ("vp1", "vp2"):
+        k = node[name]
+        v = list(k.value())
+        for i in (0, 1):
+            try:
+                k.clearAnimated(i)
+            except Exception:
+                pass
+            k.setValue(float(v[i]), i)
+    set_link_label(node)
+    return node
