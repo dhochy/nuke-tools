@@ -99,7 +99,7 @@ Group {
   inputs 0
   name Input1
  }
-set Nd6b18000 [stack 0]
+set N5c2e8000 [stack 0]
  Camera {
   inputs 0
   translate {0 1 0}
@@ -116,11 +116,15 @@ set Nd6b18000 [stack 0]
   orientation ZX
   rows {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
   columns {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
-  translate {{"parent.gridoffset.x - sin((parent.cam_ry*3.14159265358979/180))*parent.griddistance"} {parent.gridoffset.y} {"parent.gridoffset.z - cos((parent.cam_ry*3.14159265358979/180))*parent.griddistance"}}
+  translate {{"parent.gridoffset.x - sin((parent.cam_ry*3.14159265358979/180))*max(parent.griddistance, parent.gridsize*0.708)"} {parent.gridoffset.y} {"parent.gridoffset.z - cos((parent.cam_ry*3.14159265358979/180))*max(parent.griddistance, parent.gridsize*0.708)"}}
   uniform_scale {{parent.gridsize}}
   name floorgrid
  }
-push 0
+push $N5c2e8000
+ Multiply {
+  value 0
+  name bgformat
+ }
  ScanlineRender {
   inputs 3
   antialiasing high
@@ -134,7 +138,7 @@ push 0
   value {{parent.gridcolor.r} {parent.gridcolor.g} {parent.gridcolor.b} {parent.gridcolor.a}}
   name gridtint
  }
-push $Nd6b18000
+push $N5c2e8000
  Merge2 {
   inputs 2
   name overlay
