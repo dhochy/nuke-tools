@@ -248,6 +248,17 @@ def on_create(node=None):
 ANCHORED = (("p1a", "p1b"), ("p2a", "p2b"))
 VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infinity
 
+# Bumped whenever the internals of either gizmo change. A Group carries its own
+# copy of those internals, so a node created before a fix keeps the old ones.
+BUILD = 5
+
+NL = chr(10)
+WARN_BLANK = (
+    "<br><b>Warning: %s is still at the default cross. Nothing has been placed "
+    "on it, so its vanishing point sits on the centre of frame and the solved "
+    "focal length is meaningless. Draw its two lines along real receding "
+    "edges.</b>")
+
 # Working units. A photograph carries no scale of its own, so one measured
 # length has to supply it, and camera height is the one a compositor knows.
 # Every other length on the node is then in the same unit.
@@ -369,11 +380,16 @@ def on_knob_changed(node=None, knob=None):
         return
     name = knob.name()
 
+    if name == "use_vertical":
+        set_axis_note(node)
+        return
     if name == "unit":
         convert_units(node)
         return
     if name in ("cellsize", "camera_height"):
         set_scale_note(node)
+    if name in ("autofit", "horizon_gap", "gridrows", "camera_height"):
+        maybe_fit_floor(node)
 
     if name == "inputChange":
         if node.input(0) is None:
@@ -528,6 +544,12 @@ def set_link_label(node):
     label = "   ".join(parts)
     if not any("&larr;" in p for p in parts):
         label += "      (select two %s nodes and press 'link to selected guides')" % CLASS
+    # An untouched guide's two lines cross at the exact centre of frame, which
+    # is the principal point, so its vanishing point lands there and the focal
+    # length collapses to nothing. Reporting that as a lens would be a lie.
+    blank = pristine_guides(node)
+    if blank:
+        label += (WARN_BLANK % ", ".join(blank))
     k.setValue(label)
 
 
@@ -619,6 +641,26 @@ def export_camera(node=None):
     if src is None:
         nuke.message("No solved camera inside this node.")
         return
+
+    blank = pristine_guides(node)
+    if blank:
+        msg = ("%s has not been placed. Its two lines are still at the "
+               "default cross, which meets at the exact centre of frame. A "
+               "vanishing point there makes the focal length collapse to "
+               "zero, so this camera would be meaningless."
+               % ", ".join(blank))
+        nuke.message(msg + NL + NL +
+                     "Draw both of its lines along real receding edges first.")
+        return
+    solved = node["cam_focal"].value()
+    if solved < 4.0 or solved > 400.0:
+        why = ("That usually means the two guides are not marking two "
+               "perpendicular sets of parallel edges, or one of them has "
+               "barely been moved.")
+        head = ("The solve gives %.2f mm, which is not a believable lens."
+                % solved)
+        if not nuke.ask(head + NL + NL + why + NL + NL + "Export anyway?"):
+            return
 
     # A button on a Group fires with that Group as the current context, so a plain
     # nuke.nodes.Camera() would be created INSIDE the gizmo. Force root.
@@ -807,14 +849,26 @@ def upstream_guides(node, limit=200):
     return found
 
 
-def _apply_link(node, a, b):
+def _apply_link(node, a, b, vert=None):
     node["vp1"].setExpression(a.name() + ".vp.x", 0)
     node["vp1"].setExpression(a.name() + ".vp.y", 1)
     node["vp2"].setExpression(b.name() + ".vp.x", 0)
     node["vp2"].setExpression(b.name() + ".vp.y", 1)
+    if "vp3" in node.knobs():
+        if vert is not None:
+            node["vp3"].setExpression(vert.name() + ".vp.x", 0)
+            node["vp3"].setExpression(vert.name() + ".vp.y", 1)
+            node["use_vertical"].setValue(True)
+        else:
+            for i in (0, 1):
+                if node["vp3"].hasExpression(i):
+                    node["vp3"].clearAnimated(i)
+            node["use_vertical"].setValue(False)
     if "_fitted" in node.knobs():
         node["_fitted"].setValue(True)
     set_link_label(node)
+    set_axis_note(node)
+    maybe_fit_floor(node)
     return node
 
 
@@ -822,10 +876,11 @@ def auto_link(node):
     """Link to the guides feeding this node, if there are exactly two."""
     if node["vp1"].hasExpression(0):
         return None                       # already linked, leave it alone
-    guides = upstream_guides(node)
-    if len(guides) != 2:
+    ground, vertical = split_guides(upstream_guides(node))
+    if len(ground) != 2:
         return None
-    return _apply_link(node, guides[0], guides[1])
+    return _apply_link(node, ground[0], ground[1],
+                       vertical[0] if vertical else None)
 
 
 def link_guides(node=None):
@@ -836,8 +891,12 @@ def link_guides(node=None):
     """
     node = node or nuke.thisNode()
     guides = [n for n in nuke.selectedNodes() if is_persplines(n)]
-    if len(guides) != 2:
+    if len(guides) < 2:
         guides = upstream_guides(node)
+    ground, vertical = split_guides(guides)
+    if len(ground) == 2 and vertical:
+        return _apply_link(node, ground[0], ground[1], vertical[0])
+    guides = ground
     if len(guides) != 2:
         nuke.message(
             "Need exactly two %s nodes, found %d.\n\n"
@@ -866,3 +925,286 @@ def unlink_guides(node=None):
             k.setValue(float(v[i]), i)
     set_link_label(node)
     return node
+
+
+def node_build(node):
+    k = node.knobs().get("_build")
+    try:
+        return int(k.value()) if k is not None else 0
+    except Exception:
+        return 0
+
+
+def stale_nodes():
+    """Every dhPersp node in the script that predates the current build."""
+    out = []
+    for n in nuke.allNodes(recurseGroups=True):
+        try:
+            nm = n.knobs().get("name")
+        except Exception:
+            continue
+        if not (is_persplines(n) or "vp1" in n.knobs() and "gridsize" in n.knobs()):
+            continue
+        if node_build(n) < BUILD:
+            out.append(n)
+    return out
+
+
+def _class_of(node):
+    if is_persplines(node):
+        return CLASS
+    if "gridsize" in node.knobs() and "vp1" in node.knobs():
+        return "dhPerspSolve"
+    return None
+
+
+def _user_knobs(node):
+    """Knob names the user can actually set, in panel order."""
+    skip = ("_build", "name", "xpos", "ypos", "selected", "help", "onCreate",
+            "knobChanged", "tile_color", "note_font", "label", "inputChange")
+    out = []
+    for k in node.knobs().values():
+        nm = k.name()
+        if nm in skip or nm.startswith("__"):
+            continue
+        if isinstance(k, (nuke.Tab_Knob, nuke.PyScript_Knob, nuke.Script_Knob)):
+            continue
+        if isinstance(k, nuke.Text_Knob) and not k.value():
+            continue
+        out.append(nm)
+    return out
+
+
+def update_nodes(nodes=None, quiet=False):
+    """Rebuild stale dhPersp nodes in place, keeping everything you have set.
+
+    These are Groups so the render farm can run them without the gizmo
+    installed, and the price of that is that an existing node keeps the
+    internals it was created with. This makes a fresh one, copies the user
+    knobs across (expressions included, so a linked solve stays linked),
+    reconnects it and puts it back where the old one was.
+    """
+    nodes = nodes if nodes is not None else stale_nodes()
+    nodes = [n for n in nodes if _class_of(n)]
+    if not nodes:
+        if not quiet:
+            nuke.message("Every dhPersp node is already at build %d." % BUILD)
+        return []
+
+    done, failed = [], []
+    with _UndoGroup("Update dhPersp nodes"):
+        for old in nodes:
+            cls = _class_of(old)
+            name = old.name()
+            xp, yp = old.xpos(), old.ypos()
+            ins = [(i, old.input(i)) for i in range(old.inputs())]
+            outs = []
+            for n in nuke.allNodes(recurseGroups=True):
+                for i in range(n.inputs()):
+                    if n.input(i) is old:
+                        outs.append((n, i))
+
+            # values first, so an expression can be restored over the top
+            keep = {}
+            for nm in _user_knobs(old):
+                k = old[nm]
+                try:
+                    expr = [k.animation(i) and None for i in range(0)]
+                except Exception:
+                    expr = None
+                entry = {"value": None, "exprs": {}}
+                try:
+                    entry["value"] = k.value()
+                except Exception:
+                    pass
+                try:
+                    for idx in range(k.arraySize() if hasattr(k, "arraySize") else 1):
+                        if k.hasExpression(idx):
+                            entry["exprs"][idx] = k.animation(idx).expression()
+                except Exception:
+                    pass
+                keep[nm] = entry
+
+            with _NoUndo():
+                for n in nuke.allNodes():
+                    n.setSelected(False)
+            try:
+                new = nuke.createNode(cls, inpanel=False)
+            except Exception as e:
+                failed.append("%s (%s)" % (name, e))
+                continue
+
+            for nm, entry in keep.items():
+                k = new.knobs().get(nm)
+                if k is None:
+                    continue
+                try:
+                    if entry["value"] is not None and not entry["exprs"]:
+                        k.setValue(entry["value"])
+                except Exception:
+                    pass
+                for idx, ex in entry["exprs"].items():
+                    try:
+                        k.setExpression(ex, idx)
+                    except Exception:
+                        pass
+
+            nuke.delete(old)
+            new.setName(name)
+            new.setXYpos(xp, yp)
+            for i, src in ins:
+                if src is not None:
+                    new.setInput(i, src)
+            for n, i in outs:
+                n.setInput(i, new)
+            done.append(name)
+
+    for n in nuke.allNodes():
+        n.setSelected(False)
+    if not quiet:
+        msg = "Updated %d node%s to build %d:\n  %s" % (
+            len(done), "" if len(done) == 1 else "s", BUILD, ", ".join(done))
+        if failed:
+            msg += "\n\nCould not update: " + ", ".join(failed)
+        nuke.message(msg)
+    return done
+
+
+def pristine_guides(node):
+    """Guides feeding this solve that are still at their default layout.
+
+    An untouched guide's two lines cross at the exact centre of frame, so its
+    vanishing point sits on the principal point and the focal length collapses.
+    """
+    bad = []
+    for g in upstream_guides(node):
+        if is_pristine(g):
+            bad.append(g.name())
+    return bad
+
+
+def fit_floor(node=None, quiet=True):
+    """Size and place the floor so it covers the frame and reaches the horizon.
+
+    A ground plane has no edges in shot. A card does, so the card has to be big
+    enough and far enough that its edges leave the frame and its far edge lands
+    on the horizon.
+
+    A ground point at horizontal distance d ahead of the camera projects about
+    f_px * height / d pixels below the horizon, so the distance that stops a
+    chosen few pixels short is f_px * height / gap. Spanning from behind the
+    camera out to there, and the same again sideways, covers everything the
+    frame can see.
+    """
+    node = node or nuke.thisNode()
+    if "gridsize" not in node.knobs():
+        return None
+    try:
+        f_px = float(node["_f"].value())
+        height = float(node["camera_height"].value())
+        gap = max(float(node["horizon_gap"].value()), 0.5)
+        cells = max(int(round(node["gridrows"].value())), 4)
+    except Exception:
+        return None
+    if f_px <= 1.0 or height <= 0.0:
+        if not quiet:
+            nuke.message("Nothing to fit yet: the solve has no usable focal "
+                         "length or the camera height is zero.")
+        return None
+
+    # How many pixels of ground there are between the horizon and the bottom of
+    # frame. That ratio, not the scene scale, decides everything: the nearest
+    # visible ground is f*h/hz away and the farthest is f*h/gap, so covering both
+    # with one uniform grid needs about 3*hz/gap cells. A Card caps at 400 rows,
+    # so the gap has to be opened up until the cell count fits, otherwise the
+    # cells grow larger than the whole near half of frame and nothing is drawn
+    # there at all.
+    try:
+        hz = 0.5 * (node["vp1"].value()[1] + node["vp2"].value()[1])
+    except Exception:
+        hz = node.height() * 0.75
+    hz = max(min(hz, node.height() * 4.0), 40.0)
+    cap = min(cells, 400)
+
+    # Cell size is set by the NEAR field, which is the half you judge alignment
+    # against. Aim for `near_cells` cells across the width of frame at the bottom.
+    # The ground there is f*h/hz away and the frame spans 2*d*(w/2)/f across it,
+    # so the cell that gives n cells across is simply (w/n) * (h/hz).
+    try:
+        want = max(float(node["near_cells"].value()), 1.0)
+    except Exception:
+        want = 6.0
+    cell = (node.width() / want) * (height / hz)
+
+    # Then reach as far as the 400 row ceiling allows at that cell size.
+    far = cap * cell / 3.0
+    gap = max(gap, f_px * height / max(far, 1e-9))
+    far = f_px * height / gap
+    cells = int(max(8, min(cap, round(3.0 * far / cell))))
+    # The card is axis aligned to world X and Z while the camera can be looking
+    # any which way, so its silhouette is a diamond. Pushing it forward leaves
+    # its near corner in shot, which is the pointed near edge and the visible
+    # side edges. Centring it under the camera instead means every direction is
+    # covered out to the inscribed radius, whatever the yaw.
+    # Visible ground sits within about far*sqrt(2) of the point under the
+    # camera, so a half side of 1.5*far clears it with room to spare.
+    size = 3.0 * far
+    dist = 0.0
+    with _NoUndo():
+        node["gridsize"].setValue(size)
+        node["griddistance"].setValue(dist)
+        node["cellsize"].setValue(size / float(cells))
+    set_scale_note(node)
+    if not quiet:
+        nuke.message("Floor fitted: %.6g across, centred %.6g in front, "
+                     "%d cells of %.6g %s each."
+                     % (size, dist, cells, size / float(cells), unit_name(node)))
+    return size
+
+
+def maybe_fit_floor(node):
+    """Fit only if the user has left it on automatic."""
+    k = node.knobs().get("autofit")
+    if k is not None and k.value():
+        return fit_floor(node, quiet=True)
+    return None
+
+
+def guide_role(node):
+    """0 for a ground guide, 1 for a vertical one. Older guides are ground."""
+    k = node.knobs().get("role")
+    if k is None:
+        return 0
+    try:
+        return int(round(k.getValue()))
+    except Exception:
+        return 0
+
+
+def split_guides(guides):
+    """Separate the two ground guides from an optional vertical one."""
+    ground = [g for g in guides if guide_role(g) == 0]
+    vertical = [g for g in guides if guide_role(g) == 1]
+    return ground, vertical
+
+
+def set_axis_note(node):
+    """Say whether the lens axis was solved or assumed, and why."""
+    k = node.knobs().get("axis_note")
+    if k is None:
+        return
+    if "use_vertical" not in node.knobs() or not node["use_vertical"].value():
+        k.setValue("lens axis: centre of frame (no vertical guide)")
+        return
+    ok = node["_v3ok"].value() > 0.5
+    if ok:
+        k.setValue("lens axis solved from the vertical guide: %.1f, %.1f  "
+                   "(centre of frame is %.1f, %.1f)"
+                   % (node["_px"].value(), node["_py"].value(),
+                      node.width() / 2.0, node.height() / 2.0))
+    else:
+        k.setValue("<b>The vertical guide is too close to parallel to be used. "
+                   "Its vanishing point is off at infinity, where the orthocenter "
+                   "is meaningless, so the lens axis is being assumed at the "
+                   "centre of frame. A camera tilted up or down gives verticals "
+                   "that actually converge.</b>")

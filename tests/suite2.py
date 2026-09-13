@@ -131,6 +131,11 @@ check("moving one guide leaves the other alone",
 print("\n=== 12. auto link and camera export ===")
 a = nuke.createNode("dhPerspGuide", inpanel=False); a.setInput(0, plate)
 b = nuke.createNode("dhPerspGuide", inpanel=False); b.setInput(0, a)
+# BOTH guides have to be placed. An untouched one has its lines crossing at the
+# centre of frame, which is the principal point, so the focal collapses and the
+# export now refuses it. This test used to leave `a` at its default cross.
+a["p1a"].setValue([0., 980.]); a["p1b"].setValue([900., 840.])
+a["p2a"].setValue([0., 240.]); a["p2b"].setValue([900., 420.])
 b["p1a"].setValue([1920., 1000.]); b["p1b"].setValue([1200., 880.])
 b["p2a"].setValue([1200., 300.]); b["p2b"].setValue([1900., 200.])
 s = nuke.createNode("dhPerspSolve", inpanel=False); s.setInput(0, b)
@@ -144,13 +149,13 @@ check("exported camera lands in the main node graph", "." not in cam.fullName(),
 check("exported camera is not inside the gizmo",
       cam.name() not in [n.name() for n in s.nodes()], "")
 before = round(cam["focal"].value(), 3)
-a["p1b"].setValue([600., 700.])
+a["p1b"].setValue([880., 760.])
 check("exported camera follows the guides",
       round(cam["focal"].value(), 3) != before,
       "%.3f -> %.3f" % (before, cam["focal"].value()))
 dhPersp.bake_camera(cam)
 frozen = round(cam["focal"].value(), 3)
-a["p1b"].setValue([500., 500.])
+a["p1b"].setValue([860., 700.])
 check("baked camera stops following", round(cam["focal"].value(), 3) == frozen,
       "%.3f" % cam["focal"].value())
 

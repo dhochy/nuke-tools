@@ -4,6 +4,8 @@ Group {
  onCreate "try:\n    import dhPersp\n    dhPersp.on_create_solve(nuke.thisNode())\nexcept Exception:\n    pass"
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
+ addUserKnob {7 _build l "" +INVISIBLE}
+ _build 5
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -16,12 +18,20 @@ Group {
  vp1 {-600 900}
  addUserKnob {12 vp2 l "vp 2"}
  vp2 {2600 900}
+ addUserKnob {12 vp3 l "vp 3 (vertical)" t "Vanishing point of the upright edges. Linked from a dhPerspGuide whose role is set to vertical. Leave the third guide off and the solve assumes the lens axis is at the centre of frame, as before."}
+ vp3 {960 100000}
+ addUserKnob {6 use_vertical l "solve the lens axis from a vertical guide" t "With three mutually perpendicular vanishing points the principal point is the orthocenter of their triangle, so it is solved instead of assumed. Ignored automatically when the verticals are too close to parallel for their vanishing point to mean anything." +STARTLINE}
+ addUserKnob {26 axis_note l "" +STARTLINE T "lens axis: centre of frame"}
  addUserKnob {26 linked_to l "" t "Which dhPerspGuide drives each vanishing point. Selection order is not click order, so check here before wondering why moving a guide did nothing." +STARTLINE T "vp1: set by hand   vp2: set by hand"}
  addUserKnob {22 link_guides l "solve from guides" t "Normally automatic: two dhPerspGuide nodes anywhere in this node's input chain are picked up on their own, and moving them updates the camera live. Press this only to re-link, or to link two guides that are selected but not connected." T "import dhPersp\ndhPersp.link_guides(nuke.thisNode())" +STARTLINE}
  addUserKnob {22 unlink_guides l unlink t "Keep the current vanishing points as plain numbers and stop following the guides." -STARTLINE T "import dhPersp\ndhPersp.unlink_guides(nuke.thisNode())"}
  addUserKnob {20 floor l "3D Floor"}
  addUserKnob {6 show_floor l "show 3D floor" -STARTLINE}
  show_floor true
+ addUserKnob {4 gridstyle l "floor style" t "Wireframe draws the grid with the card's own rows and columns, which Nuke caps at 400, so on a plane that reaches the horizon the cells grow larger than the near half of frame. Textured draws it from an image instead, which has no such cap, at the cost of softening where the near ground magnifies the texture." M {wireframe textured}}
+ gridstyle wireframe
+ addUserKnob {7 texlines l "texture lines" t "How many grid lines the texture carries. Only used by the textured style." R 20 800}
+ texlines 400
  addUserKnob {19 gridcolor l color}
  gridcolor {1 0.65 0.1 1}
  addUserKnob {7 gridwidth l "line width" t "Thickness of the wireframe in pixels. The 3D renderer draws hairlines, so this thickens them afterwards." R 1 6}
@@ -32,6 +42,17 @@ Group {
  gridsize 40
  addUserKnob {7 griddistance l distance t "How far in front of the camera the grid's centre sits, along the way the camera is facing. Raise it if the near edge of the grid is being clipped by the camera." R 0 100}
  griddistance 12
+ addUserKnob {6 autofit l "fit floor to frame automatically" t "Size and place the floor from the solve so it runs off both sides of frame and reaches the horizon, the way real ground does. Turn this off to set the size by hand." +STARTLINE}
+ autofit true
+ addUserKnob {7 gridfade l "fade out near horizon" t "How many pixels below the horizon the floor dissolves over. A ground plane reaches the horizon at infinity, so the grid has to stop somewhere. Fading it out means the far edge never shows, which lets the cells stay small enough to read in the near half of frame." R 0 400}
+ gridfade 160
+ addUserKnob {7 near_cells l "cells across the near edge" t "Roughly how many cells span the width of frame at the bottom. This is what decides the cell size; raise it for a finer grid, lower it to reach further." R 2 20}
+ near_cells 6
+ addUserKnob {7 horizon_gap l "stop short of horizon" t "How many pixels short of the horizon the far edge of the floor stops. The ground meets the horizon at infinity, so it has to stop somewhere. Smaller reaches further and makes the cells coarser." R 1 40}
+ horizon_gap 4
+ addUserKnob {22 fitfloor l "fit floor to frame" t "Re-fit the floor to the current solve." -STARTLINE T "import dhPersp\ndhPersp.fit_floor(nuke.thisNode(), quiet=False)"}
+ addUserKnob {7 gridrows l "most cells across" t "Upper limit on how many cells the fitted floor is divided into. Nuke's Card tops out at 400. The fit opens the horizon gap as far as it must to keep the cells small enough to draw in the near part of frame." R 8 200}
+ gridrows 400
  addUserKnob {13 gridoffset l "grid offset" t "Slide the grid along the ground plane to line it up with the floor in the plate."}
  addUserKnob {26 d2 l "" +STARTLINE}
  addUserKnob {4 axis_from l "ground X axis runs toward" t "The geometry cannot tell which horizontal direction is X and which is Z, so there are always two valid cameras. Their yaws are complementary and add up to ninety degrees. If the floor grid looks turned against the plate, switch this. The Horizon tab shows which guide feeds each vanishing point." M {"auto (smaller turn)" "vanishing point 1" "vanishing point 2"}}
@@ -64,12 +85,38 @@ Group {
  addUserKnob {22 export_cam l "export camera" t "Put a copy of the solved camera in the node graph. It stays linked to this node, and carries a 'bake values' button to freeze it." -STARTLINE T "import dhPersp\ndhPersp.export_camera(nuke.thisNode())"}
  addUserKnob {6 _fitted l "" -STARTLINE +INVISIBLE}
  addUserKnob {22 fitformat l "fit to format" t "Re-place the vanishing points against the current format." -STARTLINE T "import dhPersp\ndhPersp.fit_solve_to_format(nuke.thisNode(), quiet=False)"}
+ addUserKnob {7 _diag +INVISIBLE}
+ _diag {{"sqrt(width*width + height*height)"}}
+ addUserKnob {7 _v3ok +INVISIBLE}
+ _v3ok {{"(use_vertical && sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2)) < 25*_diag) ? 1 : 0"}}
+ addUserKnob {7 _oa1 +INVISIBLE}
+ _oa1 {{"vp2.x - vp3.x"}}
+ addUserKnob {7 _ob1 +INVISIBLE}
+ _ob1 {{"vp2.y - vp3.y"}}
+ addUserKnob {7 _oc1 +INVISIBLE}
+ _oc1 {{"_oa1*vp1.x + _ob1*vp1.y"}}
+ addUserKnob {7 _oa2 +INVISIBLE}
+ _oa2 {{"vp1.x - vp3.x"}}
+ addUserKnob {7 _ob2 +INVISIBLE}
+ _ob2 {{"vp1.y - vp3.y"}}
+ addUserKnob {7 _oc2 +INVISIBLE}
+ _oc2 {{"_oa2*vp2.x + _ob2*vp2.y"}}
+ addUserKnob {7 _odet +INVISIBLE}
+ _odet {{"_oa1*_ob2 - _oa2*_ob1"}}
+ addUserKnob {7 _ox +INVISIBLE}
+ _ox {{"abs(_odet) < 1e-9 ? width/2 : (_oc1*_ob2 - _oc2*_ob1)/_odet"}}
+ addUserKnob {7 _oy +INVISIBLE}
+ _oy {{"abs(_odet) < 1e-9 ? height/2 : (_oa1*_oc2 - _oa2*_oc1)/_odet"}}
+ addUserKnob {7 _px +INVISIBLE}
+ _px {{"_v3ok ? _ox : width/2"}}
+ addUserKnob {7 _py +INVISIBLE}
+ _py {{"_v3ok ? _oy : height/2"}}
  addUserKnob {7 _dx +INVISIBLE}
  _dx {{"vp2.x - vp1.x"}}
  addUserKnob {7 _dy +INVISIBLE}
  _dy {{"vp2.y - vp1.y"}}
  addUserKnob {7 _t +INVISIBLE}
- _t {{"((width/2 - vp1.x)*_dx + (height/2 - vp1.y)*_dy) / (max(_dx*_dx + _dy*_dy, 1e-9))"}}
+ _t {{"((_px - vp1.x)*_dx + (_py - vp1.y)*_dy) / (max(_dx*_dx + _dy*_dy, 1e-9))"}}
  addUserKnob {7 _vix +INVISIBLE}
  _vix {{"vp1.x + _t*_dx"}}
  addUserKnob {7 _viy +INVISIBLE}
@@ -79,7 +126,7 @@ Group {
  addUserKnob {7 _v2 +INVISIBLE}
  _v2 {{"sqrt(pow(_vix-vp2.x,2) + pow(_viy-vp2.y,2))"}}
  addUserKnob {7 _oivi +INVISIBLE}
- _oivi {{"sqrt(pow(width/2-_vix,2) + pow(height/2-_viy,2))"}}
+ _oivi {{"sqrt(pow(_px-_vix,2) + pow(_py-_viy,2))"}}
  addUserKnob {7 _va +INVISIBLE}
  _va {{"filmback * height / max(width,1e-6)"}}
  addUserKnob {7 _fknown +INVISIBLE}
@@ -89,7 +136,7 @@ Group {
  addUserKnob {7 _f +INVISIBLE}
  _f {{"(use_known_focal ? _fknown : _fsolved)"}}
  addUserKnob {7 _rx +INVISIBLE}
- _rx {{"atan((height/2 - _viy)/_f)*180/3.14159265358979"}}
+ _rx {{"atan((_py - _viy)/_f)*180/3.14159265358979"}}
  addUserKnob {7 _fh +INVISIBLE}
  _fh {{"sqrt(_f*_f + _oivi*_oivi)"}}
  addUserKnob {7 _hlen +INVISIBLE}
@@ -115,14 +162,27 @@ set Nbff08000 [stack 0]
   translate {0 {{parent.camera_height}} 0}
   rotate {{parent._rx} {parent._ry} {parent._rz}}
   focal {{"parent._f * sqrt(pow(haperture,2)+pow(vaperture,2)) / max(sqrt(parent.width*parent.width + parent.height*parent.height),1e-6)"}}
+  win_translate {{"2*(parent._px - parent.width/2)/parent.width"} {"2*(parent._py - parent.height/2)/parent.height"}}
   haperture {{parent.filmback}}
   vaperture {{parent._va}}
   name cam
  }
- Card {
+ Constant {
   inputs 0
-  display wireframe
-  render_mode wireframe
+  format "4096 4096 0 0 4096 4096 1 dhGridTex"
+  color 0
+  name gridtexbase
+ }
+ Grid {
+  number {{parent.texlines} {parent.texlines}}
+  size {{"clamp(4096/max(parent.texlines,1)*0.12, 1, 24)"}}
+  color {1 1 1 1}
+  color0 {0 0 0 0}
+  name gridtex
+ }
+ Card {
+  display {{parent.gridstyle==0 ? 1 : 4}}
+  render_mode {{parent.gridstyle==0 ? 1 : 4}}
   orientation ZX
   rows {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
   columns {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
@@ -147,6 +207,17 @@ push $Nbff08000
  Multiply {
   value {{parent.gridcolor.r} {parent.gridcolor.g} {parent.gridcolor.b} {parent.gridcolor.a}}
   name gridtint
+ }
+ Expression {
+  temp_name0 hy
+  temp_expr0 "parent.vp1.y + (parent.vp2.y-parent.vp1.y)*(x-parent.vp1.x)/(abs(parent.vp2.x-parent.vp1.x) < 1e-6 ? 1e-6 : parent.vp2.x-parent.vp1.x)"
+  temp_name1 fd
+  temp_expr1 "parent.gridfade < 0.5 ? 1 : clamp((hy - y)/parent.gridfade,0,1)"
+  expr0 "r*fd"
+  expr1 "g*fd"
+  expr2 "b*fd"
+  expr3 "a*fd"
+  name gridfade_node
  }
 push $Nbff08000
  Merge2 {
