@@ -246,6 +246,9 @@ def on_knob_changed(node=None, knob=None):
         if "vp1" in node.knobs():                       # dhPerspSolve
             if not fitted.value() and not node["vp1"].hasExpression(0):
                 fit_solve_to_format(node)
+            # stacking guides into the chain should just work
+            with _Busy(node):
+                auto_link(node)
             return
 
         if not fitted.value():                          # first connection
@@ -624,25 +627,34 @@ def on_create_solve(node=None):
             # no inputChange is coming, so stop treating the fit as provisional
             if node.input(0) is None:
                 fitted.setValue(False)
+    auto_link(node)
     set_link_label(node)
 
 
-def link_guides(node=None):
-    """Link this node's vanishing points to two selected dhPerspGuide nodes.
+def upstream_guides(node, limit=200):
+    """Every dhPerspGuide feeding this node, nearest first.
 
-    Same as the Tools > Perspective menu command, but reachable from the node
-    itself, which is where you are when you notice it says 'not linked'.
+    Walking the input chain means stacking Read > Guide > Guide > Solve just
+    works, which is what people expect from a node graph.
     """
-    node = node or nuke.thisNode()
-    guides = [n for n in nuke.selectedNodes() if is_persplines(n)]
-    if len(guides) != 2:
-        nuke.message(
-            "Select exactly two %s nodes in the node graph, then press this "
-            "again.\n\nSelected %s guide%s.\n\nEach guide gives one vanishing "
-            "point, and two are needed to solve a camera."
-            % (CLASS, len(guides), "" if len(guides) == 1 else "s"))
-        return
-    a, b = guides
+    found, seen, queue = [], set(), [node.input(0)]
+    while queue and limit > 0:
+        limit -= 1
+        n = queue.pop(0)
+        if n is None:
+            continue
+        key = n.fullName()
+        if key in seen:
+            continue
+        seen.add(key)
+        if is_persplines(n):
+            found.append(n)
+        for i in range(n.inputs()):
+            queue.append(n.input(i))
+    return found
+
+
+def _apply_link(node, a, b):
     node["vp1"].setExpression(a.name() + ".vp.x", 0)
     node["vp1"].setExpression(a.name() + ".vp.y", 1)
     node["vp2"].setExpression(b.name() + ".vp.x", 0)
@@ -651,6 +663,40 @@ def link_guides(node=None):
         node["_fitted"].setValue(True)
     set_link_label(node)
     return node
+
+
+def auto_link(node):
+    """Link to the guides feeding this node, if there are exactly two."""
+    if node["vp1"].hasExpression(0):
+        return None                       # already linked, leave it alone
+    guides = upstream_guides(node)
+    if len(guides) != 2:
+        return None
+    return _apply_link(node, guides[0], guides[1])
+
+
+def link_guides(node=None):
+    """Link the vanishing points to two dhPerspGuide nodes.
+
+    Uses the selection when two guides are selected, otherwise falls back to the
+    guides feeding this node's input.
+    """
+    node = node or nuke.thisNode()
+    guides = [n for n in nuke.selectedNodes() if is_persplines(n)]
+    if len(guides) != 2:
+        guides = upstream_guides(node)
+    if len(guides) != 2:
+        nuke.message(
+            "Need exactly two %s nodes, found %d.\n\n"
+            "Each guide marks ONE vanishing point, and a camera solve needs two.\n\n"
+            "Either pipe a second %s into this node's input chain, or select two "
+            "of them in the node graph and press this again.\n\n"
+            "Connecting a guide to this node's input only passes the picture "
+            "through. The vanishing points are linked separately, which is what "
+            "this button does."
+            % (CLASS, len(guides), CLASS))
+        return
+    return _apply_link(node, guides[0], guides[1])
 
 
 def unlink_guides(node=None):
