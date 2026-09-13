@@ -248,6 +248,86 @@ def on_create(node=None):
 ANCHORED = (("p1a", "p1b"), ("p2a", "p2b"))
 VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infinity
 
+# Working units. A photograph carries no scale of its own, so one measured
+# length has to supply it, and camera height is the one a compositor knows.
+# Every other length on the node is then in the same unit.
+UNITS = (("feet", 0.3048), ("metres", 1.0), ("centimetres", 0.01))
+SCALED = ("camera_height", "gridsize", "griddistance", "cellsize")
+
+
+def unit_index(node):
+    """Index of the working unit.
+
+    An Enumeration_Knob's value() is the label text, not the index, so reading
+    it with int() silently falls back to zero and the conversion quietly does
+    nothing. getValue() is the one that returns the number.
+    """
+    k = node.knobs().get("unit")
+    if k is None:
+        return 0
+    try:
+        return int(round(k.getValue()))
+    except Exception:
+        pass
+    try:
+        return [u[0] for u in UNITS].index(str(k.value()))
+    except Exception:
+        return 0
+
+
+def unit_name(node):
+    return UNITS[max(0, min(unit_index(node), len(UNITS) - 1))][0]
+
+
+def unit_metres(node):
+    return UNITS[max(0, min(unit_index(node), len(UNITS) - 1))][1]
+
+
+def convert_units(node):
+    """Renumber every length when the working unit changes.
+
+    Switching feet to metres must leave the setup physically where it was, so
+    the values are converted rather than reinterpreted. Without this the grid
+    would jump by a factor of three the moment someone touched the dropdown.
+    """
+    if "unit" not in node.knobs():
+        return
+    now = unit_index(node)
+    was = int(node["_unit_was"].value()) if "_unit_was" in node.knobs() else now
+    if was == now:
+        return
+    was = max(0, min(was, len(UNITS) - 1))
+    factor = UNITS[was][1] / UNITS[now][1]
+    with _NoUndo():
+        for nm in SCALED:
+            k = node.knobs().get(nm)
+            if k is not None and not k.hasExpression():
+                k.setValue(k.value() * factor)
+        g = node.knobs().get("gridoffset")
+        if g is not None:
+            g.setValue([v * factor for v in g.value()])
+        node["_unit_was"].setValue(now)
+    set_scale_note(node)
+
+
+def set_scale_note(node):
+    """Say what one cell is worth, in every unit, so nothing is ambiguous."""
+    k = node.knobs().get("scale_note")
+    if k is None:
+        return
+    try:
+        cell = float(node["cellsize"].value())
+        height = float(node["camera_height"].value())
+    except Exception:
+        return
+    m = unit_metres(node)
+    cell_m, height_m = cell * m, height * m
+    k.setValue(
+        "1 cell = %.4g %s   (%.4g m / %.4g ft).   Camera %.4g %s above the "
+        "ground   (%.4g m / %.4g ft)."
+        % (cell, unit_name(node), cell_m, cell_m / 0.3048,
+           height, unit_name(node), height_m, height_m / 0.3048))
+
 
 def sync_vp_handle(node):
     """Mirror the computed vp onto the draggable handle."""
@@ -288,6 +368,12 @@ def on_knob_changed(node=None, knob=None):
     if knob is None or node.fullName() in _BUSY:
         return
     name = knob.name()
+
+    if name == "unit":
+        convert_units(node)
+        return
+    if name in ("cellsize", "camera_height"):
+        set_scale_note(node)
 
     if name == "inputChange":
         if node.input(0) is None:
@@ -554,11 +640,21 @@ def export_camera(node=None):
     cam["focal"].setExpression("%s.cam_focal" % n)
     for i, axis in enumerate(("cam_rx", "cam_ry", "cam_rz")):
         cam["rotate"].setExpression("%s.%s" % (n, axis), i)
+    # Height is what carries the real world scale, so the exported camera
+    # follows it rather than sitting at an arbitrary one unit.
     cam["translate"].setValue([0.0, 1.0, 0.0])
+    if "camera_height" in node.knobs():
+        cam["translate"].setExpression("%s.camera_height" % n, 1)
 
     cam.addKnob(nuke.Tab_Knob("persp", "PerspLines"))
     info = nuke.Text_Knob("src", "solved by", n)
     cam.addKnob(info)
+    if "unit" in node.knobs():
+        u = nuke.Text_Knob("units", "units", unit_name(node))
+        u.setTooltip("Translate values on this camera are in this unit. "
+                     "Set the same linear unit in Maya or Blender before "
+                     "importing.")
+        cam.addKnob(u)
     bake = nuke.PyScript_Knob("bake", "bake values")
     bake.setCommand("import dhPersp\ndhPersp.bake_camera(nuke.thisNode())")
     bake.setTooltip("Freeze the current solve and drop the links to " + n)
@@ -674,6 +770,7 @@ def on_create_solve(node=None):
     False: at creation the node is not connected yet, so width() can only report
     the project format. The real fit happens on the first inputChange.
     """
+    set_scale_note(node)
     node = node or nuke.thisNode()
     fitted = node.knobs().get("_fitted")
     if fitted is not None and not fitted.value():

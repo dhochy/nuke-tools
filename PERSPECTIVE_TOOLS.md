@@ -113,3 +113,57 @@ a two pixel slip in guide placement, on a 1920x1080 plate at 35mm:
 A near one point shot, such as looking straight down a corridor or an alley, cannot be
 solved reliably from guides alone. Use "I know the focal length" there and let the
 vanishing points set orientation only.
+
+## Real world scale, and getting the camera into Maya or Blender
+
+A photograph carries no scale of its own. Vanishing points fix the camera's
+orientation and focal length and nothing else, because a doll's house and a real
+house photograph identically. Scale has to come from one measured length, and the
+one a compositor actually knows is how high the camera was off the ground.
+
+The Scale tab takes that height. Everything else on the node is then in the same
+unit: cell size, grid size, distance and offset.
+
+| knob | meaning |
+|---|---|
+| working unit | feet, metres or centimetres |
+| camera height | height above the ground plane, in that unit |
+
+Feet is the default because US survey and location data is given that way.
+Changing the dropdown converts the values you have already set rather than
+reinterpreting them, so switching feet to metres leaves the setup physically
+where it was. A full round trip returns the original numbers exactly.
+
+Changing the height never disturbs the solved focal length or angles. That is
+correct rather than a limitation: scale is unobservable in a single image, so
+only the numbers change, not the picture.
+
+`export camera` writes the height into the exported camera's translate, live
+linked, and puts a `units` knob on it saying which unit the numbers are in. Set
+the same linear unit at the other end before importing:
+
+- Maya: Preferences, Settings, Linear
+- Blender: Scene Properties, Units, Length
+
+### The axis choice matters more for export than for the overlay
+
+The two settings of `ground X axis runs toward` give complementary yaws that add
+up to ninety degrees. In the viewer they look identical, because a square grid
+turned ninety degrees about its own centre is the same square grid. The choice
+only becomes visible once the camera leaves Nuke and real geometry arrives on
+it, where it decides which world direction is X and which is Z. Check it before
+exporting, not after.
+
+### The grid never moves when you scale it
+
+Position and size are independent knobs. `translate` is built from the grid
+offset and the distance only, with no size term, and `uniform_scale` is the size,
+which a Card applies about its own centre. Cell count tracks size divided by cell
+size, so tiles stay the same size on the ground as the plane grows.
+
+Worth knowing if you ever test this yourself: the centre of mass of the drawn
+grid pixels is NOT invariant under a pure scale. A larger ground plane reaches
+further away, and distance compresses toward the horizon, so the centroid rises
+even though nothing moved. The invariants that do hold, and that the suite
+checks, are the card centre's projected pixel and containment of the smaller
+grid inside the larger one.

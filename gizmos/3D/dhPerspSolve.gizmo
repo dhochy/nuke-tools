@@ -26,15 +26,23 @@ Group {
  gridcolor {1 0.65 0.1 1}
  addUserKnob {7 gridwidth l "line width" t "Thickness of the wireframe in pixels. The 3D renderer draws hairlines, so this thickens them afterwards." R 1 6}
  gridwidth 1
- addUserKnob {7 cellsize l "cell size" t "Size of one floor tile in world units. Held constant as the plane grows, so existing lines do not move when you change the grid size." R 0.25 20}
+ addUserKnob {7 cellsize l "cell size" t "Size of one floor tile in the working unit set on the Scale tab. Held constant as the plane grows, so existing lines do not move when you change the grid size." R 0.25 20}
  cellsize 1
  addUserKnob {7 gridsize l "grid size" t "Scales the plane about its centre. Position is set by 'distance' below, so changing the size never moves the grid." R 1 200}
  gridsize 40
  addUserKnob {7 griddistance l distance t "How far in front of the camera the grid's centre sits, along the way the camera is facing. Raise it if the near edge of the grid is being clipped by the camera." R 0 100}
- griddistance 6
+ griddistance 12
  addUserKnob {13 gridoffset l "grid offset" t "Slide the grid along the ground plane to line it up with the floor in the plate."}
  addUserKnob {26 d2 l "" +STARTLINE}
  addUserKnob {4 axis_from l "ground X axis runs toward" t "The geometry cannot tell which horizontal direction is X and which is Z, so there are always two valid cameras. Their yaws are complementary and add up to ninety degrees. If the floor grid looks turned against the plate, switch this. The Horizon tab shows which guide feeds each vanishing point." M {"auto (smaller turn)" "vanishing point 1" "vanishing point 2"}}
+ addUserKnob {20 scale_tab l Scale}
+ addUserKnob {26 t_scale l "" +STARTLINE T "A photograph has no scale of its own. Set the height the camera was at and everything else becomes real."}
+ addUserKnob {4 unit l "working unit" t "The unit every length on this node is in: camera height, cell size, grid size, distance and offset. Changing it converts the values you have already set, so the setup does not move." M {feet metres centimetres}}
+ addUserKnob {7 camera_height l "camera height" t "Height of the camera above the ground plane, in the working unit. This is the one measurement that gives the solve a real scale. Eye level is about 5.5 ft or 1.7 m, a tripod about 4.5 ft or 1.4 m." R 0.1 40}
+ camera_height 5.5
+ addUserKnob {26 scale_note l "" +STARTLINE T "1 cell = 1 ft"}
+ addUserKnob {26 t_dcc l "" +STARTLINE T "Set the same unit in your 3D package before importing: Maya Preferences, Settings, Linear. Blender Scene Properties, Units, Length."}
+ addUserKnob {7 _unit_was +INVISIBLE}
  addUserKnob {20 solve l "Camera Solve"}
  addUserKnob {6 use_known_focal l "I know the focal length" t "Use a measured focal length instead of solving one from the vanishing points. The vanishing points then only set the orientation." +STARTLINE}
  addUserKnob {7 known_focal l "focal (mm)" t "Focal length from the camera report or lens metadata." R 4 300}
@@ -104,7 +112,7 @@ Group {
 set Nbff08000 [stack 0]
  Camera {
   inputs 0
-  translate {0 1 0}
+  translate {0 {{parent.camera_height}} 0}
   rotate {{parent._rx} {parent._ry} {parent._rz}}
   focal {{"parent._f * sqrt(pow(haperture,2)+pow(vaperture,2)) / max(sqrt(parent.width*parent.width + parent.height*parent.height),1e-6)"}}
   haperture {{parent.filmback}}
