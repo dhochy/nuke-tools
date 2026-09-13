@@ -41,6 +41,7 @@ Group {
  filmback 24.576
  addUserKnob {26 dsolve l "" +STARTLINE}
  addUserKnob {26 tsolve l result}
+ addUserKnob {26 sanity l "" t "A very small focal length, or a roll of more than a few degrees, almost always means the two guides are not marking two perpendicular sets of parallel edges. Check that each guide's two lines lie along real receding edges in the plate, and that the two guides follow directions at right angles to each other on the ground." +STARTLINE T "A believable solve is roughly 10 to 100mm with roll near zero."}
  addUserKnob {7 cam_focal l "focal (mm)" +DISABLED}
  cam_focal {{"_f * sqrt(pow(cam.haperture,2)+pow(cam.vaperture,2)) / max(sqrt(width*width + height*height),1e-6)"}}
  addUserKnob {7 cam_rx l "rotate X" +DISABLED}
@@ -90,7 +91,7 @@ Group {
   inputs 0
   name Input1
  }
-set Nc63d8000 [stack 0]
+set Nd9798000 [stack 0]
  Camera {
   inputs 0
   translate {0 1 0}
@@ -125,7 +126,7 @@ push 0
   value {{parent.gridcolor.r} {parent.gridcolor.g} {parent.gridcolor.b} {parent.gridcolor.a}}
   name gridtint
  }
-push $Nc63d8000
+push $Nd9798000
  Merge2 {
   inputs 2
   name overlay
