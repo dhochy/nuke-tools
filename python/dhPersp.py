@@ -30,6 +30,54 @@ class _Busy(object):
         _BUSY.discard(self.key)
         return False
 
+
+class _UndoGroup(object):
+    """One undo step for an operation that touches several knobs.
+
+    Without this, adding a line records the point, the on-flag and each
+    visibility change separately, so one Ctrl+Z peels off part of the operation
+    and leaves a point sitting somewhere new.
+    """
+
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        try:
+            nuke.Undo.begin(self.name)
+        except Exception:
+            pass
+        return self
+
+    def __exit__(self, *a):
+        try:
+            nuke.Undo.end()
+        except Exception:
+            pass
+        return False
+
+
+class _NoUndo(object):
+    """Keep derived state out of the undo stack.
+
+    Knob visibility is rebuilt from the use_add* values on load, so it should
+    never be an undo step of its own.
+    """
+
+    def __enter__(self):
+        try:
+            nuke.Undo.disable()
+        except Exception:
+            pass
+        return self
+
+    def __exit__(self, *a):
+        try:
+            nuke.Undo.enable()
+        except Exception:
+            pass
+        return False
+
 CLASS = "dhPerspGuide"
 
 
@@ -63,16 +111,17 @@ def sync_lines(node, refresh=False):
     Knob visibility is not stored per instance, so this runs from the node's
     onCreate to rebuild it from the use_add* values when a script is reopened.
     """
-    for i in range(1, MAX_LINES + 1):
-        use = node.knobs().get("use_add%d" % i)
-        if use is None:
-            continue
-        on = bool(use.value())
-        for k in _slot_knobs(node, i):
-            if k is not None:
-                k.setVisible(on)
-        # the on/off flag itself is never shown; the delete button stands in for it
-        use.setVisible(False)
+    with _NoUndo():
+        for i in range(1, MAX_LINES + 1):
+            use = node.knobs().get("use_add%d" % i)
+            if use is None:
+                continue
+            on = bool(use.value())
+            for k in _slot_knobs(node, i):
+                if k is not None:
+                    k.setVisible(on)
+            # the on/off flag is never shown; the delete button stands in for it
+            use.setVisible(False)
     if refresh:
         _refresh_panel(node)
 
@@ -158,17 +207,18 @@ def fit_to_format(node=None, quiet=True):
     """
     node = node or nuke.thisNode()
     w, h = node_format(node)
-    for name, (cx, cy) in _canonical(w, h).items():
-        node[name].setValue([cx, cy])
-    for slot, i in enumerate(active_lines(node)):
-        node["add%d" % i].setValue(list(_extra_canonical(w, h, slot)))
-    if "_fitted" in node.knobs():
-        node["_fitted"].setValue(True)
-    # remember what we fitted to, so a later format change can tell whether the
-    # points are still untouched
-    if "_fitw" in node.knobs():
-        node["_fitw"].setValue(w)
-        node["_fith"].setValue(h)
+    with _UndoGroup("%s: fit to format" % CLASS):
+        for name, (cx, cy) in _canonical(w, h).items():
+            node[name].setValue([cx, cy])
+        for slot, i in enumerate(active_lines(node)):
+            node["add%d" % i].setValue(list(_extra_canonical(w, h, slot)))
+        if "_fitted" in node.knobs():
+            node["_fitted"].setValue(True)
+        # remember what we fitted to, so a later format change can tell whether
+        # the points are still untouched
+        if "_fitw" in node.knobs():
+            node["_fitw"].setValue(w)
+            node["_fith"].setValue(h)
     if not quiet:
         nuke.message("Guide points fitted to %dx%d." % (int(w), int(h)))
     return w, h
@@ -217,6 +267,8 @@ def drag_vp(node):
     so the handles stay where you can grab them.
     """
     v = node["vp_drag"].value()
+    grp = _UndoGroup("%s: drag vanishing point" % CLASS)
+    grp.__enter__()
     for anchor, far in ANCHORED:
         A = node[anchor].value()
         B = node[far].value()
@@ -226,6 +278,7 @@ def drag_vp(node):
             continue                     # handle sitting on the anchor, nothing to aim at
         L = hypot(B[0] - A[0], B[1] - A[1]) or d
         node[far].setValue([A[0] + dx / d * L, A[1] + dy / d * L])
+    grp.__exit__()
 
 
 def on_knob_changed(node=None, knob=None):
@@ -298,9 +351,10 @@ def add_line(node=None):
         return
     i = free[0]
     w, h = node_format(node)
-    # same placement the fit uses, so adding a line keeps the node pristine
-    node["add%d" % i].setValue(list(_extra_canonical(w, h, len(used))))
-    node["use_add%d" % i].setValue(True)
+    with _UndoGroup("%s: add line" % CLASS):
+        # same placement the fit uses, so adding a line keeps the node pristine
+        node["add%d" % i].setValue(list(_extra_canonical(w, h, len(used))))
+        node["use_add%d" % i].setValue(True)
     sync_lines(node, refresh=True)
     return i
 
@@ -308,14 +362,16 @@ def add_line(node=None):
 def del_line(i, node=None):
     """Switch off one slot and hide it again."""
     node = node or nuke.thisNode()
-    node["use_add%d" % i].setValue(False)
+    with _UndoGroup("%s: delete line" % CLASS):
+        node["use_add%d" % i].setValue(False)
     sync_lines(node, refresh=True)
 
 
 def clear_lines(node=None):
     node = node or nuke.thisNode()
-    for i in range(1, MAX_LINES + 1):
-        node["use_add%d" % i].setValue(False)
+    with _UndoGroup("%s: clear lines" % CLASS):
+        for i in range(1, MAX_LINES + 1):
+            node["use_add%d" % i].setValue(False)
     sync_lines(node, refresh=True)
 
 
