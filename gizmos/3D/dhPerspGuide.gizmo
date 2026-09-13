@@ -21,9 +21,9 @@ Group {
  p1b {682 518}
  addUserKnob {26 l2 l "line 2"}
  addUserKnob {12 p2a l "point A"}
- p2a {1365 518}
+ p2a {2048 0}
  addUserKnob {12 p2b l "point B"}
- p2b {2048 0}
+ p2b {1365 518}
  addUserKnob {22 fitformat l "fit to format" t "Re-place the points against the current format. Uses the connected image if there is one, otherwise the project format." T "import dhPersp\ndhPersp.fit_to_format(nuke.thisNode(), quiet=False)" +STARTLINE}
  addUserKnob {6 _fitted l "" -STARTLINE +INVISIBLE}
  addUserKnob {7 _fitw +INVISIBLE}
@@ -89,7 +89,7 @@ Group {
   inputs 0
   name Input1
  }
-set Nb1dac000 [stack 0]
+set N506fc000 [stack 0]
  Expression {
   temp_name0 cov
   temp_expr0 "(max(max(max(max(max(max(max(max(max(max(max(max(max(clamp((parent.linewidth/2 + 0.5) - (abs((parent.p1b.y-parent.p1a.y)*(x-parent.p1a.x) - (parent.p1b.x-parent.p1a.x)*(y-parent.p1a.y))/max(sqrt((parent.p1b.y-parent.p1a.y)*(parent.p1b.y-parent.p1a.y) + (parent.p1b.x-parent.p1a.x)*(parent.p1b.x-parent.p1a.x)),1e-6)),0,1),clamp((parent.linewidth/2 + 0.5) - (abs((parent.p2b.y-parent.p2a.y)*(x-parent.p2a.x) - (parent.p2b.x-parent.p2a.x)*(y-parent.p2a.y))/max(sqrt((parent.p2b.y-parent.p2a.y)*(parent.p2b.y-parent.p2a.y) + (parent.p2b.x-parent.p2a.x)*(parent.p2b.x-parent.p2a.x)),1e-6)),0,1)),(parent.use_add1 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.vp.y)*(x-parent.vp.x) - (parent.add1.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add1.y-parent.vp.y)*(parent.add1.y-parent.vp.y) + (parent.add1.x-parent.vp.x)*(parent.add1.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add2 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.vp.y)*(x-parent.vp.x) - (parent.add2.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add2.y-parent.vp.y)*(parent.add2.y-parent.vp.y) + (parent.add2.x-parent.vp.x)*(parent.add2.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add3 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.vp.y)*(x-parent.vp.x) - (parent.add3.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add3.y-parent.vp.y)*(parent.add3.y-parent.vp.y) + (parent.add3.x-parent.vp.x)*(parent.add3.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add4 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.vp.y)*(x-parent.vp.x) - (parent.add4.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add4.y-parent.vp.y)*(parent.add4.y-parent.vp.y) + (parent.add4.x-parent.vp.x)*(parent.add4.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add5 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.vp.y)*(x-parent.vp.x) - (parent.add5.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add5.y-parent.vp.y)*(parent.add5.y-parent.vp.y) + (parent.add5.x-parent.vp.x)*(parent.add5.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add6 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.vp.y)*(x-parent.vp.x) - (parent.add6.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add6.y-parent.vp.y)*(parent.add6.y-parent.vp.y) + (parent.add6.x-parent.vp.x)*(parent.add6.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add7 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.vp.y)*(x-parent.vp.x) - (parent.add7.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add7.y-parent.vp.y)*(parent.add7.y-parent.vp.y) + (parent.add7.x-parent.vp.x)*(parent.add7.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add8 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.vp.y)*(x-parent.vp.x) - (parent.add8.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add8.y-parent.vp.y)*(parent.add8.y-parent.vp.y) + (parent.add8.x-parent.vp.x)*(parent.add8.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.vp.y)*(x-parent.vp.x) - (parent.add9.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add9.y-parent.vp.y)*(parent.add9.y-parent.vp.y) + (parent.add9.x-parent.vp.x)*(parent.add9.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add10 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.vp.y)*(x-parent.vp.x) - (parent.add10.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add10.y-parent.vp.y)*(parent.add10.y-parent.vp.y) + (parent.add10.x-parent.vp.x)*(parent.add10.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add11 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.vp.y)*(x-parent.vp.x) - (parent.add11.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add11.y-parent.vp.y)*(parent.add11.y-parent.vp.y) + (parent.add11.x-parent.vp.x)*(parent.add11.x-parent.vp.x)),1e-6)),0,1) : 0)),(parent.use_add12 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.vp.y)*(x-parent.vp.x) - (parent.add12.x-parent.vp.x)*(y-parent.vp.y))/max(sqrt((parent.add12.y-parent.vp.y)*(parent.add12.y-parent.vp.y) + (parent.add12.x-parent.vp.x)*(parent.add12.x-parent.vp.x)),1e-6)),0,1) : 0))) * parent.opacity * parent.linecolor.a"
@@ -99,9 +99,9 @@ set Nb1dac000 [stack 0]
   expr3 cov
   name lines
  }
-set Nb1db4000 [stack 0]
-push $Nb1db4000
-push $Nb1dac000
+set N50704000 [stack 0]
+push $N50704000
+push $N506fc000
  Merge2 {
   inputs 2
   name overlay

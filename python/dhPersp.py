@@ -93,15 +93,34 @@ def node_format(node):
 
 
 def _canonical(w, h):
-    """Where a fresh fit puts the four base points for a given format."""
-    return {"p1a": (0.0, 0.0),
-            "p1b": (w / 3.0, h / 3.0),
-            "p2a": (2.0 * w / 3.0, h / 3.0),
-            "p2b": (w, 0.0)}
+    """Where a fresh fit puts the four base points for a given format.
+
+    Both A points are the outer bottom corners and both B points are inner. The
+    original had line 2 reversed, A inner and B at the corner, which made the two
+    lines pivot about anchors at very different distances when the vanishing point
+    is dragged. The lines themselves are unchanged, only which end is the anchor.
+    """
+    return {"p1a": (0.0, 0.0),                  # left corner  -> anchor
+            "p1b": (w / 3.0, h / 3.0),          # inner
+            "p2a": (w, 0.0),                    # right corner -> anchor
+            "p2b": (2.0 * w / 3.0, h / 3.0)}    # inner
 
 
 def _extra_canonical(w, h, slot):
-    frac = 0.12 + 0.76 * (slot / float(max(MAX_LINES - 1, 1)))
+    """Where the slot-th added line's point goes.
+
+    Starts in the middle, between the two base lines, then fans alternately left
+    and right. At this height the base lines sit at roughly 15% and 85% across,
+    so the middle is where a new guide is actually useful.
+    """
+    step = 0.09
+    if slot == 0:
+        frac = 0.5
+    else:
+        k = (slot + 1) // 2
+        sign = 1 if slot % 2 else -1
+        frac = 0.5 + sign * k * step
+    frac = min(max(frac, 0.06), 0.94)
     return (w * frac, h * 0.15)
 
 
@@ -275,10 +294,9 @@ def add_line(node=None):
                      % MAX_LINES)
         return
     i = free[0]
-    w, h = float(node.width() or 2048), float(node.height() or 1556)
-    # fan successive lines across the lower frame so they do not stack up
-    frac = 0.12 + 0.76 * (len(used) / float(max(MAX_LINES - 1, 1)))
-    node["add%d" % i].setValue([w * frac, h * 0.15])
+    w, h = node_format(node)
+    # same placement the fit uses, so adding a line keeps the node pristine
+    node["add%d" % i].setValue(list(_extra_canonical(w, h, len(used))))
     node["use_add%d" % i].setValue(True)
     sync_lines(node, refresh=True)
     return i
