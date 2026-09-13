@@ -64,3 +64,52 @@ Filenames are case sensitive on Linux and Nuke registers a gizmo by its filename
 The lines are drawn analytically by an Expression node rather than as RotoPaint strokes.
 Expressions stored inside RotoPaint control points no longer drive the raster in Nuke 15.2,
 16.0 or 17.0, which is what broke the tool this replaces.
+
+## The maths, and how it is verified
+
+The camera solve is the standard two vanishing point calibration from Caprile and Torre
+(1990), also Hartley and Zisserman chapter 8. For two vanishing points from perpendicular
+world directions, square pixels, and the principal point assumed at the image centre:
+
+    (v1 - p) . (v2 - p) + f^2 = 0
+
+The gizmo computes it in an equivalent geometric form: drop a perpendicular from the image
+centre O onto the horizon line to get the foot Vi, then
+
+    f = sqrt( ViV1 * ViV2 - OVi^2 )
+
+These are the same equation. Splitting each vector at the foot gives
+(v1-O).(v2-O) = (v1-Vi).(v2-Vi) + |OVi|^2, and the two horizon segments point opposite
+ways, so the first term is -ViV1*ViV2.
+
+Pitch comes from the height of that foot above the centre, and yaw from the signed offset
+of the other vanishing point along the horizon, measured against sqrt(f^2 + OVi^2) rather
+than f, because under pitch the relevant distance is to the horizon, not to the centre.
+
+### Test suites
+
+`tests/` holds four suites, run with `nuke -t tests/suite.py` and so on. They cover 73
+checks: solve accuracy against ground truth cameras, the published formula reimplemented
+independently, degenerate inputs, format fitting, added lines, vanishing point dragging,
+linking, export and bake, save and reload, and the drawn output measured by rendering to
+disk and counting pixels rather than by reading knobs back.
+
+`tests/make_testplates.py` and `tests/corridor.py` render ground truth plates with known
+focal length and orientation, for placing guides on by hand.
+
+### When to enter a known focal length instead of solving one
+
+Accuracy depends entirely on how far off frame the vanishing points sit. Measured cost of
+a two pixel slip in guide placement, on a 1920x1080 plate at 35mm:
+
+| camera yaw | vanishing point offset | focal error per 2px slip |
+|---|---|---|
+| 2 deg | 78,700 px | 68.6% |
+| 5 deg | 31,400 px | 13.7% |
+| 15 deg | 10,300 px | 1.6% |
+| 30 deg | 4,800 px | 0.3% |
+| 45 deg | 2,700 px | 0.1% |
+
+A near one point shot, such as looking straight down a corridor or an alley, cannot be
+solved reliably from guides alone. Use "I know the focal length" there and let the
+vanishing points set orientation only.

@@ -86,10 +86,12 @@ Group {
  _fh {{"sqrt(_f*_f + _oivi*_oivi)"}}
  addUserKnob {7 _hlen +INVISIBLE}
  _hlen {{"max(sqrt(_dx*_dx + _dy*_dy),1e-9)"}}
+ addUserKnob {7 _hsign +INVISIBLE}
+ _hsign {{"(_dx < -1e-9 ? -1 : (_dx > 1e-9 ? 1 : (_dy < 0 ? -1 : 1)))"}}
  addUserKnob {7 _s1 +INVISIBLE}
- _s1 {{"((vp1.x-_vix)*_dx + (vp1.y-_viy)*_dy)/_hlen"}}
+ _s1 {{"_hsign*((vp1.x-_vix)*_dx + (vp1.y-_viy)*_dy)/_hlen"}}
  addUserKnob {7 _s2 +INVISIBLE}
- _s2 {{"((vp2.x-_vix)*_dx + (vp2.y-_viy)*_dy)/_hlen"}}
+ _s2 {{"_hsign*((vp2.x-_vix)*_dx + (vp2.y-_viy)*_dy)/_hlen"}}
  addUserKnob {7 _ry +INVISIBLE}
  _ry {{"atan((axis_from==0 ? (abs(_s2)<abs(_s1) ? _s2 : _s1) : (axis_from==1 ? _s2 : _s1))/_fh)*180/3.14159265358979"}}
  addUserKnob {7 _rz +INVISIBLE}
