@@ -84,8 +84,14 @@ Group {
  _rx {{"atan((height/2 - _viy)/_f)*180/3.14159265358979"}}
  addUserKnob {7 _fh +INVISIBLE}
  _fh {{"sqrt(_f*_f + _oivi*_oivi)"}}
+ addUserKnob {7 _hlen +INVISIBLE}
+ _hlen {{"max(sqrt(_dx*_dx + _dy*_dy),1e-9)"}}
+ addUserKnob {7 _s1 +INVISIBLE}
+ _s1 {{"((vp1.x-_vix)*_dx + (vp1.y-_viy)*_dy)/_hlen"}}
+ addUserKnob {7 _s2 +INVISIBLE}
+ _s2 {{"((vp2.x-_vix)*_dx + (vp2.y-_viy)*_dy)/_hlen"}}
  addUserKnob {7 _ry +INVISIBLE}
- _ry {{"atan((axis_from==0 ? min(_v1,_v2) : (axis_from==1 ? _v1 : _v2))/_fh)*180/3.14159265358979"}}
+ _ry {{"atan((axis_from==0 ? (abs(_s2)<abs(_s1) ? _s2 : _s1) : (axis_from==1 ? _s2 : _s1))/_fh)*180/3.14159265358979"}}
  addUserKnob {7 _rz +INVISIBLE}
  _rz {{"(abs(_dx) > 1e-9 ? -atan(_dy/_dx)*180/3.14159265358979 : 0)"}}
 }
@@ -93,7 +99,7 @@ Group {
   inputs 0
   name Input1
  }
-set Na288000 [stack 0]
+set Nd6b18000 [stack 0]
  Camera {
   inputs 0
   translate {0 1 0}
@@ -128,7 +134,7 @@ push 0
   value {{parent.gridcolor.r} {parent.gridcolor.g} {parent.gridcolor.b} {parent.gridcolor.a}}
   name gridtint
  }
-push $Na288000
+push $Nd6b18000
  Merge2 {
   inputs 2
   name overlay
