@@ -181,8 +181,8 @@ set Nbff08000 [stack 0]
   name gridtex
  }
  Card {
-  display {{parent.gridstyle==0 ? 1 : 4}}
-  render_mode {{parent.gridstyle==0 ? 1 : 4}}
+  display wireframe
+  render_mode wireframe
   orientation ZX
   rows {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
   columns {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}

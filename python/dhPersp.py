@@ -380,6 +380,9 @@ def on_knob_changed(node=None, knob=None):
         return
     name = knob.name()
 
+    if name == "gridstyle":
+        apply_grid_style(node)
+        return
     if name == "use_vertical":
         set_axis_note(node)
         return
@@ -812,6 +815,7 @@ def on_create_solve(node=None):
     False: at creation the node is not connected yet, so width() can only report
     the project format. The real fit happens on the first inputChange.
     """
+    apply_grid_style(node)
     set_scale_note(node)
     node = node or nuke.thisNode()
     fitted = node.knobs().get("_fitted")
@@ -1208,3 +1212,33 @@ def set_axis_note(node):
                    "is meaningless, so the lens axis is being assumed at the "
                    "centre of frame. A camera tilted up or down gives verticals "
                    "that actually converge.</b>")
+
+
+def apply_grid_style(node=None):
+    """Set how the floor card draws itself.
+
+    render_mode and display are pulldowns, and Nuke reads an expression on a
+    pulldown as an animation curve. A ternary fails that parse, is ignored, and
+    the knob silently keeps its default of "unchanged", which draws nothing. So
+    these are set from here instead of being expression linked.
+    """
+    node = node or nuke.thisNode()
+    card = node.node("floorgrid")
+    if card is None:
+        return None
+    style = "wireframe"
+    k = node.knobs().get("gridstyle")
+    if k is not None:
+        try:
+            style = "textured" if int(round(k.getValue())) == 1 else "wireframe"
+        except Exception:
+            style = "wireframe"
+    for name in ("render_mode", "display"):
+        kn = card.knobs().get(name)
+        if kn is None:
+            continue
+        try:
+            kn.setValue(style)
+        except Exception:
+            pass
+    return style
