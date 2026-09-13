@@ -140,40 +140,28 @@ solve["use_known_focal"].setValue(False)
 print("\n=== 5. floor grid geometry ===")
 solve["vp1"].setValue([-2570., 640.])
 solve["vp2"].setValue([1900., 640.])
-card = solve.node("floorgrid")
-solve["griddistance"].setValue(6.0)
-centres = []
-for sz in (10., 21., 40., 80., 150.):
-    solve["gridsize"].setValue(sz)
-    centres.append([round(v, 4) for v in card["translate"].value()])
-check("grid size is a pure scale, never moves the card",
-      all(c == centres[0] for c in centres), str(centres[0]))
-solve["gridsize"].setValue(40.0)
-moved = []
-for d in (2., 6., 20.):
-    solve["griddistance"].setValue(d)
-    moved.append(round(card["translate"].value()[2], 3))
-check("distance moves the card", len(set(moved)) == 3, str(moved))
-solve["griddistance"].setValue(6.0)
-cells = []
-for sz in (20., 40., 80.):
-    solve["gridsize"].setValue(sz)
-    cells.append(round(sz / card["rows"].value(), 3))
-check("cell size held constant as the plane grows",
-      max(cells) - min(cells) < 0.01, str(cells))
+# There used to be a card here, and most of this section was about keeping it
+# still while it was scaled. A card cannot be kept still while it is scaled,
+# because what you see of it is its edges. The floor is drawn per pixel now, so
+# there is no size, no distance and no card, and the only thing left to check is
+# that none of them came back. How the ground itself behaves is suite 9.
+for gone in ("gridsize", "griddistance", "autofit", "gridfade", "gridstyle"):
+    check("no %s knob to move the floor with" % gone, gone not in solve.knobs(), "")
+check("no card inside the node", solve.node("floorgrid") is None, "")
+check("the ground is drawn from the solve",
+      solve.node("groundxz") is not None and solve.node("gridmask") is not None, "")
 
-# The card must lie ON the ground plane, below the camera. Projecting corners is
-# NOT a valid test: a corner behind the camera projects mirrored, while the
-# renderer clips it. Render measurements confirmed 0 rows above the horizon even
-# at size 200 / distance 4, so the invariant to assert is the geometry itself.
-solve["gridsize"].setValue(60.0)
-t = card["translate"].value()
+# The ground is the plane y = 0 and the camera is above it. That used to need
+# proving because a card could be put anywhere; now it is what the ray
+# intersection solves for, so all there is to check is the camera height.
 camy = icam["translate"].value()[1]
-check("floor card lies on the ground plane", abs(t[1] - solve["gridoffset"].value()[1]) < 1e-6,
-      "card y %.4f" % t[1])
-check("camera sits above the floor card", camy > t[1], "camera y %.2f vs card y %.2f" % (camy, t[1]))
-ok_orient = card["orientation"].value() == "ZX"
-check("card is flat, not standing up", ok_orient, "orientation %s" % card["orientation"].value())
+check("the camera sits above the ground plane, which is y = 0",
+      camy > 0.0, "camera y %.2f" % camy)
+check("and its height is the one measurement that sets the scale",
+      abs(camy - solve["camera_height"].value()) < 1e-6,
+      "%.4f vs %.4f" % (camy, solve["camera_height"].value()))
+check("the ground plane is flat by construction, it is the plane y = 0",
+      solve.node("groundxz") is not None, "")
 
 print("\n" + "=" * 74)
 npass = sum(1 for _, ok, _ in RESULTS if ok)

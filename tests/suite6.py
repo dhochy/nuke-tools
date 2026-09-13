@@ -4,8 +4,8 @@ This reproduces David's actual failure. A node saved with the OLD internals, whe
 the floor card's position was tied to its size, is loaded, and must come back with
 the size term gone and every placed point still where he put it.
 """
+import io
 import os
-import re
 import nuke
 
 GIZDIR = r"C:\Users\dhoch\.nuke\Gizmos\DH_Tools\3D"
@@ -61,8 +61,12 @@ label = s["linked_to"].value()
 check("the panel says so in the link label",
       "Warning" in label and g.name() in label, label[-80:])
 
-g["p1a"].setValue([300.0, 900.0]); g["p1b"].setValue([1500.0, 700.0])
-g["p2a"].setValue([300.0, 200.0]); g["p2b"].setValue([1500.0, 340.0])
+# These have to converge to the LEFT, opposite the other guide. Two guides whose
+# vanishing points sit on the same side of the lens axis describe no camera at
+# all, and the solve now says so rather than returning a small number, so a made
+# up pair is no longer good enough for a fixture.
+g["p1a"].setValue([1500.0, 900.0]); g["p1b"].setValue([300.0, 780.0])
+g["p2a"].setValue([1500.0, 200.0]); g["p2b"].setValue([300.0, 360.0])
 dhPersp.set_link_label(s)
 check("the warning clears once the guide is placed",
       not dhPersp.pristine_guides(s) and "Warning" not in s["linked_to"].value(), "")
@@ -71,44 +75,58 @@ check("and the focal becomes believable", 4.0 < s["cam_focal"].value() < 400.0,
 
 # ------------------------------------------------- 30. updating a stale node
 print("\n=== 30. a node saved with the old internals updates in place ===")
-path = os.path.join(TMP, "stale.nk").replace("\\", "/")
-nuke.scriptSaveAs(path, overwrite=1)
 
-# forge the old behaviour: size drives position, exactly as it did before 012eef9
-src = open(path).read()
-OLD = ('translate {{"parent.gridoffset.x - sin((parent.cam_ry*3.14159265358979/180))'
-       '*parent.griddistance"} {parent.gridoffset.y} '
-       '{"parent.gridoffset.z - cos((parent.cam_ry*3.14159265358979/180))'
-       '*parent.griddistance"}}')
-NEW = ('translate {{"parent.gridoffset.x - sin((parent.cam_ry*3.14159265358979/180))'
-       '*parent.gridsize/2"} {parent.gridoffset.y} '
-       '{"parent.gridoffset.z - cos((parent.cam_ry*3.14159265358979/180))'
-       '*parent.gridsize/2"}}')
-check("the saved script contains the fixed expression", OLD in src, "")
-# forge an OLD build number whatever the current one is, or this test
-# quietly stops testing anything the moment BUILD is bumped
-src = re.sub(r"\n _build \d+\n", "\n _build 1\n", src.replace(OLD, NEW))
-open(path, "w").write(src)
-nuke.scriptClear()
-nuke.scriptOpen(path)
+# A Group gizmo is copied into the script when the node is made, so a node saved
+# at build 5 is the build 5 gizmo file. Pasting the kept copy gives a real old
+# node instead of an imitation of one.
+FIX = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                   "fixtures", "dhPerspSolve_build5.gizmo")
+old_body = io.open(FIX, encoding="utf-8").read()
+old_body = old_body.split("\n", 1)[1]                  # drop the version line
+old_body = old_body.replace(" name dhPerspSolve\n", " name dhStaleSolve\n", 1)
+paste = os.path.join(TMP, "stale_paste.nk").replace("\\", "/")
+io.open(paste, "w", encoding="utf-8", newline="").write(
+    "set cut_paste_input [stack 0]\n" + old_body)
 
-old_solve = [n for n in nuke.allNodes() if "gridsize" in n.knobs()][0]
+for n in nuke.allNodes():
+    n.setSelected(False)
+g2.setSelected(True)
+nuke.nodePaste(paste)
+old_solve = nuke.toNode("dhStaleSolve")
+check("a build 5 node was pasted into the script", old_solve is not None, "")
+old_solve.setInput(0, g2)
+old_solve["vp1"].setExpression(g.name() + ".vp.x", 0)
+old_solve["vp1"].setExpression(g.name() + ".vp.y", 1)
+old_solve["vp2"].setExpression(g2.name() + ".vp.x", 0)
+old_solve["vp2"].setExpression(g2.name() + ".vp.y", 1)
+
+check("it is the old build", dhPersp.node_build(old_solve) < dhPersp.BUILD,
+      "build %d against %d" % (dhPersp.node_build(old_solve), dhPersp.BUILD))
+check("it still has the card floor inside it",
+      old_solve.node("floorgrid") is not None, "")
+check("and the knobs that used to move it",
+      "gridsize" in old_solve.knobs() and "griddistance" in old_solve.knobs(), "")
+
+# reproduce the report on the old node: growing it walks its near edge forward
 card = old_solve.node("floorgrid")
 old_solve["griddistance"].setValue(20.0)
-moved = []
+near = []
 for sz in (20.0, 80.0, 160.0):
     old_solve["gridsize"].setValue(sz)
-    moved.append(round(card["translate"].value()[2], 3))
-check("the stale node really does move when scaled, reproducing the report",
-      len(set(moved)) == 3, "card z %s" % moved)
-check("and it reports an old build", dhPersp.node_build(old_solve) < dhPersp.BUILD,
-      "build %d vs %d" % (dhPersp.node_build(old_solve), dhPersp.BUILD))
+    t = card["translate"].value()
+    near.append(round(t[2] - sz / 2.0, 3))
+check("the old node's near edge really does move when it is scaled, "
+      "which is what David saw", len(set(near)) == 3, "near edge z %s" % near)
+
 stale = dhPersp.stale_nodes()
 check("stale_nodes finds it", old_solve.name() in [n.name() for n in stale],
       "%d stale" % len(stale))
 
 keep_name = old_solve.name()
-keep_size = old_solve["gridsize"].value()
+old_solve["camera_height"].setValue(7.25)
+old_solve["cellsize"].setValue(3.5)
+old_solve["gridcolor"].setValue([0.2, 0.4, 0.9, 1.0])
+keep = {"camera_height": 7.25, "cellsize": 3.5}
 guide_pts = {}
 for n in nuke.allNodes():
     if dhPersp.is_persplines(n):
@@ -122,9 +140,13 @@ check("the node keeps its name", new_solve is not None, keep_name)
 check("it is now at the current build",
       new_solve is not None and dhPersp.node_build(new_solve) == dhPersp.BUILD,
       "build %d" % (dhPersp.node_build(new_solve) if new_solve else -1))
-check("knob values survived the rebuild",
-      new_solve is not None and abs(new_solve["gridsize"].value() - keep_size) < 1e-6,
-      "gridsize %.2f" % (new_solve["gridsize"].value() if new_solve else -1))
+check("the knobs that still exist kept their values",
+      new_solve is not None
+      and all(abs(new_solve[k].value() - v) < 1e-6 for k, v in keep.items()),
+      ", ".join("%s %.4g" % (k, new_solve[k].value()) for k in keep))
+check("and so did the colour",
+      abs(new_solve["gridcolor"].value()[2] - 0.9) < 1e-6,
+      str([round(v, 3) for v in new_solve["gridcolor"].value()]))
 ok_pts = True
 for nm, pts in guide_pts.items():
     n = nuke.toNode(nm)
@@ -138,15 +160,18 @@ for nm, pts in guide_pts.items():
 check("every placed guide point survived", ok_pts, "%d guides" % len(guide_pts))
 check("expression links survived",
       (not linked) or new_solve["vp1"].hasExpression(0), "linked was %s" % linked)
+check("it is still connected to the guide chain",
+      new_solve.input(0) is not None,
+      new_solve.input(0).name() if new_solve.input(0) else "nothing")
 
-newcard = new_solve.node("floorgrid")
-new_solve["griddistance"].setValue(20.0)
-fixed = []
-for sz in (20.0, 80.0, 160.0):
-    new_solve["gridsize"].setValue(sz)
-    fixed.append(round(newcard["translate"].value()[2], 3))
-check("THE FIX: the updated node no longer moves when scaled",
-      len(set(fixed)) == 1, "card z %s" % fixed)
+check("THE FIX: the card is gone, so there is nothing left to move",
+      new_solve.node("floorgrid") is None, "")
+check("and the ground is drawn from the solve instead",
+      new_solve.node("groundxz") is not None
+      and new_solve.node("gridmask") is not None, "")
+for gone in ("gridsize", "griddistance", "autofit", "gridfade", "gridstyle"):
+    check("the %s knob did not come back with it" % gone,
+          gone not in new_solve.knobs(), "")
 check("nothing is left stale", not dhPersp.stale_nodes(),
       "%d stale" % len(dhPersp.stale_nodes()))
 

@@ -305,8 +305,7 @@ print("\n=== 19. 3D floor, measured in the render ===")
 s2["axis_from"].setValue(modes_used[0])
 s2["show_horizon"].setValue(True)
 s2["show_floor"].setValue(True)
-s2["gridsize"].setValue(60.0)
-s2["griddistance"].setValue(6.0)
+s2["cellsize"].setValue(4.0)
 _, _, fr = render(s2, "floor_on")
 
 
@@ -331,22 +330,26 @@ _, _, fo = render(s2, "floor_off")
 check("floor toggle really removes it", not grid_rows(fo),
       "%d rows when off" % len(grid_rows(fo)))
 s2["show_floor"].setValue(True)
-s2["gridsize"].setValue(150.0)
+s2["cellsize"].setValue(16.0)
 _, _, big = render(s2, "floor_big")
 gb = grid_rows(big)
-check("a much larger floor still stays below the horizon",
+check("a much coarser floor still stays below the horizon",
       gb and hz and max(gb) <= max(hz) + 1,
       "floor top %d  horizon %d" % (max(gb) if gb else -1, max(hz) if hz else -1))
-s2["gridsize"].setValue(60.0)
+check("and still reaches the bottom of frame, because ground has no near edge",
+      gb and min(gb) < 40, "floor bottom %d" % (min(gb) if gb else -1))
+s2["cellsize"].setValue(4.0)
 
-# the renderer must take the plate format, not the project format
+# The floor used to go through a ScanlineRender, which had to be told the plate
+# format or it rendered at the project one. It is drawn in 2D now and inherits
+# the format from the plate it is over, so the trap is gone rather than fixed.
 nuke.addFormat("640 480 0 0 640 480 1 tinyproj")
 nuke.root()["format"].setValue("tinyproj")
 dhPersp.on_knob_changed(s2, IC)
-fmt = s2.node("render3d").format()
-check("3D render follows the plate, not the project format",
+fmt = s2.format()
+check("the node still follows the plate, not the project format",
       fmt.width() == W and fmt.height() == H,
-      "render %dx%d  plate %dx%d" % (fmt.width(), fmt.height(), W, H))
+      "node %dx%d  plate %dx%d" % (fmt.width(), fmt.height(), W, H))
 nuke.root()["format"].setValue("testHD")
 
 # ------------------------------------------------- 20. files on disk

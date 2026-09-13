@@ -9,6 +9,7 @@ statements, and the division by 1/K that failed on a level horizon.
 Lives in ~/.nuke/python, which init.py puts on the plugin path, so these names
 resolve in both GUI and -t sessions.
 """
+import math
 import nuke
 from math import sqrt, atan, hypot, pi as PI
 
@@ -250,7 +251,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 5
+BUILD = 7
 
 NL = chr(10)
 WARN_BLANK = (
@@ -263,7 +264,7 @@ WARN_BLANK = (
 # length has to supply it, and camera height is the one a compositor knows.
 # Every other length on the node is then in the same unit.
 UNITS = (("feet", 0.3048), ("metres", 1.0), ("centimetres", 0.01))
-SCALED = ("camera_height", "gridsize", "griddistance", "cellsize")
+SCALED = ("camera_height", "cellsize")
 
 
 def unit_index(node):
@@ -380,19 +381,18 @@ def on_knob_changed(node=None, knob=None):
         return
     name = knob.name()
 
-    if name == "gridstyle":
-        apply_grid_style(node)
-        return
     if name == "use_vertical":
         set_axis_note(node)
+        set_verdict(node)
         return
     if name == "unit":
         convert_units(node)
         return
     if name in ("cellsize", "camera_height"):
         set_scale_note(node)
-    if name in ("autofit", "horizon_gap", "gridrows", "camera_height"):
-        maybe_fit_floor(node)
+    if name in ("vp1", "vp2", "vp3", "use_known_focal",
+                "known_focal", "filmback", "axis_from"):
+        set_verdict(node)
 
     if name == "inputChange":
         if node.input(0) is None:
@@ -554,6 +554,7 @@ def set_link_label(node):
     if blank:
         label += (WARN_BLANK % ", ".join(blank))
     k.setValue(label)
+    set_verdict(node)
 
 
 def align_camera():
@@ -815,7 +816,6 @@ def on_create_solve(node=None):
     False: at creation the node is not connected yet, so width() can only report
     the project format. The real fit happens on the first inputChange.
     """
-    apply_grid_style(node)
     set_scale_note(node)
     node = node or nuke.thisNode()
     fitted = node.knobs().get("_fitted")
@@ -828,6 +828,7 @@ def on_create_solve(node=None):
                 fitted.setValue(False)
     auto_link(node)
     set_link_label(node)
+    set_verdict(node)
 
 
 def upstream_guides(node, limit=200):
@@ -872,7 +873,6 @@ def _apply_link(node, a, b, vert=None):
         node["_fitted"].setValue(True)
     set_link_label(node)
     set_axis_note(node)
-    maybe_fit_floor(node)
     return node
 
 
@@ -1087,93 +1087,6 @@ def pristine_guides(node):
     return bad
 
 
-def fit_floor(node=None, quiet=True):
-    """Size and place the floor so it covers the frame and reaches the horizon.
-
-    A ground plane has no edges in shot. A card does, so the card has to be big
-    enough and far enough that its edges leave the frame and its far edge lands
-    on the horizon.
-
-    A ground point at horizontal distance d ahead of the camera projects about
-    f_px * height / d pixels below the horizon, so the distance that stops a
-    chosen few pixels short is f_px * height / gap. Spanning from behind the
-    camera out to there, and the same again sideways, covers everything the
-    frame can see.
-    """
-    node = node or nuke.thisNode()
-    if "gridsize" not in node.knobs():
-        return None
-    try:
-        f_px = float(node["_f"].value())
-        height = float(node["camera_height"].value())
-        gap = max(float(node["horizon_gap"].value()), 0.5)
-        cells = max(int(round(node["gridrows"].value())), 4)
-    except Exception:
-        return None
-    if f_px <= 1.0 or height <= 0.0:
-        if not quiet:
-            nuke.message("Nothing to fit yet: the solve has no usable focal "
-                         "length or the camera height is zero.")
-        return None
-
-    # How many pixels of ground there are between the horizon and the bottom of
-    # frame. That ratio, not the scene scale, decides everything: the nearest
-    # visible ground is f*h/hz away and the farthest is f*h/gap, so covering both
-    # with one uniform grid needs about 3*hz/gap cells. A Card caps at 400 rows,
-    # so the gap has to be opened up until the cell count fits, otherwise the
-    # cells grow larger than the whole near half of frame and nothing is drawn
-    # there at all.
-    try:
-        hz = 0.5 * (node["vp1"].value()[1] + node["vp2"].value()[1])
-    except Exception:
-        hz = node.height() * 0.75
-    hz = max(min(hz, node.height() * 4.0), 40.0)
-    cap = min(cells, 400)
-
-    # Cell size is set by the NEAR field, which is the half you judge alignment
-    # against. Aim for `near_cells` cells across the width of frame at the bottom.
-    # The ground there is f*h/hz away and the frame spans 2*d*(w/2)/f across it,
-    # so the cell that gives n cells across is simply (w/n) * (h/hz).
-    try:
-        want = max(float(node["near_cells"].value()), 1.0)
-    except Exception:
-        want = 6.0
-    cell = (node.width() / want) * (height / hz)
-
-    # Then reach as far as the 400 row ceiling allows at that cell size.
-    far = cap * cell / 3.0
-    gap = max(gap, f_px * height / max(far, 1e-9))
-    far = f_px * height / gap
-    cells = int(max(8, min(cap, round(3.0 * far / cell))))
-    # The card is axis aligned to world X and Z while the camera can be looking
-    # any which way, so its silhouette is a diamond. Pushing it forward leaves
-    # its near corner in shot, which is the pointed near edge and the visible
-    # side edges. Centring it under the camera instead means every direction is
-    # covered out to the inscribed radius, whatever the yaw.
-    # Visible ground sits within about far*sqrt(2) of the point under the
-    # camera, so a half side of 1.5*far clears it with room to spare.
-    size = 3.0 * far
-    dist = 0.0
-    with _NoUndo():
-        node["gridsize"].setValue(size)
-        node["griddistance"].setValue(dist)
-        node["cellsize"].setValue(size / float(cells))
-    set_scale_note(node)
-    if not quiet:
-        nuke.message("Floor fitted: %.6g across, centred %.6g in front, "
-                     "%d cells of %.6g %s each."
-                     % (size, dist, cells, size / float(cells), unit_name(node)))
-    return size
-
-
-def maybe_fit_floor(node):
-    """Fit only if the user has left it on automatic."""
-    k = node.knobs().get("autofit")
-    if k is not None and k.value():
-        return fit_floor(node, quiet=True)
-    return None
-
-
 def guide_role(node):
     """0 for a ground guide, 1 for a vertical one. Older guides are ground."""
     k = node.knobs().get("role")
@@ -1207,38 +1120,71 @@ def set_axis_note(node):
                    % (node["_px"].value(), node["_py"].value(),
                       node.width() / 2.0, node.height() / 2.0))
     else:
-        k.setValue("<b>The vertical guide is too close to parallel to be used. "
-                   "Its vanishing point is off at infinity, where the orthocenter "
-                   "is meaningless, so the lens axis is being assumed at the "
-                   "centre of frame. A camera tilted up or down gives verticals "
-                   "that actually converge.</b>")
+        # Two different guides fail this and they need different advice: one
+        # that was never drawn on has its vanishing point sitting on the centre
+        # of frame, and one drawn along genuinely parallel uprights has it off
+        # at infinity. Both make the orthocenter meaningless.
+        d = math.hypot(node["vp3"].value()[0] - node.width() / 2.0,
+                       node["vp3"].value()[1] - node.height() / 2.0)
+        if d < node["_diag"].value():
+            k.setValue("<b>The vertical guide has not been placed. Its two "
+                       "lines still cross at the centre of frame, so there is "
+                       "no vanishing point to solve from and the lens axis is "
+                       "being assumed at the centre. Draw its lines along two "
+                       "upright edges in the plate.</b>")
+        else:
+            k.setValue("<b>The vertical guide is too close to parallel to be "
+                       "used. Its vanishing point is off at infinity, where the "
+                       "orthocenter is meaningless, so the lens axis is being "
+                       "assumed at the centre of frame. A camera tilted up or "
+                       "down gives verticals that actually converge.</b>")
 
 
-def apply_grid_style(node=None):
-    """Set how the floor card draws itself.
+def set_verdict(node=None):
+    """Say out loud whether the two guides describe a camera that can exist.
 
-    render_mode and display are pulldowns, and Nuke reads an expression on a
-    pulldown as an animation curve. A ternary fails that parse, is ignored, and
-    the knob silently keeps its default of "unchanged", which draws nothing. So
-    these are set from here instead of being expression linked.
+    A lens axis has to fall between the two vanishing points along the horizon.
+    That is not a rule of thumb, it is what (V1-P).(V2-P) + f^2 = 0 means: the
+    product of the two signed distances has to be negative and big enough to
+    leave room for the focal length. Guides that do not satisfy it have no
+    camera at all, and the arithmetic that used to run anyway returned a few
+    millimetres, which reads like a fisheye rather than like an error.
     """
     node = node or nuke.thisNode()
-    card = node.node("floorgrid")
-    if card is None:
+    k = node.knobs().get("verdict")
+    if k is None:
         return None
-    style = "wireframe"
-    k = node.knobs().get("gridstyle")
-    if k is not None:
-        try:
-            style = "textured" if int(round(k.getValue())) == 1 else "wireframe"
-        except Exception:
-            style = "wireframe"
-    for name in ("render_mode", "display"):
-        kn = card.knobs().get(name)
-        if kn is None:
-            continue
-        try:
-            kn.setValue(style)
-        except Exception:
-            pass
-    return style
+    try:
+        ok = node["_solveok"].value() > 0.5
+        fsq = float(node["_fsq"].value())
+        focal = float(node["cam_focal"].value())
+        roll = float(node["cam_rz"].value())
+    except Exception:
+        return None
+    if node.knobs().get("use_known_focal") is not None and \
+            node["use_known_focal"].value():
+        k.setValue("Focal length is being taken as given, %.4g mm. The guides "
+                   "are only setting the orientation." % focal)
+        return True
+    if not ok:
+        k.setValue(
+            "<b>These two guides do not describe a camera.</b> For a real lens "
+            "the two vanishing points have to sit on opposite sides of the lens "
+            "axis along the horizon, and these do not%s. Usually one guide is "
+            "following the same direction on the ground as the other, or one of "
+            "its lines is not on a receding edge. The focal length below is a "
+            "floor value, not a solve."
+            % ("" if fsq < 0 else " by enough to leave room for a focal length"))
+        return False
+    warn = []
+    if focal < 8.0 or focal > 200.0:
+        warn.append("%.4g mm is outside the range most lenses live in" % focal)
+    if abs(roll) > 5.0:
+        warn.append("the camera is rolled %.1f degrees, which is rare unless "
+                    "the shot really is tilted" % roll)
+    if warn:
+        k.setValue("<b>Solved, but check it: %s.</b>" % ", and ".join(warn))
+        return True
+    k.setValue("Solved: %.4g mm, roll %.2f degrees. That is a believable camera."
+               % (focal, roll))
+    return True

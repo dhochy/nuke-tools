@@ -5,7 +5,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 7
+ _build 5
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -19,7 +19,7 @@ Group {
  addUserKnob {12 vp2 l "vp 2"}
  vp2 {2600 900}
  addUserKnob {12 vp3 l "vp 3 (vertical)" t "Vanishing point of the upright edges. Linked from a dhPerspGuide whose role is set to vertical. Leave the third guide off and the solve assumes the lens axis is at the centre of frame, as before."}
- vp3 {960 1e9}
+ vp3 {960 100000}
  addUserKnob {6 use_vertical l "solve the lens axis from a vertical guide" t "With three mutually perpendicular vanishing points the principal point is the orthocenter of their triangle, so it is solved instead of assumed. Ignored automatically when the verticals are too close to parallel for their vanishing point to mean anything." +STARTLINE}
  addUserKnob {26 axis_note l "" +STARTLINE T "lens axis: centre of frame"}
  addUserKnob {26 linked_to l "" t "Which dhPerspGuide drives each vanishing point. Selection order is not click order, so check here before wondering why moving a guide did nothing." +STARTLINE T "vp1: set by hand   vp2: set by hand"}
@@ -28,13 +28,32 @@ Group {
  addUserKnob {20 floor l "3D Floor"}
  addUserKnob {6 show_floor l "show 3D floor" -STARTLINE}
  show_floor true
+ addUserKnob {4 gridstyle l "floor style" t "Wireframe draws the grid with the card's own rows and columns, which Nuke caps at 400, so on a plane that reaches the horizon the cells grow larger than the near half of frame. Textured draws it from an image instead, which has no such cap, at the cost of softening where the near ground magnifies the texture." M {wireframe textured}}
+ gridstyle wireframe
+ addUserKnob {7 texlines l "texture lines" t "How many grid lines the texture carries. Only used by the textured style." R 20 800}
+ texlines 400
  addUserKnob {19 gridcolor l color}
  gridcolor {1 0.65 0.1 1}
- addUserKnob {7 gridwidth l "line width" t "Thickness of the grid lines in pixels, held constant wherever they are on the ground." R 0.5 6}
+ addUserKnob {7 gridwidth l "line width" t "Thickness of the wireframe in pixels. The 3D renderer draws hairlines, so this thickens them afterwards." R 1 6}
  gridwidth 1
- addUserKnob {7 cellsize l "cell size" t "Size of one floor tile, in the working unit set on the Scale tab. The ground is drawn out to the horizon whatever this is; lines too fine to resolve fade out rather than alias." R 0.05 20}
+ addUserKnob {7 cellsize l "cell size" t "Size of one floor tile in the working unit set on the Scale tab. Held constant as the plane grows, so existing lines do not move when you change the grid size." R 0.25 20}
  cellsize 1
- addUserKnob {13 gridoffset l "grid offset" t "Slide the grid along the ground to line it up with the floor in the plate. X and Z run along the two directions your guides marked; Y is unused, the grid is on the ground."}
+ addUserKnob {7 gridsize l "grid size" t "Scales the plane about its centre. Position is set by 'distance' below, so changing the size never moves the grid." R 1 200}
+ gridsize 40
+ addUserKnob {7 griddistance l distance t "How far in front of the camera the grid's centre sits, along the way the camera is facing. Raise it if the near edge of the grid is being clipped by the camera." R 0 100}
+ griddistance 12
+ addUserKnob {6 autofit l "fit floor to frame automatically" t "Size and place the floor from the solve so it runs off both sides of frame and reaches the horizon, the way real ground does. Turn this off to set the size by hand." +STARTLINE}
+ autofit true
+ addUserKnob {7 gridfade l "fade out near horizon" t "How many pixels below the horizon the floor dissolves over. A ground plane reaches the horizon at infinity, so the grid has to stop somewhere. Fading it out means the far edge never shows, which lets the cells stay small enough to read in the near half of frame." R 0 400}
+ gridfade 160
+ addUserKnob {7 near_cells l "cells across the near edge" t "Roughly how many cells span the width of frame at the bottom. This is what decides the cell size; raise it for a finer grid, lower it to reach further." R 2 20}
+ near_cells 6
+ addUserKnob {7 horizon_gap l "stop short of horizon" t "How many pixels short of the horizon the far edge of the floor stops. The ground meets the horizon at infinity, so it has to stop somewhere. Smaller reaches further and makes the cells coarser." R 1 40}
+ horizon_gap 4
+ addUserKnob {22 fitfloor l "fit floor to frame" t "Re-fit the floor to the current solve." -STARTLINE T "import dhPersp\ndhPersp.fit_floor(nuke.thisNode(), quiet=False)"}
+ addUserKnob {7 gridrows l "most cells across" t "Upper limit on how many cells the fitted floor is divided into. Nuke's Card tops out at 400. The fit opens the horizon gap as far as it must to keep the cells small enough to draw in the near part of frame." R 8 200}
+ gridrows 400
+ addUserKnob {13 gridoffset l "grid offset" t "Slide the grid along the ground plane to line it up with the floor in the plate."}
  addUserKnob {26 d2 l "" +STARTLINE}
  addUserKnob {4 axis_from l "ground X axis runs toward" t "The geometry cannot tell which horizontal direction is X and which is Z, so there are always two valid cameras. Their yaws are complementary and add up to ninety degrees. If the floor grid looks turned against the plate, switch this. The Horizon tab shows which guide feeds each vanishing point." M {"auto (smaller turn)" "vanishing point 1" "vanishing point 2"}}
  addUserKnob {20 scale_tab l Scale}
@@ -54,7 +73,6 @@ Group {
  addUserKnob {26 dsolve l "" +STARTLINE}
  addUserKnob {26 tsolve l result}
  addUserKnob {26 sanity l "" t "A very small focal length, or a roll of more than a few degrees, almost always means the two guides are not marking two perpendicular sets of parallel edges. Check that each guide's two lines lie along real receding edges in the plate, and that the two guides follow directions at right angles to each other on the ground." +STARTLINE T "A believable solve is roughly 10 to 100mm with roll near zero."}
- addUserKnob {26 verdict l "" +STARTLINE T ""}
  addUserKnob {7 cam_focal l "focal (mm)" +DISABLED}
  cam_focal {{"_f * sqrt(pow(cam.haperture,2)+pow(cam.vaperture,2)) / max(sqrt(width*width + height*height),1e-6)"}}
  addUserKnob {7 cam_rx l "rotate X" +DISABLED}
@@ -70,7 +88,7 @@ Group {
  addUserKnob {7 _diag +INVISIBLE}
  _diag {{"sqrt(width*width + height*height)"}}
  addUserKnob {7 _v3ok +INVISIBLE}
- _v3ok {{"(use_vertical && sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2)) > 0.75*_diag && sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2)) < 25*_diag) ? 1 : 0"}}
+ _v3ok {{"(use_vertical && sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2)) < 25*_diag) ? 1 : 0"}}
  addUserKnob {7 _oa1 +INVISIBLE}
  _oa1 {{"vp2.x - vp3.x"}}
  addUserKnob {7 _ob1 +INVISIBLE}
@@ -113,6 +131,14 @@ Group {
  _va {{"filmback * height / max(width,1e-6)"}}
  addUserKnob {7 _fknown +INVISIBLE}
  _fknown {{"known_focal * sqrt(width*width + height*height) / max(sqrt(filmback*filmback + _va*_va),1e-6)"}}
+ addUserKnob {7 _fsolved +INVISIBLE}
+ _fsolved {{"sqrt(max(_v1*_v2 - _oivi*_oivi, 1e-6))"}}
+ addUserKnob {7 _f +INVISIBLE}
+ _f {{"(use_known_focal ? _fknown : _fsolved)"}}
+ addUserKnob {7 _rx +INVISIBLE}
+ _rx {{"atan((_py - _viy)/_f)*180/3.14159265358979"}}
+ addUserKnob {7 _fh +INVISIBLE}
+ _fh {{"sqrt(_f*_f + _oivi*_oivi)"}}
  addUserKnob {7 _hlen +INVISIBLE}
  _hlen {{"max(sqrt(_dx*_dx + _dy*_dy),1e-9)"}}
  addUserKnob {7 _hsign +INVISIBLE}
@@ -121,100 +147,77 @@ Group {
  _s1 {{"_hsign*((vp1.x-_vix)*_dx + (vp1.y-_viy)*_dy)/_hlen"}}
  addUserKnob {7 _s2 +INVISIBLE}
  _s2 {{"_hsign*((vp2.x-_vix)*_dx + (vp2.y-_viy)*_dy)/_hlen"}}
- addUserKnob {7 _fsq +INVISIBLE}
- _fsq {{"-_s1*_s2 - _oivi*_oivi"}}
- addUserKnob {7 _solveok +INVISIBLE}
- _solveok {{"(use_known_focal || _fsq > pow(0.02*_diag,2)) ? 1 : 0"}}
- addUserKnob {7 _fsolved +INVISIBLE}
- _fsolved {{"sqrt(max(_fsq, pow(0.02*_diag,2)))"}}
- addUserKnob {7 _f +INVISIBLE}
- _f {{"(use_known_focal ? _fknown : _fsolved)"}}
- addUserKnob {7 _rx +INVISIBLE}
- _rx {{"atan((_py - _viy)/_f)*180/3.14159265358979"}}
- addUserKnob {7 _fh +INVISIBLE}
- _fh {{"sqrt(_f*_f + _oivi*_oivi)"}}
  addUserKnob {7 _ry +INVISIBLE}
  _ry {{"atan((axis_from==0 ? (abs(_s2)<abs(_s1) ? _s2 : _s1) : (axis_from==1 ? _s2 : _s1))/_fh)*180/3.14159265358979"}}
  addUserKnob {7 _rz +INVISIBLE}
  _rz {{"(abs(_dx) > 1e-9 ? -atan(_dy/_dx)*180/3.14159265358979 : 0)"}}
- addUserKnob {7 _r1x +INVISIBLE}
- _r1x {{"(vp1.x - _px)/max(_f,1e-6)"}}
- addUserKnob {7 _r1y +INVISIBLE}
- _r1y {{"(vp1.y - _py)/max(_f,1e-6)"}}
- addUserKnob {7 _l1 +INVISIBLE}
- _l1 {{"max(sqrt(_r1x*_r1x + _r1y*_r1y + 1),1e-9)"}}
- addUserKnob {7 _u1x +INVISIBLE}
- _u1x {{"_r1x/_l1"}}
- addUserKnob {7 _u1y +INVISIBLE}
- _u1y {{"_r1y/_l1"}}
- addUserKnob {7 _u1z +INVISIBLE}
- _u1z {{"-1/_l1"}}
- addUserKnob {7 _r2x +INVISIBLE}
- _r2x {{"(vp2.x - _px)/max(_f,1e-6)"}}
- addUserKnob {7 _r2y +INVISIBLE}
- _r2y {{"(vp2.y - _py)/max(_f,1e-6)"}}
- addUserKnob {7 _l2 +INVISIBLE}
- _l2 {{"max(sqrt(_r2x*_r2x + _r2y*_r2y + 1),1e-9)"}}
- addUserKnob {7 _u2x +INVISIBLE}
- _u2x {{"_r2x/_l2"}}
- addUserKnob {7 _u2y +INVISIBLE}
- _u2y {{"_r2y/_l2"}}
- addUserKnob {7 _u2z +INVISIBLE}
- _u2z {{"-1/_l2"}}
- addUserKnob {7 _cx +INVISIBLE}
- _cx {{"_u1y*_u2z - _u1z*_u2y"}}
- addUserKnob {7 _cy +INVISIBLE}
- _cy {{"_u1z*_u2x - _u1x*_u2z"}}
- addUserKnob {7 _cz +INVISIBLE}
- _cz {{"_u1x*_u2y - _u1y*_u2x"}}
- addUserKnob {7 _cl +INVISIBLE}
- _cl {{"max(sqrt(_cx*_cx + _cy*_cy + _cz*_cz),1e-9) * (_cy < 0 ? -1 : 1)"}}
- addUserKnob {7 _nx +INVISIBLE}
- _nx {{"_cx/_cl"}}
- addUserKnob {7 _ny +INVISIBLE}
- _ny {{"_cy/_cl"}}
- addUserKnob {7 _nz +INVISIBLE}
- _nz {{"_cz/_cl"}}
 }
  Input {
   inputs 0
   name Input1
  }
 set Nbff08000 [stack 0]
-push $Nbff08000
- Expression {
-  temp_name0 dx
-  temp_expr0 "(x + 0.5 - parent._px)/max(parent._f,1e-6)"
-  temp_name1 dy
-  temp_expr1 "(y + 0.5 - parent._py)/max(parent._f,1e-6)"
-  temp_name2 dd
-  temp_expr2 "dx*parent._nx + dy*parent._ny - parent._nz"
-  temp_name3 hh
-  temp_expr3 "max(parent.camera_height,1e-9)"
-  expr0 "-hh*(dx*parent._u1x + dy*parent._u1y - parent._u1z)/(abs(dd) < 1e-9 ? 1e-9 : dd)"
-  expr1 "-hh*(dx*parent._u2x + dy*parent._u2y - parent._u2z)/(abs(dd) < 1e-9 ? 1e-9 : dd)"
-  expr2 dd
-  expr3 1
-  name groundxz
+ Camera {
+  inputs 0
+  translate {0 {{parent.camera_height}} 0}
+  rotate {{parent._rx} {parent._ry} {parent._rz}}
+  focal {{"parent._f * sqrt(pow(haperture,2)+pow(vaperture,2)) / max(sqrt(parent.width*parent.width + parent.height*parent.height),1e-6)"}}
+  win_translate {{"2*(parent._px - parent.width/2)/parent.width"} {"2*(parent._py - parent.height/2)/parent.height"}}
+  haperture {{parent.filmback}}
+  vaperture {{parent._va}}
+  name cam
  }
- Expression {
-  temp_name0 px1
-  temp_expr0 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height,1e-9)*max(sqrt(pow(parent._u1x + r*parent._nx/max(parent.camera_height,1e-9),2) + pow(parent._u1y + r*parent._ny/max(parent.camera_height,1e-9),2)),1e-12))"
-  temp_name1 pz1
-  temp_expr1 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height,1e-9)*max(sqrt(pow(parent._u2x + g*parent._nx/max(parent.camera_height,1e-9),2) + pow(parent._u2y + g*parent._ny/max(parent.camera_height,1e-9),2)),1e-12))"
-  temp_name2 mx
-  temp_expr2 "clamp(parent.gridwidth/2 + 0.5 - abs((r - parent.gridoffset.x)/max(parent.cellsize,1e-6) - floor((r - parent.gridoffset.x)/max(parent.cellsize,1e-6) + 0.5))*px1, 0, 1) * clamp((sqrt(px1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1)"
-  temp_name3 mz
-  temp_expr3 "clamp(parent.gridwidth/2 + 0.5 - abs((g - parent.gridoffset.z)/max(parent.cellsize,1e-6) - floor((g - parent.gridoffset.z)/max(parent.cellsize,1e-6) + 0.5))*pz1, 0, 1) * clamp((sqrt(pz1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1)"
-  expr0 "b < 0 ? max(mx,mz) : 0"
-  expr1 "b < 0 ? max(mx,mz) : 0"
-  expr2 "b < 0 ? max(mx,mz) : 0"
-  expr3 "b < 0 ? max(mx,mz) : 0"
-  name gridmask
+ Constant {
+  inputs 0
+  format "4096 4096 0 0 4096 4096 1 dhGridTex"
+  color 0
+  name gridtexbase
+ }
+ Grid {
+  number {{parent.texlines} {parent.texlines}}
+  size {{"clamp(4096/max(parent.texlines,1)*0.12, 1, 24)"}}
+  color {1 1 1 1}
+  color0 {0 0 0 0}
+  name gridtex
+ }
+ Card {
+  display wireframe
+  render_mode wireframe
+  orientation ZX
+  rows {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
+  columns {{clamp(floor(parent.gridsize/max(parent.cellsize,0.01)+0.5),2,400)}}
+  translate {{"parent.gridoffset.x - sin((parent.cam_ry*3.14159265358979/180))*parent.griddistance"} {parent.gridoffset.y} {"parent.gridoffset.z - cos((parent.cam_ry*3.14159265358979/180))*parent.griddistance"}}
+  uniform_scale {{parent.gridsize}}
+  name floorgrid
+ }
+push $Nbff08000
+ Multiply {
+  value 0
+  name bgformat
+ }
+ ScanlineRender {
+  inputs 3
+  antialiasing high
+  name render3d
+ }
+ Dilate {
+  size {{"parent.gridwidth - 1"}}
+  name linewidth
  }
  Multiply {
   value {{parent.gridcolor.r} {parent.gridcolor.g} {parent.gridcolor.b} {parent.gridcolor.a}}
   name gridtint
+ }
+ Expression {
+  temp_name0 hy
+  temp_expr0 "parent.vp1.y + (parent.vp2.y-parent.vp1.y)*(x-parent.vp1.x)/(abs(parent.vp2.x-parent.vp1.x) < 1e-6 ? 1e-6 : parent.vp2.x-parent.vp1.x)"
+  temp_name1 fd
+  temp_expr1 "parent.gridfade < 0.5 ? 1 : clamp((hy - y)/parent.gridfade,0,1)"
+  expr0 "r*fd"
+  expr1 "g*fd"
+  expr2 "b*fd"
+  expr3 "a*fd"
+  name gridfade_node
  }
 push $Nbff08000
  Merge2 {
@@ -228,7 +231,7 @@ push $Nbff08000
  }
  Expression {
   temp_name0 hz
-  temp_expr0 "(parent.show_horizon ? clamp((parent.horizonwidth/2 + 0.5) - (abs((parent.vp2.y-parent.vp1.y)*(x+0.5-parent.vp1.x) - (parent.vp2.x-parent.vp1.x)*(y+0.5-parent.vp1.y))/max(sqrt((parent.vp2.y-parent.vp1.y)*(parent.vp2.y-parent.vp1.y) + (parent.vp2.x-parent.vp1.x)*(parent.vp2.x-parent.vp1.x)),1e-6)),0,1) : 0) * parent.horizoncolor.a"
+  temp_expr0 "(parent.show_horizon ? clamp((parent.horizonwidth/2 + 0.5) - (abs((parent.vp2.y-parent.vp1.y)*(x-parent.vp1.x) - (parent.vp2.x-parent.vp1.x)*(y-parent.vp1.y))/max(sqrt((parent.vp2.y-parent.vp1.y)*(parent.vp2.y-parent.vp1.y) + (parent.vp2.x-parent.vp1.x)*(parent.vp2.x-parent.vp1.x)),1e-6)),0,1) : 0) * parent.horizoncolor.a"
   expr0 "parent.horizoncolor.r*hz + r*(1-hz)"
   expr1 "parent.horizoncolor.g*hz + g*(1-hz)"
   expr2 "parent.horizoncolor.b*hz + b*(1-hz)"
@@ -237,15 +240,5 @@ push $Nbff08000
  }
  Output {
   name Output1
- }
- Camera {
-  inputs 0
-  translate {0 {{parent.camera_height}} 0}
-  rotate {{parent._rx} {parent._ry} {parent._rz}}
-  focal {{"parent._f * sqrt(pow(haperture,2)+pow(vaperture,2)) / max(sqrt(parent.width*parent.width + parent.height*parent.height),1e-6)"}}
-  win_translate {{"2*(parent._px - parent.width/2)/parent.width"} {"2*(parent._py - parent.height/2)/parent.height"}}
-  haperture {{parent.filmback}}
-  vaperture {{parent._va}}
-  name cam
  }
 end_group

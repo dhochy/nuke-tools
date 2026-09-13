@@ -1,9 +1,10 @@
 """Part five: real world scale, and the grid must never move when it scales.
 
 The scale check is the one David has been bitten by before, so it is tested from
-both ends: the card's translate must not change at all across a wide range of
-sizes, and the rendered grid's centre must not move either. A translate that
-holds while the render drifts would still be a bug.
+both ends, and from the ends that matter: the drawn footprint of the floor, and
+the positions of the lines themselves. Checking a transform was what let the
+earlier version pass every time while David watched the grid move, because what
+moved was the card's edges and nothing was looking at those.
 """
 import os
 import struct
@@ -128,49 +129,69 @@ s["vp1"].setValue([-2570.0, 640.0])
 s["vp2"].setValue([1900.0, 640.0])
 s["show_floor"].setValue(True)
 s["show_horizon"].setValue(False)
-card = s.node("floorgrid")
 
-# ---------------------------------------------------- 25. scale must not move it
-print("\n=== 25. changing grid size must not move the grid ===")
+# ---------------------------------------------------- 25. the grid cannot move
+print("\n=== 25. the grid has no edges and no size, so nothing moves it ===")
 s["unit"].setValue(0)
 s["camera_height"].setValue(5.5)
 s["cellsize"].setValue(2.0)
-s["griddistance"].setValue(20.0)
-places = []
-for sz in (8.0, 20.0, 40.0, 90.0, 160.0, 240.0):
-    s["gridsize"].setValue(sz)
-    places.append([round(v, 6) for v in card["translate"].value()])
-check("card translate is identical at every size",
-      all(p == places[0] for p in places), str(places[0]))
-rot = []
-for sz in (8.0, 240.0):
-    s["gridsize"].setValue(sz)
-    rot.append([round(v, 6) for v in card["rotate"].value()])
-check("card rotation is identical at every size", rot[0] == rot[1], str(rot[0]))
+hz = 0.5 * (s["vp1"].value()[1] + s["vp2"].value()[1])
 
-# the render has to agree, not just the knob
-icam0 = s.node("cam")
-projected = []
-for sz in (8.0, 30.0, 120.0, 240.0):
-    s["gridsize"].setValue(sz)
-    t = card["translate"].value()
-    projected.append([round(v, 3) for v in project_point(icam0, t)])
-check("the card centre projects to the same pixel at every size",
-      all(p == projected[0] for p in projected), str(projected[0]))
+# The old measurement asked where the card's centre was, and it always answered
+# the same thing while David watched the grid move. What moved was the card's
+# edges. So the measurement is the drawn footprint now, not a transform.
+foot = {}
+for cell in (1.0, 2.0, 6.0, 20.0):
+    s["cellsize"].setValue(cell)
+    foot[cell] = grid_bbox(render(s, "cell%g" % cell))
+for cell, b in sorted(foot.items()):
+    check("cell %g: the floor is drawn" % cell, b[4] > 200, "%d px" % b[4])
+    check("cell %g: it runs off both sides of frame" % cell,
+          b[0] is not None and b[0] <= 2 and b[2] >= W - 3,
+          "x from %s to %s" % (b[0], b[2]))
+    check("cell %g: it starts at the bottom of frame, there is no near edge" % cell,
+          b[1] is not None and b[1] <= 2, "lowest row %s" % b[1])
+    check("cell %g: and stops just under the horizon, there is no far edge" % cell,
+          b[3] is not None and b[3] < hz and hz - b[3] < H / 12.0,
+          "highest row %s, horizon %.0f" % (b[3], hz))
 
-s["gridsize"].setValue(30.0)
-b1 = grid_bbox(render(s, "sz30"))
-s["gridsize"].setValue(120.0)
-b2 = grid_bbox(render(s, "sz120"))
-check("grid is actually drawn at both sizes", b1[4] > 200 and b2[4] > 200,
-      "%d and %d px" % (b1[4], b2[4]))
-check("bigger grid really is bigger", b2[4] > b1[4] * 1.3,
-      "%d -> %d px" % (b1[4], b2[4]))
-check("the smaller grid sits inside the larger one",
-      b1[0] is not None and b2[0] is not None
-      and b2[0] <= b1[0] + 2 and b2[1] <= b1[1] + 2
-      and b2[2] >= b1[2] - 2 and b2[3] >= b1[3] - 2,
-      "small %s  large %s" % (str(b1[:4]), str(b2[:4])))
+# The other thing "it moves" can mean is that the lines themselves shift. Double
+# the cell size and every line of the coarse grid should land on a line the fine
+# grid already had, because both are measured from the same place on the ground.
+def lit_columns(rows, y):
+    row = rows[len(rows) - 1 - y]
+    return set(x for x, px in enumerate(row)
+               if px[0] > 140 and 60 < px[1] < 200 and px[2] < 90)
+
+
+s["gridoffset"].setValue([0.0, 0.0, 0.0])
+s["cellsize"].setValue(1.0)
+fine = lit_columns(render(s, "fine"), 30)
+s["cellsize"].setValue(2.0)
+coarse = lit_columns(render(s, "coarse"), 30)
+near = set()
+for x in fine:
+    near.update((x - 2, x - 1, x, x + 1, x + 2))
+stray = sorted(coarse - near)
+check("doubling the cell size leaves every remaining line where it was",
+      len(stray) <= 2, "%d of %d coarse pixels are not on a fine line %s"
+      % (len(stray), len(coarse), stray[:6]))
+
+# and the things that are only about how it is drawn move nothing at all
+s["cellsize"].setValue(2.0)
+base = grid_bbox(render(s, "base"))
+s["gridwidth"].setValue(4.0)
+wide = grid_bbox(render(s, "wide"))
+# Thicker lines need more room between them before they can be drawn without
+# turning into moire, so a wide line runs out further from the horizon. That is
+# the fade doing its job, not the floor moving: the sides and the bottom are
+# where they were, and those are the edges a card used to have.
+check("line width leaves the sides and the bottom exactly where they were",
+      wide[0] == base[0] and wide[1] == base[1] and wide[2] == base[2],
+      "%s vs %s" % (str(base[:4]), str(wide[:4])))
+check("it only changes how far up the lines stay readable",
+      wide[3] <= base[3], "runs out at row %s, against %s" % (wide[3], base[3]))
+s["gridwidth"].setValue(1.0)
 
 # ---------------------------------------------------- 26. real world scale
 print("\n=== 26. camera height sets the scale ===")
@@ -181,8 +202,16 @@ check("camera sits at the height you set", abs(icam["translate"].value()[1] - 5.
 s["camera_height"].setValue(12.0)
 check("camera follows the height knob", abs(icam["translate"].value()[1] - 12.0) < 1e-6,
       "%.3f" % icam["translate"].value()[1])
-check("floor stays on the ground plane", abs(card["translate"].value()[1]) < 1e-6,
-      "card y %.4f" % card["translate"].value()[1])
+# The floor is the plane the camera rays are intersected with, so raising the
+# camera cannot lift it off the ground: what changes is how far away everything
+# is. A ground point read back at twice the height is twice as far.
+was = nuke.sample(s.node("groundxz"), "red", 300.5, 120.5)
+s["camera_height"].setValue(24.0)
+now = nuke.sample(s.node("groundxz"), "red", 300.5, 120.5)
+check("doubling the height doubles the distance, it does not lift the floor",
+      abs(now - 2.0 * was) < max(0.01 * abs(was), 1e-4),
+      "%.4f -> %.4f" % (was, now))
+s["camera_height"].setValue(12.0)
 before = (round(s["cam_focal"].value(), 6), round(s["cam_rx"].value(), 6),
           round(s["cam_ry"].value(), 6))
 s["camera_height"].setValue(3.0)
@@ -197,16 +226,14 @@ s["unit"].setValue(0)
 s["_unit_was"].setValue(0)
 s["camera_height"].setValue(5.5)
 s["cellsize"].setValue(2.0)
-s["gridsize"].setValue(40.0)
-s["griddistance"].setValue(20.0)
 s["gridoffset"].setValue([3.0, 0.0, -4.0])
-ft = [s[k].value() for k in ("camera_height", "cellsize", "gridsize", "griddistance")]
+ft = [s[k].value() for k in ("camera_height", "cellsize")]
 shape_ft = [round(v / s["cellsize"].value(), 6) for v in
-            (s["camera_height"].value(), s["gridsize"].value(), s["griddistance"].value())]
+            (s["camera_height"].value(), s["gridoffset"].value()[0])]
 
 s["unit"].setValue(1)                       # to metres
 dhPersp.convert_units(s)
-m = [s[k].value() for k in ("camera_height", "cellsize", "gridsize", "griddistance")]
+m = [s[k].value() for k in ("camera_height", "cellsize")]
 check("feet to metres converts every length",
       all(abs(a * 0.3048 - b) < 1e-6 for a, b in zip(ft, m)),
       "height %.4f ft -> %.4f m" % (ft[0], m[0]))
@@ -214,7 +241,7 @@ check("the grid offset converts too",
       abs(s["gridoffset"].value()[0] - 3.0 * 0.3048) < 1e-6,
       "%.4f" % s["gridoffset"].value()[0])
 shape_m = [round(v / s["cellsize"].value(), 6) for v in
-           (s["camera_height"].value(), s["gridsize"].value(), s["griddistance"].value())]
+           (s["camera_height"].value(), s["gridoffset"].value()[0])]
 check("the setup is physically unchanged by the switch",
       all(abs(a - b) < 1e-4 for a, b in zip(shape_ft, shape_m)),
       "cells: %s vs %s" % (shape_ft, shape_m))
@@ -228,7 +255,7 @@ s["unit"].setValue(0)                       # back to feet
 dhPersp.convert_units(s)
 check("a full round trip returns the original numbers",
       all(abs(s[k].value() - v) < 1e-4 for k, v in
-          zip(("camera_height", "cellsize", "gridsize", "griddistance"), ft)),
+          zip(("camera_height", "cellsize"), ft)),
       "height back to %.4f ft" % s["camera_height"].value())
 
 note = s["scale_note"].value()
