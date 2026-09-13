@@ -17,7 +17,7 @@ Group {
  addUserKnob {12 vp2 l "vp 2"}
  vp2 {2600 900}
  addUserKnob {26 linked_to l "" t "Which dhPerspGuide drives each vanishing point. Selection order is not click order, so check here before wondering why moving a guide did nothing." +STARTLINE T "vp1: set by hand   vp2: set by hand"}
- addUserKnob {22 link_guides l "link to selected guides" t "Select two dhPerspGuide nodes in the node graph, then press this. Same as Tools > Perspective > Horizon, without leaving the node." T "import dhPersp\ndhPersp.link_guides(nuke.thisNode())" +STARTLINE}
+ addUserKnob {22 link_guides l "solve from guides" t "Normally automatic: two dhPerspGuide nodes anywhere in this node's input chain are picked up on their own, and moving them updates the camera live. Press this only to re-link, or to link two guides that are selected but not connected." T "import dhPersp\ndhPersp.link_guides(nuke.thisNode())" +STARTLINE}
  addUserKnob {22 unlink_guides l unlink t "Keep the current vanishing points as plain numbers and stop following the guides." -STARTLINE T "import dhPersp\ndhPersp.unlink_guides(nuke.thisNode())"}
  addUserKnob {20 floor l "3D Floor"}
  addUserKnob {6 show_floor l "show 3D floor" -STARTLINE}
@@ -79,8 +79,10 @@ Group {
  _f {{"(use_known_focal ? _fknown : _fsolved)"}}
  addUserKnob {7 _rx +INVISIBLE}
  _rx {{"atan((height/2 - _viy)/_f)*180/3.14159265358979"}}
+ addUserKnob {7 _fh +INVISIBLE}
+ _fh {{"sqrt(_f*_f + _oivi*_oivi)"}}
  addUserKnob {7 _ry +INVISIBLE}
- _ry {{"atan((axis_from==0 ? min(_v1,_v2) : (axis_from==1 ? _v1 : _v2))/_f)*180/3.14159265358979"}}
+ _ry {{"atan((axis_from==0 ? min(_v1,_v2) : (axis_from==1 ? _v1 : _v2))/_fh)*180/3.14159265358979"}}
  addUserKnob {7 _rz +INVISIBLE}
  _rz {{"(abs(_dx) > 1e-9 ? -atan(_dy/_dx)*180/3.14159265358979 : 0)"}}
 }
@@ -88,7 +90,7 @@ Group {
   inputs 0
   name Input1
  }
-set Nb1248000 [stack 0]
+set Nc63d8000 [stack 0]
  Camera {
   inputs 0
   translate {0 1 0}
@@ -123,7 +125,7 @@ push 0
   value {{parent.gridcolor.r} {parent.gridcolor.g} {parent.gridcolor.b} {parent.gridcolor.a}}
   name gridtint
  }
-push $Nb1248000
+push $Nc63d8000
  Merge2 {
   inputs 2
   name overlay
