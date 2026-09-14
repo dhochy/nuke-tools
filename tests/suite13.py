@@ -1,17 +1,15 @@
 """Part thirteen: renaming an option must not move a node that already has one.
 
-The first role was called "ground" and is called "horizontal" now, because both
-of the guides a solve needs mark horizontal directions and because the lines
-never had to be on the ground. That is a label change, and a label change is the
-one kind of edit that can quietly corrupt existing work: rebuilding a node copies
-knob values across by name, an Enumeration knob's value() is its label, and
-setting a label the new build does not have fails silently and leaves the knob at
-its default.
+The role options have been renamed twice. "ground" became "horizontal" for one
+build and then the set became ground, across and vertical, which moved vertical
+from index 1 to index 2. That is the one kind of edit that can quietly corrupt
+existing work: rebuilding a node copies knob values across by name, an
+Enumeration knob's value() is its label, and setting a label the new build does
+not have fails silently and leaves the knob at its default.
 
-Here that default happens to be the right answer, which is worse than it being
-wrong, because nothing would have shown up. So this tests the case that matters:
-a guide saved as vertical, whose label did not change but whose index would be
-hit by any reordering, and a guide saved as ground, whose label did.
+So this tests the two cases that matter. A guide saved as vertical, whose label
+survived every rename but whose index did not. And a value whose label is simply
+gone, which has to fall back to the index or be lost.
 """
 import io
 import os
@@ -42,13 +40,12 @@ print("\n=== 48. the option says what it is ===")
 g = nuke.createNode("dhPerspGuide", inpanel=False)
 g.setInput(0, plate)
 opts = list(g["role"].values())
-check("the choices are horizontal and vertical", opts == ["horizontal", "vertical"],
-      str(opts))
-check("horizontal is the default and is index 0",
-      g["role"].value() == "horizontal" and int(g["role"].getValue()) == 0, "")
+check("the choices are ground, across and vertical",
+      opts == ["ground", "across", "vertical"], str(opts))
+check("ground is the default", g["role"].value() == "ground", g["role"].value())
 tip = g["role"].tooltip()
 check("the tooltip says the lines need not be on the ground",
-      "do not have to be on the ground" in tip, tip[:70])
+      "not have to be on the ground" in tip, tip[:70])
 check("and that a third guide is recognised on its own",
       "recognised" in tip, "")
 
@@ -100,14 +97,16 @@ check("the ground guide came back", now_ground is not None, "")
 check("it is at the current build",
       now_ground is not None and dhPersp.node_build(now_ground) == dhPersp.BUILD,
       "build %d" % (dhPersp.node_build(now_ground) if now_ground else -1))
-check("and 'ground' became 'horizontal', which is the same thing",
-      now_ground is not None and now_ground["role"].value() == "horizontal",
+check("ground is still ground",
+      now_ground is not None and now_ground["role"].value() == "ground",
       now_ground["role"].value() if now_ground else "gone")
-check("THE ONE THAT MATTERS: the vertical guide is still vertical",
+check("THE ONE THAT MATTERS: the vertical guide is still vertical, though "
+      "its index moved from 1 to 2",
       now_vert is not None and now_vert["role"].value() == "vertical",
       now_vert["role"].value() if now_vert else "gone")
 check("guide_role agrees for both",
-      dhPersp.guide_role(now_ground) == 0 and dhPersp.guide_role(now_vert) == 1,
+      dhPersp.guide_role(now_ground) == dhPersp.GROUND
+      and dhPersp.guide_role(now_vert) == dhPersp.VERTICAL,
       "%d and %d" % (dhPersp.guide_role(now_ground), dhPersp.guide_role(now_vert)))
 ok = True
 for nm, want in pts.items():

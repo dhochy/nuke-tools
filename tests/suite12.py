@@ -59,7 +59,7 @@ check("the first ground guide does not", not dhPersp.looks_vertical(g1),
 check("the second ground guide does not", not dhPersp.looks_vertical(g2),
       "vp at %.0f, %.0f" % tuple(g2["vp"].value()))
 check("all three still say 'ground' on the knob, because nobody touched it",
-      all(int(g["role"].getValue()) == 0 for g in (g1, g2, g3)), "")
+      all(g["role"].value() == "ground" for g in (g1, g2, g3)), "")
 
 ground, vertical = dhPersp.split_guides([g1, g2, g3])
 check("split_guides returns two ground and one vertical",
@@ -68,9 +68,9 @@ check("split_guides returns two ground and one vertical",
 check("and it is the upright one", vertical and vertical[0] is g3,
       vertical[0].name() if vertical else "none")
 check("the knob is set to match, so the panel is not lying",
-      int(g3["role"].getValue()) == 1, "role %d" % int(g3["role"].getValue()))
-check("the ground guides are left alone",
-      all(int(g["role"].getValue()) == 0 for g in (g1, g2)), "")
+      g3["role"].value() == "vertical", g3["role"].value())
+check("the level guides are left alone",
+      all(g["role"].value() == "ground" for g in (g1, g2)), "")
 
 # a genuinely ambiguous set must still refuse rather than guess
 g4 = guide(g3, [(1500, 880), (300, 760), (1500, 220), (300, 380)])

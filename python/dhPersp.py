@@ -10,6 +10,7 @@ Lives in ~/.nuke/python, which init.py puts on the plugin path, so these names
 resolve in both GUI and -t sessions.
 """
 import math
+import re
 import nuke
 from math import sqrt, atan, hypot, pi as PI
 
@@ -221,7 +222,7 @@ def fit_to_format(node=None, quiet=True):
             node["_fitw"].setValue(w)
             node["_fith"].setValue(h)
     if not quiet:
-        nuke.message("Guide points fitted to %dx%d." % (int(w), int(h)))
+        say(node, "Guide points fitted to %dx%d." % (int(w), int(h)))
     return w, h
 
 
@@ -251,7 +252,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 10
+BUILD = 12
 
 NL = chr(10)
 WARN_BLANK = (
@@ -450,7 +451,7 @@ def add_line(node=None):
     used = active_lines(node)
     free = [i for i in range(1, MAX_LINES + 1) if i not in used]
     if not free:
-        nuke.message("All %d additional lines are in use.\n\n"
+        say(node, "All %d additional lines are in use. "
                      "Delete one first, or use a second PerspLines node."
                      % MAX_LINES)
         return
@@ -497,12 +498,13 @@ def _selected_persplines(n=2):
     """Return exactly n selected PerspLines nodes, or None after warning."""
     nodes = list(nuke.selectedNodes())
     if len(nodes) != n:
-        nuke.message("Select exactly %d %s nodes.\n\nSelected: %d"
+        nuke.tprint("dhPersp: select exactly %d %s nodes; %d selected."
                      % (n, CLASS, len(nodes)))
         return None
     bad = [x.name() for x in nodes if not is_persplines(x)]
     if bad:
-        nuke.message("These are not %s nodes:\n\n  %s" % (CLASS, "\n  ".join(bad)))
+        nuke.tprint("dhPersp: these are not %s nodes: %s"
+                    % (CLASS, ", ".join(bad)))
         return None
     return nodes
 
@@ -579,7 +581,7 @@ def _build_camera(nodes):
     dy = V2[1] - V1[1]
     dd = dx * dx + dy * dy
     if dd < 1e-9:
-        nuke.message("The two vanishing points are on top of each other.\n"
+        nuke.tprint("dhPersp: the two vanishing points are on top of each other. "
                      "Adjust one of the PerspLines pairs and try again.")
         return
     t = ((Oi[0] - V1[0]) * dx + (Oi[1] - V1[1]) * dy) / dd
@@ -595,7 +597,7 @@ def _build_camera(nodes):
 
     inner = pow(OcVi, 2) - pow(OiVi, 2)
     if inner <= 0:
-        nuke.message("Cannot solve a focal length from these vanishing points.\n"
+        nuke.tprint("dhPersp: cannot solve a focal length from these points. "
                      "They are too close together or too near the frame centre.")
         return
     f = sqrt(inner)
@@ -643,7 +645,8 @@ def export_camera(node=None):
     node = node or nuke.thisNode()
     src = node.node("cam")
     if src is None:
-        nuke.message("No solved camera inside this node.")
+        say(node, "<b>No solved camera inside this node.</b> Reopening "
+            "the script rebuilds an out of date one.")
         return
 
     blank = pristine_guides(node)
@@ -653,18 +656,17 @@ def export_camera(node=None):
                "vanishing point there makes the focal length collapse to "
                "zero, so this camera would be meaningless."
                % ", ".join(blank))
-        nuke.message(msg + NL + NL +
-                     "Draw both of its lines along real receding edges first.")
+        say(node, msg + " Draw both of its lines along real receding "
+            "edges first.")
         return
     solved = node["cam_focal"].value()
+    doubt = ""
     if solved < 4.0 or solved > 400.0:
-        why = ("That usually means the two guides are not marking two "
-               "perpendicular sets of parallel edges, or one of them has "
-               "barely been moved.")
-        head = ("The solve gives %.2f mm, which is not a believable lens."
-                % solved)
-        if not nuke.ask(head + NL + NL + why + NL + NL + "Export anyway?"):
-            return
+        doubt = ("<b>The solve gives %.4g mm, which is not a believable "
+                 "lens.</b> Usually the two guides are not following two "
+                 "directions at right angles to each other, or one of them has "
+                 "barely been moved. The Camera Solve tab says which. "
+                 % solved)
 
     # A button on a Group fires with that Group as the current context, so a plain
     # nuke.nodes.Camera() would be created INSIDE the gizmo. Force root.
@@ -679,8 +681,8 @@ def export_camera(node=None):
         root.end()
 
     if "." in cam.fullName():
-        nuke.message("Could not place the camera in the main node graph.\n"
-                     "It ended up at: " + cam.fullName())
+        say(node, "<b>Could not place the camera in the main node graph.</b> "
+            "It ended up at " + cam.fullName())
 
     n = node.name()
     cam["focal"].setExpression("%s.cam_focal" % n)
@@ -705,10 +707,14 @@ def export_camera(node=None):
     bake.setCommand("import dhPersp\ndhPersp.bake_camera(nuke.thisNode())")
     bake.setTooltip("Freeze the current solve and drop the links to " + n)
     cam.addKnob(bake)
+    cam.addKnob(nuke.Text_Knob("status", "", ""))
 
-    nuke.message("Exported %s.\n\nIt stays linked to %s, so it updates as you\n"
-                 "adjust the PerspLines. Press 'bake values' on its PerspLines\n"
-                 "tab to freeze it." % (cam.name(), n))
+    say(node, doubt + "Exported %s. It stays linked to this node, so it follows "
+        "the guides as you adjust them, including frame by frame if they are "
+        "animated. Press 'bake values' on its PerspLines tab to freeze it."
+        % cam.name())
+    if doubt:
+        say(cam, doubt + "Exported from %s anyway." % n)
     return cam
 
 
@@ -842,14 +848,14 @@ def bake_camera(cam=None):
         frozen.append(name)
 
     if moving:
-        msg = ("Baked %s.%s%d frames, %d to %d, keyed on %s.%s%s no longer "
-               "follows the guides."
-               % (", ".join(frozen), NL + NL, last - first + 1, first, last,
-                  ", ".join(moving), NL + NL, cam.name()))
+        msg = ("Baked %s. %d frames, %d to %d, keyed on %s. This camera no "
+               "longer follows the guides."
+               % (", ".join(frozen), last - first + 1, first, last,
+                  ", ".join(moving)))
     else:
-        msg = ("Baked %s.%s%s no longer follows the guides."
-               % (", ".join(frozen), NL + NL, cam.name()))
-    nuke.message(msg)
+        msg = ("Baked %s. Nothing was animated, so these are plain values. This "
+               "camera no longer follows the guides." % ", ".join(frozen))
+    say(cam, msg)
     return cam
 
 
@@ -903,10 +909,10 @@ def floor_3d(rows=20, size=40.0):
     if "antialiasing" in sr.knobs():
         sr["antialiasing"].setValue("low")
 
-    nuke.message(
-        "Built a 3D floor grid through the solved camera.\n\n"
-        "If the grid does not lie flat on the floor of the plate, press "
-        "'swap' on the camera's alternate tab, or nudge the PerspLines points.")
+    nuke.tprint("dhPersp: built a 3D floor grid through the solved camera. "
+                "If it does not lie flat on the floor of the plate, press "
+                "'swap' on the camera's alternate tab, or nudge the guide "
+                "points.")
     return cam, card, sr
 
 def fit_solve_to_format(node=None, quiet=True):
@@ -918,7 +924,7 @@ def fit_solve_to_format(node=None, quiet=True):
     if "_fitted" in node.knobs():
         node["_fitted"].setValue(True)
     if not quiet:
-        nuke.message("Vanishing points fitted to %dx%d." % (int(w), int(h)))
+        say(node, "Vanishing points fitted to %dx%d." % (int(w), int(h)))
     return w, h
 
 
@@ -984,6 +990,7 @@ def _apply_link(node, a, b, vert=None):
             node["use_vertical"].setValue(False)
     if "_fitted" in node.knobs():
         node["_fitted"].setValue(True)
+    pin_axis(node, a, b)
     set_link_label(node)
     set_axis_note(node)
     return node
@@ -1021,28 +1028,21 @@ def link_guides(node=None):
     if len(ground) == 2:
         return _apply_link(node, ground[0], ground[1])
     if len(ground) < 2:
-        nuke.message(
-            "Found %d %s node%s marking a horizontal direction, and a camera solve "
-            "needs two.\n\n"
-            "Each guide marks ONE vanishing point. Two of them, following "
-            "level directions at right angles to each other, are what "
-            "give the focal length and the orientation. A third guide on the "
-            "upright edges is optional and solves the lens axis as well.\n\n"
-            "Either pipe another %s into this node's input chain, or select the "
-            "ones you want and press this again.\n\n"
-            "Connecting a guide to this node's input only passes the picture "
-            "through. The vanishing points are linked separately, which is what "
-            "this button does."
+        say(node,
+            "<b>Found %d %s node%s marking a level direction, and a solve needs "
+            "two.</b><br>Each guide marks one vanishing point. Two of them, one "
+            "running away from the camera and one running across in front of it, "
+            "give the focal length and the orientation. A third on the upright "
+            "edges is optional.<br>Pipe another %s into this node's input chain, "
+            "or select the ones you want and press this again."
             % (len(ground), CLASS, "" if len(ground) == 1 else "s", CLASS))
         return
-    nuke.message(
-        "Found %d %s nodes, and all of them are set to 'horizontal'.\n\n"
-        "A solve uses exactly two horizontal guides, following directions at "
-        "right angles to each other. "
-        "A third guide is for the upright edges of buildings, and it is normally "
-        "recognised on its own: this one was not, which usually means its lines "
-        "are not steep enough to be uprights, or two guides are following the "
-        "same direction.\n\n"
+    say(node,
+        "<b>Found %d %s nodes and none of them is set to vertical.</b><br>"
+        "A solve uses two level guides, one ground and one across. A third is "
+        "for upright edges, and it is normally recognised from its own lines: "
+        "this one was not, which usually means its lines are not steep enough to "
+        "be uprights, or two guides are following the same direction.<br>"
         "Set the odd one's 'these lines are' to vertical, or select the two you "
         "want to solve from and press this again."
         % (len(ground), CLASS))
@@ -1148,7 +1148,7 @@ def update_nodes(nodes=None, quiet=False):
     nodes = [n for n in nodes if _class_of(n)]
     if not nodes:
         if not quiet:
-            nuke.message("Every dhPersp node is already at build %d." % BUILD)
+            nuke.tprint("dhPersp: every node is already at build %d." % BUILD)
         return []
 
     done, failed = [], []
@@ -1244,11 +1244,11 @@ def update_nodes(nodes=None, quiet=False):
     for n in nuke.allNodes():
         n.setSelected(False)
     if not quiet:
-        msg = "Updated %d node%s to build %d:\n  %s" % (
+        msg = "updated %d node%s to build %d: %s" % (
             len(done), "" if len(done) == 1 else "s", BUILD, ", ".join(done))
         if failed:
-            msg += "\n\nCould not update: " + ", ".join(failed)
-        nuke.message(msg)
+            msg += ".  Could not update: " + ", ".join(failed)
+        nuke.tprint("dhPersp: " + msg)
     return done
 
 
@@ -1265,24 +1265,34 @@ def pristine_guides(node):
     return bad
 
 
-def guide_role(node):
-    """0 for a horizontal guide, 1 for a vertical one.
+GROUND, ACROSS, VERTICAL = 0, 1, 2
+ROLE_NAMES = ("ground", "across", "vertical")
 
-    Older guides called the first one "ground". It is the same thing and the same
-    index; the name changed because both guides a solve needs mark horizontal
-    directions, and because the lines never had to be on the ground.
+
+def guide_role(node):
+    """0 ground, 1 across, 2 vertical. Anything older reads as ground.
+
+    Read by label rather than by index, because the index of "vertical" moved
+    when "across" was added and a node rebuilt from an older build could
+    otherwise come back meaning something else.
     """
     k = node.knobs().get("role")
     if k is None:
-        return 0
+        return GROUND
     try:
-        return int(round(k.getValue()))
+        label = str(k.value())
+        if label in ROLE_NAMES:
+            return ROLE_NAMES.index(label)
     except Exception:
-        return 0
+        pass
+    try:
+        return max(0, min(int(round(k.getValue())), VERTICAL))
+    except Exception:
+        return GROUND
 
 
 def looks_vertical(node):
-    """Whether a guide is drawn along upright edges rather than along the ground.
+    """Whether a guide is drawn along upright edges rather than a level direction.
 
     Both its lines are steep on screen and its vanishing point is a long way off
     above or below frame. A receding ground direction cannot do both: its lines
@@ -1315,26 +1325,78 @@ def looks_vertical(node):
 
 
 def split_guides(guides, decide=True):
-    """Separate the two ground guides from an optional vertical one.
+    """Separate the level guides from the upright ones.
+
+    Ground and across are both level directions and both feed the solve, so they
+    come back together; which of the two a guide is only matters for pinning the
+    world axes, and that is asked separately.
 
     The role knob is the authority. When nothing has been marked vertical and
     there are more guides than a solve can use, the extra one is worked out from
     its lines and the knob is set to match, because the alternative is refusing
-    to do anything with a setup that is perfectly clear.
+    to do anything with a setup that is perfectly clear. Ground against across is
+    never guessed at: the two are symmetric in the picture and only the person
+    who took it knows which way they were facing.
     """
-    ground = [g for g in guides if guide_role(g) == 0]
-    vertical = [g for g in guides if guide_role(g) == 1]
-    if decide and not vertical and len(ground) > 2:
-        upright = [g for g in ground if looks_vertical(g)]
-        if len(upright) == len(ground) - 2:
+    level = [g for g in guides if guide_role(g) != VERTICAL]
+    vertical = [g for g in guides if guide_role(g) == VERTICAL]
+    if decide and not vertical and len(level) > 2:
+        upright = [g for g in level if looks_vertical(g)]
+        if len(upright) == len(level) - 2:
             for g in upright:
                 try:
-                    g["role"].setValue(1)
+                    g["role"].setValue("vertical")
                 except Exception:
                     pass
-            ground = [g for g in ground if g not in upright]
+            level = [g for g in level if g not in upright]
             vertical = upright
-    return ground, vertical
+    return level, vertical
+
+
+def pin_axis(node, a, b):
+    """Point the world X axis along whichever guide is the across one.
+
+    axis_from setting 1 runs X along the first vanishing point and setting 2
+    along the second; that is measured, not assumed, because the expression
+    behind it reads the other way round. Pinning it is what makes an exported
+    camera land the right way round in Maya, and it is also the only way to stop
+    an animated solve flipping ninety degrees mid shot, because "auto" chooses
+    again every frame and an expression cannot remember what it chose last.
+
+    Two guides that are both still on ground are left alone. They are symmetric
+    and guessing between them would be inventing an answer.
+    """
+    k = node.knobs().get("axis_from")
+    note = node.knobs().get("axis_state")
+    if k is None:
+        return None
+    ra, rb = guide_role(a), guide_role(b)
+    pinned = None
+    if ra == ACROSS and rb == GROUND:
+        pinned = 1
+    elif rb == ACROSS and ra == GROUND:
+        pinned = 2
+    if pinned is not None:
+        try:
+            k.setValue(pinned)
+        except Exception:
+            pinned = None
+    if note is not None:
+        if pinned is not None:
+            note.setValue(
+                "Pinned from the guides: X runs along %s, the 'across' one, and "
+                "Z runs along %s."
+                % ((a if pinned == 1 else b).name(),
+                   (b if pinned == 1 else a).name()))
+        else:
+            note.setValue(
+                "<b>Not pinned.</b> Both guides are set to the same thing, so "
+                "which way X and Z run is being guessed at. Set the one running "
+                "left to right in front of the camera to 'across' and the one "
+                "running away from you to 'ground'. It decides which way round "
+                "the scene arrives in Maya, and on an animated solve the guess "
+                "can flip ninety degrees mid shot.")
+    return pinned
 
 
 def set_axis_note(node):
@@ -1465,3 +1527,25 @@ def update_on_load():
     except Exception as e:
         nuke.tprint("dhPersp: could not update nodes on load: %s" % e)
         return []
+
+
+def say(node, text):
+    """Put a message where the person who pressed the button will see it.
+
+    On the node's own status line, which stays there to be read again, and in
+    the script editor for anything watching. A dialog would interrupt to say the
+    same thing somewhere it cannot be looked at twice.
+    """
+    if node is not None:
+        k = node.knobs().get("status")
+        if k is not None:
+            try:
+                k.setValue(text)
+            except Exception:
+                pass
+    plain = re.sub("<[^>]+>", "", text.replace("<br>", "  "))
+    try:
+        nuke.tprint("dhPersp: " + plain)
+    except Exception:
+        pass
+    return text

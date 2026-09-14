@@ -172,22 +172,36 @@ Each guide marks one vanishing point. Two of them, following directions at right
 angles to each other on the ground, give the focal length and the orientation. A
 third along the upright edges is optional and solves the lens axis as well.
 
-`these lines are` says which sort a guide is: **horizontal** or **vertical**.
-The first was called "ground" until build 9, which was both odd next to
-"vertical" and misleading. The lines do not have to be on the ground. Every
-horizontal edge running the same way shares a vanishing point whatever height it
-is at, so a roofline, a window sill, a cornice or the top of a wall all work, and
-a long clean edge up in the air is usually easier to trace than a kerb with
-people standing on it.
+`these lines are` says which sort a guide is:
 
-You do not have to set it. A guide drawn along uprights has two steep lines and a
-vanishing point a long way off the frame, and a guide drawn along a receding
-horizontal cannot do both, because its lines run to a point on the horizon. So
-the odd one out of three is worked out from its own lines and the knob is set to
-match, where it stays visible and can be overridden.
+| | |
+|---|---|
+| **ground** | runs away from you into the picture. Kerbs, road markings, the seams in paving, the long side of a building going away. |
+| **across** | runs left to right in front of you. The top of a wall facing the camera, a window sill or a roofline on it. |
+| **vertical** | upright. Building corners, door frames, lamp posts. |
 
-Three guides that all mark horizontal directions are not guessed at. That is a
-real ambiguity: a solve uses two, and nothing in the picture says which two.
+Despite the name, ground lines do not have to be on the ground, and across lines
+do not have to be at eye level. Every level edge running the same way shares a
+vanishing point whatever height it is at, so a roofline works as well as a kerb
+and is usually easier to trace than one with people standing on it. The two names
+describe the direction, not the surface.
+
+**Naming both level guides pins the world axes.** Ground becomes Z and across
+becomes X, so an exported camera lands the right way round in Maya or Blender
+instead of ninety degrees off, and `ground X axis runs toward` does not have to
+guess. It is also the only way to stop an animated solve flipping, because
+"auto" decides again on every frame. Two guides both left on ground still solve
+exactly as before, and the panel says the axis is not pinned.
+
+The vertical one you do not have to set. A guide drawn along uprights has two
+steep lines and a vanishing point a long way off the frame, and a guide drawn
+along a receding level direction cannot do both, because its lines run to a point
+on the horizon. The odd one out of three is worked out from its own lines and the
+knob is set to match.
+
+Ground against across is never worked out from the picture, and that is
+deliberate. The two are symmetric in the image and only the person who took the
+photograph knows which way they were facing.
 
 ## The third guide: solving the lens axis instead of assuming it
 
@@ -237,6 +251,21 @@ gives verticals that genuinely converge and is the case where the third guide
 earns its keep.
 
 Two-guide setups behave exactly as before.
+
+## Nothing pops up
+
+Every message the tools produce goes on the node that produced it, on a status
+line under the buttons, where it can be read twice. A dialog interrupts you to
+say something in a place you cannot look at again, and all of these are answers
+to "I pressed the button, what happened".
+
+The one dialog that asked a question rather than telling you something, "the
+solve gives 4mm, export anyway", is gone too. It was asking about something the
+Camera Solve tab already says in more detail than a dialog has room for. The
+export goes ahead and the exported camera carries the warning on itself.
+
+The two menu commands have no node to write to, so they print to the script
+editor. They are the only ones.
 
 ## Animating the guides
 

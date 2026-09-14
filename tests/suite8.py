@@ -61,7 +61,7 @@ def rig(with_vertical):
     v = None
     if with_vertical:
         v = nuke.createNode("dhPerspGuide", inpanel=False); v.setInput(0, b)
-        v["role"].setValue(1)
+        v["role"].setValue("vertical")   # by label: the index has moved once
         nodes.append(v)
     s = nuke.createNode("dhPerspSolve", inpanel=False)
     s.setInput(0, nodes[-1])
