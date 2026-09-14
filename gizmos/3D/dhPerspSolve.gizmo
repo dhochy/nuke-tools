@@ -5,7 +5,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 8
+ _build 10
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -18,7 +18,7 @@ Group {
  vp1 {-600 900}
  addUserKnob {12 vp2 l "vp 2"}
  vp2 {2600 900}
- addUserKnob {12 vp3 l "vp 3 (vertical)" t "Vanishing point of the upright edges. Linked from a dhPerspGuide whose role is set to vertical. Leave the third guide off and the solve assumes the lens axis is at the centre of frame, as before."}
+ addUserKnob {12 vp3 l "vp 3 (vertical)" t "Vanishing point of the upright edges. Linked from a dhPerspGuide whose 'these lines are' is vertical. Leave the third guide off and the solve assumes the lens axis is at the centre of frame, as before."}
  vp3 {960 1e9}
  addUserKnob {6 use_vertical l "solve the lens axis from a vertical guide" t "With three mutually perpendicular vanishing points the principal point is the orthocenter of their triangle, so it is solved instead of assumed. Ignored automatically when the verticals are too close to parallel for their vanishing point to mean anything." +STARTLINE}
  addUserKnob {26 axis_note l "" +STARTLINE T "lens axis: centre of frame"}
@@ -37,7 +37,7 @@ Group {
  cellsize 1
  addUserKnob {13 gridoffset l "grid offset" t "Slide the grid along the ground to line it up with the floor in the plate. X and Z run along the two directions your guides marked; Y is unused, the grid is on the ground."}
  addUserKnob {26 d2 l "" +STARTLINE}
- addUserKnob {4 axis_from l "ground X axis runs toward" t "The geometry cannot tell which horizontal direction is X and which is Z, so there are always two valid cameras. Their yaws are complementary and add up to ninety degrees. If the floor grid looks turned against the plate, switch this. The Horizon tab shows which guide feeds each vanishing point." M {"auto (smaller turn)" "vanishing point 1" "vanishing point 2"}}
+ addUserKnob {4 axis_from l "ground X axis runs toward" t "The geometry cannot tell which horizontal direction is X and which is Z, so there are always two valid cameras. Their yaws are complementary and add up to ninety degrees. If the floor grid looks turned against the plate, switch this. The Horizon tab shows which guide feeds each vanishing point. Pin this to one of the two before animating: automatic decides again on every frame, and because the two answers are ninety degrees apart the frame where it changes its mind puts a ninety degree snap in the move." M {"auto (smaller turn)" "vanishing point 1" "vanishing point 2"}}
  addUserKnob {20 scale_tab l Scale}
  addUserKnob {26 t_scale l "" +STARTLINE T "A photograph has no scale of its own. Set the height the camera was at and everything else becomes real."}
  addUserKnob {4 unit l "working unit" t "The unit every length on this node is in: camera height, cell size, grid size, distance and offset. Changing it converts the values you have already set, so the setup does not move." M {feet metres centimetres}}

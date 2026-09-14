@@ -251,7 +251,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 8
+BUILD = 10
 
 NL = chr(10)
 WARN_BLANK = (
@@ -712,31 +712,144 @@ def export_camera(node=None):
     return cam
 
 
-def bake_camera(cam=None):
-    """Freeze a linked camera: keep the current numbers, drop the expressions."""
-    cam = cam or nuke.thisNode()
-    frozen = []
-    for name in ("focal", "rotate", "translate", "haperture", "vaperture"):
+def animated_guides(node):
+    """Guides feeding this solve that have keys on their points.
+
+    An expression link is not animation: every vanishing point on a solve is
+    expression linked whether or not anything moves, so asking the solve is no
+    use. The guide points are the knobs a person actually keys, and a curve with
+    one key on it is not a move either.
+    """
+    out = []
+    for g in upstream_guides(node):
+        for nm in ("p1a", "p1b", "p2a", "p2b"):
+            k = g.knobs().get(nm)
+            if k is None:
+                continue
+            hit = False
+            for i in (0, 1):
+                try:
+                    if k.isAnimated(i) and len(k.animation(i).keys()) > 1:
+                        hit = True
+                except Exception:
+                    pass
+            if hit:
+                out.append(g)
+                break
+    return out
+
+
+def _range():
+    r = nuke.root()
+    try:
+        return int(r["first_frame"].value()), int(r["last_frame"].value())
+    except Exception:
+        return 1, 1
+
+
+BAKE_KNOBS = ("focal", "rotate", "translate", "haperture", "vaperture")
+
+
+def _sample(cam, first, last):
+    """Every baked knob's value at every frame, read before anything is cleared.
+
+    getValueAt is the one that answers for a frame other than the current one.
+    A plain value() reads whatever context the knob happens to be in, which in a
+    terminal session is the first frame no matter what frame you asked for, and
+    that is how a whole move gets baked as its first pose.
+    """
+    out = {}
+    for name in BAKE_KNOBS:
         k = cam.knobs().get(name)
         if k is None:
             continue
-        val = k.value()
-        if isinstance(val, (list, tuple)):
-            for i, v in enumerate(val):
+        try:
+            n = k.arraySize() if hasattr(k, "arraySize") else 1
+        except Exception:
+            n = 1
+        n = max(int(n), 1)
+        rows = []
+        for f in range(first, last + 1):
+            vals = []
+            for i in range(n):
+                try:
+                    vals.append(float(k.getValueAt(f, i)) if n > 1
+                                else float(k.getValueAt(f)))
+                except Exception:
+                    vals.append(None)
+            rows.append(vals)
+        out[name] = rows
+    return out
+
+
+def _moves(rows, tol=1e-7):
+    first = rows[0]
+    for r in rows[1:]:
+        for a, b in zip(first, r):
+            if a is None or b is None:
+                continue
+            if abs(a - b) > tol:
+                return True
+    return False
+
+
+def bake_camera(cam=None):
+    """Freeze a linked camera: keep the numbers, drop the expressions.
+
+    A solve that moves is baked as a key per frame over the script range. A solve
+    that does not is baked as plain values, as before.
+    """
+    cam = cam or nuke.thisNode()
+    first, last = _range()
+    data = _sample(cam, first, last)
+    moving = [name for name, rows in data.items() if _moves(rows)]
+
+    frozen = []
+    for name, rows in data.items():
+        k = cam.knobs()[name]
+        n = len(rows[0])
+        if name in moving:
+            for i in range(n):
                 try:
                     k.clearAnimated(i)
                 except Exception:
                     pass
-                k.setValue(float(v), i)
+                try:
+                    k.setAnimated(i)
+                except Exception:
+                    pass
+            for f, vals in zip(range(first, last + 1), rows):
+                for i, v in enumerate(vals):
+                    if v is None:
+                        continue
+                    try:
+                        k.setValueAt(v, f, i) if n > 1 else k.setValueAt(v, f)
+                    except Exception:
+                        pass
         else:
-            try:
-                k.clearAnimated()
-            except Exception:
-                pass
-            k.setValue(float(val))
+            vals = rows[0]
+            for i in range(n):
+                try:
+                    k.clearAnimated(i)
+                except Exception:
+                    pass
+                if vals[i] is None:
+                    continue
+                try:
+                    k.setValue(vals[i], i) if n > 1 else k.setValue(vals[i])
+                except Exception:
+                    pass
         frozen.append(name)
-    nuke.message("Baked: %s\n\n%s no longer follows the PerspLines."
-                 % (", ".join(frozen), cam.name()))
+
+    if moving:
+        msg = ("Baked %s.%s%d frames, %d to %d, keyed on %s.%s%s no longer "
+               "follows the guides."
+               % (", ".join(frozen), NL + NL, last - first + 1, first, last,
+                  ", ".join(moving), NL + NL, cam.name()))
+    else:
+        msg = ("Baked %s.%s%s no longer follows the guides."
+               % (", ".join(frozen), NL + NL, cam.name()))
+    nuke.message(msg)
     return cam
 
 
@@ -909,10 +1022,10 @@ def link_guides(node=None):
         return _apply_link(node, ground[0], ground[1])
     if len(ground) < 2:
         nuke.message(
-            "Found %d %s node%s marking a ground direction, and a camera solve "
+            "Found %d %s node%s marking a horizontal direction, and a camera solve "
             "needs two.\n\n"
             "Each guide marks ONE vanishing point. Two of them, following "
-            "directions at right angles to each other on the ground, are what "
+            "level directions at right angles to each other, are what "
             "give the focal length and the orientation. A third guide on the "
             "upright edges is optional and solves the lens axis as well.\n\n"
             "Either pipe another %s into this node's input chain, or select the "
@@ -923,8 +1036,9 @@ def link_guides(node=None):
             % (len(ground), CLASS, "" if len(ground) == 1 else "s", CLASS))
         return
     nuke.message(
-        "Found %d %s nodes, and all of them are set to 'ground'.\n\n"
-        "A solve uses exactly two ground guides, at right angles to each other. "
+        "Found %d %s nodes, and all of them are set to 'horizontal'.\n\n"
+        "A solve uses exactly two horizontal guides, following directions at "
+        "right angles to each other. "
         "A third guide is for the upright edges of buildings, and it is normally "
         "recognised on its own: this one was not, which usually means its lines "
         "are not steep enough to be uprights, or two guides are following the "
@@ -1058,11 +1172,20 @@ def update_nodes(nodes=None, quiet=False):
                     expr = [k.animation(i) and None for i in range(0)]
                 except Exception:
                     expr = None
-                entry = {"value": None, "exprs": {}}
+                entry = {"value": None, "exprs": {}, "enum": None}
                 try:
                     entry["value"] = k.value()
                 except Exception:
                     pass
+                # A pulldown's value() is its label, and a label can be renamed
+                # between builds. Setting one the new build does not have fails
+                # quietly and leaves the knob at its default, so the index is
+                # kept as well and used when the label has gone.
+                if isinstance(k, nuke.Enumeration_Knob):
+                    try:
+                        entry["enum"] = (k.value(), int(round(k.getValue())))
+                    except Exception:
+                        entry["enum"] = None
                 try:
                     for idx in range(k.arraySize() if hasattr(k, "arraySize") else 1):
                         if k.hasExpression(idx):
@@ -1084,11 +1207,24 @@ def update_nodes(nodes=None, quiet=False):
                 k = new.knobs().get(nm)
                 if k is None:
                     continue
-                try:
-                    if entry["value"] is not None and not entry["exprs"]:
+                if entry.get("enum") is not None:
+                    label, idx = entry["enum"]
+                    try:
+                        options = list(k.values())
+                    except Exception:
+                        options = []
+                    try:
+                        if label in options:
+                            k.setValue(label)
+                        elif options:
+                            k.setValue(max(0, min(idx, len(options) - 1)))
+                    except Exception:
+                        pass
+                elif entry["value"] is not None and not entry["exprs"]:
+                    try:
                         k.setValue(entry["value"])
-                except Exception:
-                    pass
+                    except Exception:
+                        pass
                 for idx, ex in entry["exprs"].items():
                     try:
                         k.setExpression(ex, idx)
@@ -1130,7 +1266,12 @@ def pristine_guides(node):
 
 
 def guide_role(node):
-    """0 for a ground guide, 1 for a vertical one. Older guides are ground."""
+    """0 for a horizontal guide, 1 for a vertical one.
+
+    Older guides called the first one "ground". It is the same thing and the same
+    index; the name changed because both guides a solve needs mark horizontal
+    directions, and because the lines never had to be on the ground.
+    """
     k = node.knobs().get("role")
     if k is None:
         return 0
@@ -1275,6 +1416,23 @@ def set_verdict(node=None):
                     "the shot really is tilted" % roll)
     if warn:
         k.setValue("<b>Solved, but check it: %s.</b>" % ", and ".join(warn))
+        return True
+    moving = animated_guides(node)
+    if moving and int(round(node["axis_from"].getValue())) == 0:
+        k.setValue(
+            "Solved: %.4g mm, roll %.2f degrees.<br><b>The guides are animated "
+            "and the ground axis is on automatic.</b> Automatic picks whichever "
+            "vanishing point needs the smaller turn, and it picks again every "
+            "frame. The two answers are ninety degrees apart, so the frame where "
+            "they swap puts a ninety degree snap in the middle of the move. Set "
+            "'ground X axis runs toward' to vanishing point 1 or 2 before "
+            "exporting."
+            % (focal, roll))
+        return True
+    if moving:
+        k.setValue("Solved: %.4g mm, roll %.2f degrees, animated from %d guide%s. "
+                   "The camera follows them frame by frame."
+                   % (focal, roll, len(moving), "" if len(moving) == 1 else "s"))
         return True
     k.setValue("Solved: %.4g mm, roll %.2f degrees. That is a believable camera."
                % (focal, roll))

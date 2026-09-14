@@ -172,14 +172,22 @@ Each guide marks one vanishing point. Two of them, following directions at right
 angles to each other on the ground, give the focal length and the orientation. A
 third along the upright edges is optional and solves the lens axis as well.
 
-You do not have to say which is which. A guide drawn along uprights has two steep
-lines and a vanishing point a long way above or below frame, and a guide drawn
-along a receding ground direction cannot do both, because its lines run to a point
-on the horizon. So the odd one out is worked out from its own lines and the `these
-lines are` knob is set to match, where it stays visible and can be overridden.
+`these lines are` says which sort a guide is: **horizontal** or **vertical**.
+The first was called "ground" until build 9, which was both odd next to
+"vertical" and misleading. The lines do not have to be on the ground. Every
+horizontal edge running the same way shares a vanishing point whatever height it
+is at, so a roofline, a window sill, a cornice or the top of a wall all work, and
+a long clean edge up in the air is usually easier to trace than a kerb with
+people standing on it.
 
-Three guides that all mark ground directions are not guessed at. That is a real
-ambiguity: a solve uses two, and nothing in the picture says which two.
+You do not have to set it. A guide drawn along uprights has two steep lines and a
+vanishing point a long way off the frame, and a guide drawn along a receding
+horizontal cannot do both, because its lines run to a point on the horizon. So
+the odd one out of three is worked out from its own lines and the knob is set to
+match, where it stays visible and can be overridden.
+
+Three guides that all mark horizontal directions are not guessed at. That is a
+real ambiguity: a solve uses two, and nothing in the picture says which two.
 
 ## The third guide: solving the lens axis instead of assuming it
 
@@ -229,6 +237,33 @@ gives verticals that genuinely converge and is the case where the third guide
 earns its keep.
 
 Two-guide setups behave exactly as before.
+
+## Animating the guides
+
+Key the guide points and the camera moves with them. Nothing has to be switched
+on: every link in the chain is an expression, an expression is evaluated per
+frame, and the solve is no exception. The floor grid follows too.
+
+Two things are worth knowing before you do it.
+
+**Pin the ground axis first.** `ground X axis runs toward` defaults to picking
+whichever vanishing point needs the smaller turn. Per frame that is a reasonable
+answer; across a shot it is not, because the two answers are ninety degrees apart
+and nothing stops it changing its mind halfway through. Measured on a keyed setup
+it goes from -44.4 to +44.6 degrees between two frames, an eighty nine degree snap
+in the middle of the move. Set it to vanishing point 1 or 2 and the largest step
+between frames drops to under a degree. The panel says so when it sees keys on
+the guides.
+
+**Baking follows the move.** `bake values` samples the script's frame range and
+writes a key per frame when the solve moves, and plain numbers when it does not.
+It used to freeze the current frame either way, which turned a shot into a single
+pose without saying anything.
+
+If you are reading animated values in a script of your own, use `getValueAt`.
+`value()` answers for whatever context the knob is in, and in a terminal session
+that stays on the first frame however you set `nuke.frame`, so a moving camera
+measures as a still one.
 
 ## The floor is the ground, not a card standing on it
 
