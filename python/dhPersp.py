@@ -119,29 +119,48 @@ def _refresh_panel(node):
 
 
 def sync_lines(node, refresh=False):
-    """Show only the slots that are switched on.
+    """Show only the slots that are switched on, and only what each one needs.
 
-    Knob visibility is not stored per instance, so this runs from the node's
-    onCreate to rebuild it from the use_add* values when a script is reopened.
+    Knob visibility is not stored per instance, so this has to be rebuilt from
+    the use_add values every time the node comes back. It runs on creation, on
+    script load, and on every panel update, because the first two are not enough:
+    a node made in a session whose Python was older than its gizmo has knobs that
+    nothing ever hid, it is not stale so it is never rebuilt, and without the
+    third hook nothing would ever hide them.
+
+    Doing work in updateUI risks a redraw loop, so nothing is set unless it is
+    actually wrong. On every redraw after the first this touches nothing.
     """
-    with _NoUndo():
-        for i in range(1, MAX_LINES + 1):
-            use = node.knobs().get("use_add%d" % i)
-            if use is None:
-                continue
-            on = bool(use.value())
-            for k in _slot_knobs(node, i):
-                if k is not None:
-                    k.setVisible(on)
-            # B only exists for a line that stands on its own
-            b = node.knobs().get("add%db" % i)
-            pin = node.knobs().get("pin%d" % i)
-            if b is not None:
-                b.setVisible(on and not (pin is not None and pin.value()))
-            # the on/off flag is never shown; the delete button stands in for it
-            use.setVisible(False)
-    if refresh:
+    changed = 0
+    for i in range(1, MAX_LINES + 1):
+        use = node.knobs().get("use_add%d" % i)
+        if use is None:
+            continue
+        on = bool(use.value())
+        pin = node.knobs().get("pin%d" % i)
+        want = {"use_add%d" % i: False}
+        for k in _slot_knobs(node, i):
+            if k is not None:
+                want[k.name()] = on
+        # B belongs to the slot but only means anything for a line that stands
+        # on its own, so it follows the switch rather than the slot
+        want["add%db" % i] = on and not (pin is not None and pin.value())
+        for nm, vis in want.items():
+            k = node.knobs().get(nm)
+            if k is not None and k.visible() != vis:
+                changed += 1
+                k.setVisible(vis)
+    if refresh and changed:
         _refresh_panel(node)
+    return changed
+
+
+def on_update_ui(node=None):
+    """Panel redraw. Keep the slot knobs honest, and do nothing if they are."""
+    try:
+        return sync_lines(node or nuke.thisNode())
+    except Exception:
+        return 0
 
 
 def node_format(node):
@@ -321,7 +340,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 17
+BUILD = 18
 
 NL = chr(10)
 WARN_BLANK = (

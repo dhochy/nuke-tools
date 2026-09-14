@@ -3,10 +3,11 @@ Group {
  help "Marks one direction in the scene.\n\nDrag its two lines onto two edges that are parallel in the real world but converge on screen: two curbs, two window sills, two building corners. Where those lines cross is that direction's vanishing point, and that is the number dhPerspSolve reads.\n\nSay which sort of direction it is with 'these lines are'. Ground runs away from you, across runs left to right in front of you, vertical is upright.\n\nA camera solve needs two of these, one ground and one across. A third set to vertical is optional and lets the solve find the real lens axis instead of assuming the center of frame.\n\nStack them under the plate and drop a dhPerspSolve at the bottom. It picks them up on its own."
  name dhPerspGuide
  onCreate "try:\n    import dhPersp\n    dhPersp.on_create(nuke.thisNode())\nexcept Exception:\n    pass"
+ updateUI "try:\n    import dhPersp\n    dhPersp.on_update_ui(nuke.thisNode())\nexcept Exception:\n    pass"
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l PerspLines}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 17
+ _build 18
  addUserKnob {4 role l "these lines are" t "Which direction in the scene these two lines follow.
 
 ground: runs away from you into the picture. Curbs, road markings, the seams in paving, the long side of a building going away from you.

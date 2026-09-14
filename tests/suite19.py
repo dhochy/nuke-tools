@@ -208,6 +208,43 @@ if os.path.isfile(FIX):
 else:
     check("without it this section proves nothing", False, FIX)
 
+# ------------------------------- 87. the panel puts itself right
+print("\n=== 87. a panel update hides what should not be there ===")
+gu = new_guide()
+check("a fresh node shows no switches",
+      not any(gu["pin%d" % i].visible() for i in range(1, 13)), "")
+check("and a redundant sync touches nothing, so updateUI cannot loop",
+      dhPersp.sync_lines(gu) == 0, "%d knobs set" % dhPersp.sync_lines(gu))
+
+# Exactly David's symptom: the switches visible with no lines added, which is
+# what a node gets when it is made in a session whose Python is older than its
+# gizmo. Such a node is not stale, so nothing ever rebuilds it, and before this
+# there was no later moment that could put it right.
+for i in range(1, 13):
+    gu["pin%d" % i].setVisible(True)
+check("forcing them all visible reproduces it",
+      sum(1 for i in range(1, 13) if gu["pin%d" % i].visible()) == 12, "")
+fixed = dhPersp.on_update_ui(gu)
+check("a panel update puts it right", fixed == 12 and
+      not any(gu["pin%d" % i].visible() for i in range(1, 13)),
+      "%d knobs corrected" % fixed)
+check("and the update after that does nothing at all",
+      dhPersp.on_update_ui(gu) == 0, "")
+
+k = dhPersp.add_line(gu)
+check("with a line added, exactly one switch shows",
+      [n for n in range(1, 13) if gu["pin%d" % n].visible()] == [k],
+      str([n for n in range(1, 13) if gu["pin%d" % n].visible()]))
+check("and a panel update leaves that alone", dhPersp.on_update_ui(gu) == 0, "")
+check("the delete button and both points came with it",
+      gu["add%d" % k].visible() and gu["add%db" % k].visible()
+      and gu["del%d" % k].visible(), "")
+
+check("the gizmo actually calls it on every panel update",
+      "on_update_ui" in io.open(
+          r"C:\Users\dhoch\.nuke\Gizmos\DH_Tools\3D\dhPerspGuide.gizmo",
+          encoding="utf-8").read(), "")
+
 print("\n" + "=" * 88)
 npass = sum(1 for _, ok, _ in RESULTS if ok)
 print("part 19: %d of %d passed" % (npass, len(RESULTS)))
