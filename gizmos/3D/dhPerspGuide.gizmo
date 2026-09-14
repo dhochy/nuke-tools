@@ -5,7 +5,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l PerspLines}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 7
+ _build 8
  addUserKnob {4 role l "these lines are" t "Ground marks one of the two horizontal directions on the ground plane; you need two guides set to ground, at right angles to each other. Vertical marks the upright edges of buildings. A vertical guide is optional, and it lets the solve work out where the lens axis actually sits instead of assuming the centre of frame, which is what makes a cropped or shifted plate solve correctly." M {ground vertical}}
  addUserKnob {19 linecolor l color}
  linecolor {1 0 0 1}

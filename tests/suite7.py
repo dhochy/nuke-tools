@@ -81,7 +81,14 @@ def render(node, tag):
 
 
 def is_grid(px):
-    return px[0] > 140 and 60 < px[1] < 200 and px[2] < 90
+    """Orange, whether it is a line or a patch of ground covered by lines.
+
+    Not a window on each channel: with the thinning off, ground near the horizon
+    fills in at the grid colour itself, which sits outside a window fitted to
+    antialiased lines. Asking for the colour rather than for a brightness keeps
+    the red and cyan guide overlays out and lets the solid band in.
+    """
+    return px[0] > 140 and px[1] > 60 and px[1] < px[0] and px[2] < px[1] - 40
 
 
 def is_horizon(px):
@@ -140,6 +147,10 @@ print("  solved focal %.2f mm, pitch %.2f, yaw %.2f"
 check("the solve stands up at this height", s["_solveok"].value() > 0.5,
       "%.2f mm" % s["cam_focal"].value())
 s["cellsize"].setValue(30.0)                # a city block is about 260 ft
+# Thinning the far lines is a switch now, and off by default, because the
+# horizon is what you line up against and a grid that stops short of it is
+# less use than one that goes solid. This section is about the switch.
+s["fade_far"].setValue(True)
 
 rows = render(s, "fitted")
 top, lt, rt, hz = measure(rows)
@@ -192,6 +203,19 @@ for gone in ("autofit", "near_cells", "horizon_gap", "gridrows", "gridsize",
              "griddistance"):
     check("nothing left to mis-fit: no %s" % gone, gone not in s.knobs(), "")
 
+s["fade_far"].setValue(False)
+rows_off = render(s, "nofade")
+top_off, lt_off, rt_off, hz_off = measure(rows_off)
+s["fade_far"].setValue(True)
+rows_on = render(s, "fade")
+top_on, lt_on, rt_on, hz_on = measure(rows_on)
+check("with thinning off the grid is drawn nearer the horizon than with it on",
+      top_off > top_on, "off stops at row %d, on at row %d, horizon %d"
+      % (top_off, top_on, hz_off))
+check("off, it arrives at the horizon",
+      hz_off - top_off <= 3, "stops %d rows short" % (hz_off - top_off))
+s["fade_far"].setValue(False)
+
 print("\n=== 32. cell size at city scale ===")
 s["cellsize"].setValue(30.0)
 mid = render(s, "cell30")
@@ -214,8 +238,14 @@ nm, nb, nt = grid_px(mid), grid_px(big), grid_px(tiny)
 check("a thirty foot cell draws from up here", nm > 2000, "%d px" % nm)
 check("a three hundred foot cell draws too, and sparser", 0 < nb < nm,
       "%d px vs %d px" % (nb, nm))
-check("a six inch cell thins out rather than filling the frame solid",
-      nt < nm, "%d px, against %d at thirty feet" % (nt, nm))
+check("a six inch cell from eight hundred feet up covers the ground, which is "
+      "what half foot lines from there really do", nt > nm,
+      "%d px, against %d at thirty feet" % (nt, nm))
+s["fade_far"].setValue(True)
+thin = grid_px(render(s, "cell_half_thinned"))
+s["fade_far"].setValue(False)
+check("and the switch is what stops it", thin < nt,
+      "%d px thinned, against %d not" % (thin, nt))
 s["cellsize"].setValue(30.0)
 check("the readout reports a real cell size in feet",
       "ft" in s["scale_note"].value(), s["scale_note"].value()[:56])

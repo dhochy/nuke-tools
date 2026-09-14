@@ -166,6 +166,21 @@ appeared to move, because what moves when you scale a rectangle is its edges.
 A test that measured the transform passed every time while the picture kept
 moving. If you ever test this sort of thing yourself, measure the render.
 
+## Two guides, or three
+
+Each guide marks one vanishing point. Two of them, following directions at right
+angles to each other on the ground, give the focal length and the orientation. A
+third along the upright edges is optional and solves the lens axis as well.
+
+You do not have to say which is which. A guide drawn along uprights has two steep
+lines and a vanishing point a long way above or below frame, and a guide drawn
+along a receding ground direction cannot do both, because its lines run to a point
+on the horizon. So the odd one out is worked out from its own lines and the `these
+lines are` knob is set to match, where it stays visible and can be overridden.
+
+Three guides that all mark ground directions are not guessed at. That is a real
+ambiguity: a solve uses two, and nothing in the picture says which two.
+
 ## The third guide: solving the lens axis instead of assuming it
 
 Two vanishing points give two equations. That is enough for focal length and
@@ -202,7 +217,14 @@ point runs off toward infinity and the orthocenter becomes noise. Measured at
 0.4 degrees of pitch, it sat 391,668 px from the centre of a 1920x1080 frame.
 The solve detects that, ignores the vertical guide, falls back to the centred
 assumption and says so in the panel rather than reporting a confident wrong
-answer. A camera tilted up or down, which is most architectural photography,
+answer. Three things have to hold before the third guide is used: its vanishing
+point has to be off the frame, because an untouched guide's sits on the centre of
+it; it has to be inside a sane distance, because verticals that barely converge
+put it out at infinity where the orthocenter means nothing; and the lens axis it
+produces has to land on the frame. The last one is the one that catches the rest.
+A lens axis solved to a point half a frame diagonal away from the centre is not a
+lens axis, and the focal length is computed from it, so letting it through is how
+a plate comes back reading a couple of millimetres. A camera tilted up or down, which is most architectural photography,
 gives verticals that genuinely converge and is the case where the third guide
 earns its keep.
 
@@ -233,22 +255,30 @@ to side, starts at the bottom with no near edge, and converges into the horizon
 by construction, because ground above the horizon does not exist and the ray test
 drops it.
 
-### Lines fade by their own spacing
+### `thin out lines too fine to draw`, and why it is off
 
-An infinite grid has to stop drawing lines it cannot resolve, or the far half of
-frame turns into moire. Each family fades on how far apart it is in pixels, not
-on how high up the frame it is, so the near field stays solid however fine the
-cells are and the far field thins out on its own.
+Off, which is the default, the grid is drawn at full strength all the way to the
+horizon. Where the lines close up tighter than a pixel the ground fills in solid,
+because that is what lines a fraction of a pixel apart actually do, and there is
+a band of moire on the way in. The horizon is the thing you line up against, so a
+grid that reaches it beats a tidier one that stops short.
 
-The fade runs on the square root of that spacing. A family of ground lines closes
-up as the square of the distance to the horizon, so a fade that is linear in
+On, each direction dims in proportion to how far apart its own lines are, so the
+far half stays clean at the cost of the grid running out before the horizon. How
+early depends on the cell size: fine cells run out sooner than coarse ones,
+because they are the ones that close up first.
+
+The dimming runs on the square root of the spacing. A family of ground lines
+closes up as the square of the distance to the horizon, so a fade linear in
 spacing happens over almost no screen distance and reads as a hard edge. On the
-square root it is linear in distance from the horizon, which is the gradual taper
-it should have been.
+square root it is linear in distance from the horizon.
 
-One consequence worth expecting: a thicker `line width` needs more room between
-lines before they can be drawn cleanly, so it runs out slightly further from the
-horizon. The sides and the bottom do not move.
+Two things follow. A thicker `line width` needs more room before lines can be
+drawn cleanly, so with the switch on it runs out slightly further from the
+horizon; the sides and the bottom do not move either way. And sub pixel spacing
+is also where a ground coordinate runs out of fractional precision, so the solid
+fill is doing double duty: it is the right picture and it is why there is no
+noise up there.
 
 ## Updating nodes made by an older build
 

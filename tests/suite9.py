@@ -175,6 +175,18 @@ quarters = [band(6, q * W / 4.0, (q + 1) * W / 4.0) for q in range(4)]
 check("the grid runs the full width at the bottom of frame, no card corner",
       min(quarters) > 0, "row 6, lit pixels per quarter %s" % quarters)
 
+# Default first: nothing thins out, so the grid has to arrive at the horizon.
+check("the thinning is a switch, and it is off", not s["fade_far"].value(), "")
+reach = None
+for y in range(int(hy) - 1, 4, -1):
+    if band(y, 0, W, 2) > 0:
+        reach = y
+        break
+check("by default the grid is drawn right up to the horizon",
+      reach is not None and hy - reach < 3.0,
+      "last lit row %s, horizon %.1f" % (reach, hy))
+
+s["fade_far"].setValue(True)
 reach = None
 for y in range(int(hy) - 1, 4, -1):
     if band(y, 0, W, 2) > 0:
@@ -184,11 +196,12 @@ for y in range(int(hy) - 1, 4, -1):
 # closer together than a pixel. It stops where they stop being readable, which
 # depends on the cell size, so what matters is that the gap is small and that a
 # coarser cell reaches further, not that it touches.
-check("the grid runs out within a twentieth of frame height of the horizon",
+check("with thinning on it runs out within a twentieth of frame height",
       reach is not None and hy - reach < H / 20.0,
       "last lit row %s, horizon %.1f, gap %.0f px" % (reach, hy, hy - (reach or 0)))
 
 holes = [y for y in range(4, int(reach or 10) - 6, 24) if band(y, 0, W, 2) == 0]
+s["fade_far"].setValue(False)
 check("no empty band anywhere between the bottom of frame and where it runs out",
       not holes, "%d empty rows %s" % (len(holes), holes[:6]))
 
@@ -252,6 +265,7 @@ s["camera_height"].setValue(5.5)
 
 # ------------------------------------------------ 35. the fade is per line now
 print("\n=== 35. lines fade by their own spacing, not by height on screen ===")
+s["fade_far"].setValue(True)
 s["cellsize"].setValue(8.0)
 coarse_near = band(6, 0, W, 2)
 coarse_top = band(int(hy) - 10, 0, W, 2)
@@ -270,6 +284,7 @@ check("but not more at the horizon, because it runs out of pixels first",
 check("and nothing near the horizon fills in solid",
       max(fine_top, coarse_top) < 0.6 * (W / 2), "worst %d of %d"
       % (max(fine_top, coarse_top), W / 2))
+s["fade_far"].setValue(False)
 s["cellsize"].setValue(2.0)
 
 nuke.scriptSaveAs(os.path.join(TMP, "s9.nk").replace("\\", "/"), overwrite=1)

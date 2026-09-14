@@ -5,7 +5,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 7
+ _build 8
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -31,6 +31,7 @@ Group {
  addUserKnob {19 gridcolor l color}
  gridcolor {1 0.65 0.1 1}
  addUserKnob {7 gridwidth l "line width" t "Thickness of the grid lines in pixels, held constant wherever they are on the ground." R 0.5 6}
+ addUserKnob {6 fade_far l "thin out lines too fine to draw" t "Off, the grid is drawn at full strength all the way to the horizon, and where the lines close up tighter than a pixel the ground fills in solid, which is what they really do. On, each direction dims in proportion to how far apart its own lines are, which keeps the far half of frame from turning into moire at the cost of the grid stopping short of the horizon." +STARTLINE}
  gridwidth 1
  addUserKnob {7 cellsize l "cell size" t "Size of one floor tile, in the working unit set on the Scale tab. The ground is drawn out to the horizon whatever this is; lines too fine to resolve fade out rather than alias." R 0.05 20}
  cellsize 1
@@ -69,8 +70,8 @@ Group {
  addUserKnob {22 fitformat l "fit to format" t "Re-place the vanishing points against the current format." -STARTLINE T "import dhPersp\ndhPersp.fit_solve_to_format(nuke.thisNode(), quiet=False)"}
  addUserKnob {7 _diag +INVISIBLE}
  _diag {{"sqrt(width*width + height*height)"}}
- addUserKnob {7 _v3ok +INVISIBLE}
- _v3ok {{"(use_vertical && sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2)) > 0.75*_diag && sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2)) < 25*_diag) ? 1 : 0"}}
+ addUserKnob {7 _v3d +INVISIBLE}
+ _v3d {{"sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2))"}}
  addUserKnob {7 _oa1 +INVISIBLE}
  _oa1 {{"vp2.x - vp3.x"}}
  addUserKnob {7 _ob1 +INVISIBLE}
@@ -89,6 +90,8 @@ Group {
  _ox {{"abs(_odet) < 1e-9 ? width/2 : (_oc1*_ob2 - _oc2*_ob1)/_odet"}}
  addUserKnob {7 _oy +INVISIBLE}
  _oy {{"abs(_odet) < 1e-9 ? height/2 : (_oa1*_oc2 - _oa2*_oc1)/_odet"}}
+ addUserKnob {7 _v3ok +INVISIBLE}
+ _v3ok {{"(use_vertical && _v3d > 0.75*_diag && _v3d < 25*_diag && sqrt(pow(_ox-width/2,2) + pow(_oy-height/2,2)) < 0.5*_diag) ? 1 : 0"}}
  addUserKnob {7 _px +INVISIBLE}
  _px {{"_v3ok ? _ox : width/2"}}
  addUserKnob {7 _py +INVISIBLE}
@@ -203,9 +206,9 @@ push $Nbff08000
   temp_name1 pz1
   temp_expr1 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height,1e-9)*max(sqrt(pow(parent._u2x + g*parent._nx/max(parent.camera_height,1e-9),2) + pow(parent._u2y + g*parent._ny/max(parent.camera_height,1e-9),2)),1e-12))"
   temp_name2 mx
-  temp_expr2 "clamp(parent.gridwidth/2 + 0.5 - abs((r - parent.gridoffset.x)/max(parent.cellsize,1e-6) - floor((r - parent.gridoffset.x)/max(parent.cellsize,1e-6) + 0.5))*px1, 0, 1) * clamp((sqrt(px1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1)"
+  temp_expr2 "parent.fade_far ? clamp(parent.gridwidth/2 + 0.5 - abs((r - parent.gridoffset.x)/max(parent.cellsize,1e-6) - floor((r - parent.gridoffset.x)/max(parent.cellsize,1e-6) + 0.5))*px1, 0, 1) * clamp((sqrt(px1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1) : (px1 < 0.75 ? 1 : clamp(parent.gridwidth/2 + 0.5 - abs((r - parent.gridoffset.x)/max(parent.cellsize,1e-6) - floor((r - parent.gridoffset.x)/max(parent.cellsize,1e-6) + 0.5))*px1, 0, 1))"
   temp_name3 mz
-  temp_expr3 "clamp(parent.gridwidth/2 + 0.5 - abs((g - parent.gridoffset.z)/max(parent.cellsize,1e-6) - floor((g - parent.gridoffset.z)/max(parent.cellsize,1e-6) + 0.5))*pz1, 0, 1) * clamp((sqrt(pz1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1)"
+  temp_expr3 "parent.fade_far ? clamp(parent.gridwidth/2 + 0.5 - abs((g - parent.gridoffset.z)/max(parent.cellsize,1e-6) - floor((g - parent.gridoffset.z)/max(parent.cellsize,1e-6) + 0.5))*pz1, 0, 1) * clamp((sqrt(pz1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1) : (pz1 < 0.75 ? 1 : clamp(parent.gridwidth/2 + 0.5 - abs((g - parent.gridoffset.z)/max(parent.cellsize,1e-6) - floor((g - parent.gridoffset.z)/max(parent.cellsize,1e-6) + 0.5))*pz1, 0, 1))"
   expr0 "b < 0 ? max(mx,mz) : 0"
   expr1 "b < 0 ? max(mx,mz) : 0"
   expr2 "b < 0 ? max(mx,mz) : 0"

@@ -251,7 +251,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 7
+BUILD = 8
 
 NL = chr(10)
 WARN_BLANK = (
@@ -877,7 +877,12 @@ def _apply_link(node, a, b, vert=None):
 
 
 def auto_link(node):
-    """Link to the guides feeding this node, if there are exactly two."""
+    """Link to the guides feeding this node, when they make a solvable set.
+
+    Two marking the ground, and optionally one more on the uprights. A third
+    guide nobody has told the tool about is worked out from its lines, so
+    stacking a vertical guide into the chain just works.
+    """
     if node["vp1"].hasExpression(0):
         return None                       # already linked, leave it alone
     ground, vertical = split_guides(upstream_guides(node))
@@ -900,19 +905,34 @@ def link_guides(node=None):
     ground, vertical = split_guides(guides)
     if len(ground) == 2 and vertical:
         return _apply_link(node, ground[0], ground[1], vertical[0])
-    guides = ground
-    if len(guides) != 2:
+    if len(ground) == 2:
+        return _apply_link(node, ground[0], ground[1])
+    if len(ground) < 2:
         nuke.message(
-            "Need exactly two %s nodes, found %d.\n\n"
-            "Each guide marks ONE vanishing point, and a camera solve needs two.\n\n"
-            "Either pipe a second %s into this node's input chain, or select two "
-            "of them in the node graph and press this again.\n\n"
+            "Found %d %s node%s marking a ground direction, and a camera solve "
+            "needs two.\n\n"
+            "Each guide marks ONE vanishing point. Two of them, following "
+            "directions at right angles to each other on the ground, are what "
+            "give the focal length and the orientation. A third guide on the "
+            "upright edges is optional and solves the lens axis as well.\n\n"
+            "Either pipe another %s into this node's input chain, or select the "
+            "ones you want and press this again.\n\n"
             "Connecting a guide to this node's input only passes the picture "
             "through. The vanishing points are linked separately, which is what "
             "this button does."
-            % (CLASS, len(guides), CLASS))
+            % (len(ground), CLASS, "" if len(ground) == 1 else "s", CLASS))
         return
-    return _apply_link(node, guides[0], guides[1])
+    nuke.message(
+        "Found %d %s nodes, and all of them are set to 'ground'.\n\n"
+        "A solve uses exactly two ground guides, at right angles to each other. "
+        "A third guide is for the upright edges of buildings, and it is normally "
+        "recognised on its own: this one was not, which usually means its lines "
+        "are not steep enough to be uprights, or two guides are following the "
+        "same direction.\n\n"
+        "Set the odd one's 'these lines are' to vertical, or select the two you "
+        "want to solve from and press this again."
+        % (len(ground), CLASS))
+    return
 
 
 def unlink_guides(node=None):
@@ -1120,10 +1140,59 @@ def guide_role(node):
         return 0
 
 
-def split_guides(guides):
-    """Separate the two ground guides from an optional vertical one."""
+def looks_vertical(node):
+    """Whether a guide is drawn along upright edges rather than along the ground.
+
+    Both its lines are steep on screen and its vanishing point is a long way off
+    above or below frame. A receding ground direction cannot do both: its lines
+    run toward a point on the horizon, which is somewhere near the middle of the
+    frame vertically, so at least one of them is shallow.
+
+    This is not a close call in a real photograph, so it is safe to decide it
+    rather than ask. The role knob is set from it, so the answer stays visible
+    and can be overridden.
+    """
+    try:
+        pts = [node[k].value() for k in ("p1a", "p1b", "p2a", "p2b")]
+    except Exception:
+        return False
+    steep = 0
+    for a, b in ((pts[0], pts[1]), (pts[2], pts[3])):
+        dx, dy = abs(b[0] - a[0]), abs(b[1] - a[1])
+        if dx < 1e-6 and dy < 1e-6:
+            return False                       # a line with no length says nothing
+        if dy > 1.7 * dx:                      # steeper than about 60 degrees
+            steep += 1
+    if steep < 2:
+        return False
+    try:
+        vp = node["vp"].value()
+        h = float(node.height() or 1)
+    except Exception:
+        return False
+    return abs(vp[1] - h / 2.0) > 1.5 * h      # and it converges well off frame
+
+
+def split_guides(guides, decide=True):
+    """Separate the two ground guides from an optional vertical one.
+
+    The role knob is the authority. When nothing has been marked vertical and
+    there are more guides than a solve can use, the extra one is worked out from
+    its lines and the knob is set to match, because the alternative is refusing
+    to do anything with a setup that is perfectly clear.
+    """
     ground = [g for g in guides if guide_role(g) == 0]
     vertical = [g for g in guides if guide_role(g) == 1]
+    if decide and not vertical and len(ground) > 2:
+        upright = [g for g in ground if looks_vertical(g)]
+        if len(upright) == len(ground) - 2:
+            for g in upright:
+                try:
+                    g["role"].setValue(1)
+                except Exception:
+                    pass
+            ground = [g for g in ground if g not in upright]
+            vertical = upright
     return ground, vertical
 
 
