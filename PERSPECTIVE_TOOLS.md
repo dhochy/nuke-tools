@@ -69,12 +69,12 @@ Expressions stored inside RotoPaint control points no longer drive the raster in
 
 The camera solve is the standard two vanishing point calibration from Caprile and Torre
 (1990), also Hartley and Zisserman chapter 8. For two vanishing points from perpendicular
-world directions, square pixels, and the principal point assumed at the image centre:
+world directions, square pixels, and the principal point assumed at the image center:
 
     (v1 - p) . (v2 - p) + f^2 = 0
 
 The gizmo computes it in an equivalent geometric form: drop a perpendicular from the image
-centre O onto the horizon line to get the foot Vi, then
+center O onto the horizon line to get the foot Vi, then
 
     f = sqrt( ViV1 * ViV2 - OVi^2 )
 
@@ -82,9 +82,9 @@ These are the same equation. Splitting each vector at the foot gives
 (v1-O).(v2-O) = (v1-Vi).(v2-Vi) + |OVi|^2, and the two horizon segments point opposite
 ways, so the first term is -ViV1*ViV2.
 
-Pitch comes from the height of that foot above the centre, and yaw from the signed offset
+Pitch comes from the height of that foot above the center, and yaw from the signed offset
 of the other vanishing point along the horizon, measured against sqrt(f^2 + OVi^2) rather
-than f, because under pitch the relevant distance is to the horizon, not to the centre.
+than f, because under pitch the relevant distance is to the horizon, not to the center.
 
 ### Test suites
 
@@ -126,12 +126,12 @@ unit: cell size, and the grid offset that slides the floor along the ground.
 
 | knob | meaning |
 |---|---|
-| working unit | feet, metres or centimetres |
+| working unit | feet, meters or centimeters |
 | camera height | height above the ground plane, in that unit |
 
 Feet is the default because US survey and location data is given that way.
 Changing the dropdown converts the values you have already set rather than
-reinterpreting them, so switching feet to metres leaves the setup physically
+reinterpreting them, so switching feet to meters leaves the setup physically
 where it was. A full round trip returns the original numbers exactly.
 
 Changing the height never disturbs the solved focal length or angles. That is
@@ -149,7 +149,7 @@ the same linear unit at the other end before importing:
 
 The two settings of `ground X axis runs toward` give complementary yaws that add
 up to ninety degrees. In the viewer they look identical, because a square grid
-turned ninety degrees about its own centre is the same square grid. The choice
+turned ninety degrees about its own center is the same square grid. The choice
 only becomes visible once the camera leaves Nuke and real geometry arrives on
 it, where it decides which world direction is X and which is Z. Check it before
 exporting, not after.
@@ -176,13 +176,13 @@ third along the upright edges is optional and solves the lens axis as well.
 
 | | |
 |---|---|
-| **ground** | runs away from you into the picture. Kerbs, road markings, the seams in paving, the long side of a building going away. |
+| **ground** | runs away from you into the picture. Curbs, road markings, the seams in paving, the long side of a building going away. |
 | **across** | runs left to right in front of you. The top of a wall facing the camera, a window sill or a roofline on it. |
 | **vertical** | upright. Building corners, door frames, lamp posts. |
 
 Despite the name, ground lines do not have to be on the ground, and across lines
 do not have to be at eye level. Every level edge running the same way shares a
-vanishing point whatever height it is at, so a roofline works as well as a kerb
+vanishing point whatever height it is at, so a roofline works as well as a curb
 and is usually easier to trace than one with people standing on it. The two names
 describe the direction, not the surface.
 
@@ -207,7 +207,7 @@ photograph knows which way they were facing.
 
 Two vanishing points give two equations. That is enough for focal length and
 orientation only if you already know where the lens axis sits on the frame, and
-the tool assumed the centre. That assumption is written into the expressions as
+the tool assumed the center. That assumption is written into the expressions as
 `width/2, height/2`, and it is false for any cropped, re-framed or shifted plate.
 A cropped photograph then solves to the wrong focal length with nothing to
 indicate trouble.
@@ -217,14 +217,14 @@ building edges. With three mutually perpendicular vanishing points the principal
 point is the orthocenter of their triangle, so it is solved rather than assumed
 (Caprile and Torre 1990; Hartley and Zisserman ch. 8). The focal length then
 follows from the same formula already in use, with the solved point substituted
-for the frame centre.
+for the frame center.
 
 Measured on a 35mm camera with the lens axis deliberately shifted, which is what
 a crop is:
 
 | lens axis shift | two guides | three guides | axis found |
 |---|---|---|---|
-| none | 35.00 mm | 35.00 mm | exactly centre |
+| none | 35.00 mm | 35.00 mm | exactly center |
 | 0.30 right | 34.13 mm | 35.00 mm | 672, 540 |
 | 0.25 down | 34.20 mm | 35.00 mm | 960, 780 |
 | 0.35, 0.20 | 34.39 mm | 35.00 mm | 624, 348 |
@@ -236,17 +236,17 @@ The axis positions are exact, not approximate.
 
 On a near level camera the verticals are almost parallel, so their vanishing
 point runs off toward infinity and the orthocenter becomes noise. Measured at
-0.4 degrees of pitch, it sat 391,668 px from the centre of a 1920x1080 frame.
-The solve detects that, ignores the vertical guide, falls back to the centred
+0.4 degrees of pitch, it sat 391,668 px from the center of a 1920x1080 frame.
+The solve detects that, ignores the vertical guide, falls back to the centered
 assumption and says so in the panel rather than reporting a confident wrong
 answer. Three things have to hold before the third guide is used: its vanishing
-point has to be off the frame, because an untouched guide's sits on the centre of
+point has to be off the frame, because an untouched guide's sits on the center of
 it; it has to be inside a sane distance, because verticals that barely converge
 put it out at infinity where the orthocenter means nothing; and the lens axis it
 produces has to land on the frame. The last one is the one that catches the rest.
-A lens axis solved to a point half a frame diagonal away from the centre is not a
+A lens axis solved to a point half a frame diagonal away from the center is not a
 lens axis, and the focal length is computed from it, so letting it through is how
-a plate comes back reading a couple of millimetres. A camera tilted up or down, which is most architectural photography,
+a plate comes back reading a couple of millimeters. A camera tilted up or down, which is most architectural photography,
 gives verticals that genuinely converge and is the case where the third guide
 earns its keep.
 
@@ -303,7 +303,7 @@ numbers.
 
 That is worth the change because a card cannot do this job:
 
-- **A card has edges.** Scaling it about its centre holds the lines still and
+- **A card has edges.** Scaling it about its center holds the lines still and
   walks its near edge toward the camera and its far edge toward the horizon, so
   the visible floor moves on every size change. No pivot fixes that.
 - **A card cannot reach the horizon.** The horizon is the image of ground at
@@ -367,7 +367,7 @@ the entire reason these are declared `Group` rather than `Gizmo`.
 The thing that has to keep working for this to keep working is recognition. A
 node used to be identified as a solve by having a `gridsize` knob, which was fine
 until the build that removed `gridsize`; after that a current node could not be
-recognised, so a later build could never have updated one. They are identified by
+recognized, so a later build could never have updated one. They are identified by
 their two vanishing points now, which is what the node is for and so is the last
 thing that would ever be taken away.
 
@@ -383,7 +383,7 @@ The focal length used to come from `sqrt(v1*v2 - oivi^2)` with `v1` and `v2` as
 plain unsigned distances. Those agree exactly wherever a camera exists, and where
 one does not the unsigned form still returns something: the suite has it
 inventing a 56 mm lens for a pair that describes nothing at all, and near the
-boundary it returns a few millimetres, which is how a 55 mm lens reads as 4 mm.
+boundary it returns a few millimeters, which is how a 55 mm lens reads as 4 mm.
 
 The Camera Solve tab now carries a verdict line. It says the guides do not
 describe a camera, and the usual cause: one guide following the same ground
@@ -396,7 +396,7 @@ length** and let the guides set orientation only.
 
 ## An unplaced guide is refused, not solved
 
-A fresh `dhPerspGuide` has its two lines crossing at the exact centre of frame.
+A fresh `dhPerspGuide` has its two lines crossing at the exact center of frame.
 That is the principal point, so an untouched guide's vanishing point lands on it
 and every term in the focal formula collapses. Feeding one to the solve used to
 produce a confident looking small number, measured at 0.000 mm where the real

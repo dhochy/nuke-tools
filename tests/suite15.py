@@ -79,7 +79,7 @@ for n in nuke.allNodes():
     n.setSelected(False)
 dhPersp.on_knob_changed(s, IC)
 
-check("the upright guide was recognised without being told",
+check("the upright guide was recognized without being told",
       g3["role"].value() == "vertical", g3["role"].value())
 check("the two level guides were left as ground",
       g1["role"].value() == "ground" and g2["role"].value() == "ground", "")

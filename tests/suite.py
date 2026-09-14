@@ -110,7 +110,7 @@ bad = []
 for tag, v1, v2 in (("identical", [500., 600.], [500., 600.]),
                     ("both far left", [-9000., 600.], [-8000., 600.]),
                     ("vertical horizon", [900., -4000.], [900., 4000.]),
-                    ("on top of centre", [960., 540.], [961., 541.])):
+                    ("on top of center", [960., 540.], [961., 541.])):
     try:
         solve["vp1"].setValue(v1)
         solve["vp2"].setValue(v2)

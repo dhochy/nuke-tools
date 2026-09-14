@@ -227,7 +227,7 @@ s["gridwidth"].setValue(5.0)
 check("line width does not move the ground", fingerprint() == base, "")
 s["gridwidth"].setValue(2.0)
 s["gridcolor"].setValue([0.0, 1.0, 0.0, 1.0])
-check("colour does not move the ground", fingerprint() == base, "")
+check("color does not move the ground", fingerprint() == base, "")
 
 cell_lines = []
 for cell in (1.0, 2.0, 4.0, 8.0):

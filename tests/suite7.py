@@ -84,8 +84,8 @@ def is_grid(px):
     """Orange, whether it is a line or a patch of ground covered by lines.
 
     Not a window on each channel: with the thinning off, ground near the horizon
-    fills in at the grid colour itself, which sits outside a window fitted to
-    antialiased lines. Asking for the colour rather than for a brightness keeps
+    fills in at the grid color itself, which sits outside a window fitted to
+    antialiased lines. Asking for the color rather than for a brightness keeps
     the red and cyan guide overlays out and lets the solid band in.
     """
     return px[0] > 140 and px[1] > 60 and px[1] < px[0] and px[2] < px[1] - 40

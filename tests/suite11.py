@@ -9,7 +9,7 @@ are Groups.
 The thing that has to be right for that to keep working is recognition. A node
 was identified as a solve by having a gridsize knob, and it kept working until
 the build that removed gridsize: after it, a current node could not be
-recognised, so a future build could never have updated one. That is the failure
+recognized, so a future build could never have updated one. That is the failure
 this part is mostly about.
 """
 import io
@@ -37,7 +37,7 @@ nuke.root()["format"].setValue("testHD")
 plate = nuke.nodes.Constant(format="testHD")
 
 # ------------------------------------------------------- 40. recognition
-print("\n=== 40. a current node can still be recognised, or it can never be updated ===")
+print("\n=== 40. a current node can still be recognized, or it can never be updated ===")
 g1 = nuke.createNode("dhPerspGuide", inpanel=False)
 g1.setInput(0, plate)
 g1["p1a"].setValue([1500.0, 900.0]); g1["p1b"].setValue([300.0, 780.0])
@@ -52,11 +52,11 @@ for n in nuke.allNodes():
     n.setSelected(False)
 dhPersp.on_knob_changed(s, type("IC", (), {"name": staticmethod(lambda: "inputChange")})())
 
-check("a node at the current build is recognised as a solve", dhPersp.is_solve(s),
+check("a node at the current build is recognized as a solve", dhPersp.is_solve(s),
       "build %d" % dhPersp.node_build(s))
 check("and _class_of names it, which is what update_nodes rebuilds from",
       dhPersp._class_of(s) == "dhPerspSolve", str(dhPersp._class_of(s)))
-check("a guide is recognised as a guide", dhPersp.is_persplines(g1), "")
+check("a guide is recognized as a guide", dhPersp.is_persplines(g1), "")
 check("and is not mistaken for a solve", not dhPersp.is_solve(g1), "")
 check("a solve is not mistaken for a guide", not dhPersp.is_persplines(s), "")
 check("an unrelated node is neither",
@@ -65,7 +65,7 @@ check("an unrelated node is neither",
 check("nothing in a current script reads as stale", not dhPersp.stale_nodes(),
       "%d stale" % len(dhPersp.stale_nodes()))
 
-# the knob it used to be recognised by is the one that was removed
+# the knob it used to be recognized by is the one that was removed
 check("recognition does not depend on a knob that has been deleted",
       "gridsize" not in s.knobs() and dhPersp.is_solve(s), "")
 

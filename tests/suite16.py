@@ -1,11 +1,11 @@
-"""Part sixteen: the guide colours itself from its role.
+"""Part sixteen: the guide colors itself from its role.
 
 Red ground, green across, blue vertical. The point is the viewer: three guides on
-a plate look identical until they are coloured, and a colour set by hand means
+a plate look identical until they are colored, and a color set by hand means
 whatever you last remembered it to mean.
 
 The part that needs testing is not that setValue works. It is the two ways this
-could quietly take something away: overwriting a colour someone chose on purpose,
+could quietly take something away: overwriting a color someone chose on purpose,
 and doing it again every time the script is opened.
 """
 import io
@@ -60,7 +60,7 @@ def rgb(node):
 
 
 # --------------------------------------------------------- 62. the mapping
-print("\n=== 62. the colour says what the guide is ===")
+print("\n=== 62. the color says what the guide is ===")
 g1 = guide(plate, [(1500, 900), (300, 780), (1500, 200), (300, 360)])
 check("a fresh guide is red, and a fresh guide is ground",
       rgb(g1) == (1.0, 0.0, 0.0) and g1["role"].value() == "ground", str(rgb(g1)))
@@ -78,11 +78,11 @@ g1["role"].setValue("ground")
 dhPersp.on_knob_changed(g1, Knob("role"))
 check("and back to ground turns it red again", rgb(g1) == (1.0, 0.0, 0.0),
       str(rgb(g1)))
-check("the three colours are all different",
+check("the three colors are all different",
       len(set(dhPersp.ROLE_COLORS)) == 3, str(dhPersp.ROLE_COLORS))
 
 # ------------------------------------------ 63. the guide it works out itself
-print("\n=== 63. a guide recognised as vertical colours itself too ===")
+print("\n=== 63. a guide recognized as vertical colors itself too ===")
 g2 = guide(g1, [(200, 100), (1700, 300), (200, 800), (1700, 700)])
 g3 = guide(g2, [(500, 60), (512, 1020), (1400, 60), (1381, 1020)])
 check("the third guide is still red and still says ground",
@@ -94,7 +94,7 @@ s.setInput(0, g3)
 for n in nuke.allNodes():
     n.setSelected(False)
 dhPersp.on_knob_changed(s, IC)
-check("connecting the solve recognised it as the upright one",
+check("connecting the solve recognized it as the upright one",
       g3["role"].value() == "vertical", g3["role"].value())
 check("and it went blue without anyone pressing anything",
       rgb(g3)[2] == 1.0 and rgb(g3)[0] == 0.0, str(rgb(g3)))
@@ -102,8 +102,8 @@ check("the two level guides were not recoloured",
       rgb(g1) == (1.0, 0.0, 0.0) and rgb(g2) == (1.0, 0.0, 0.0),
       "%s and %s" % (str(rgb(g1)), str(rgb(g2))))
 
-# ------------------------------------------------- 64. a colour set by hand
-print("\n=== 64. a colour chosen on purpose is not taken away ===")
+# ------------------------------------------------- 64. a color set by hand
+print("\n=== 64. a color chosen on purpose is not taken away ===")
 g2["linecolor"].setValue([1.0, 1.0, 0.0, 1.0])          # the R/G/B buttons' job
 check("it is yellow now", rgb(g2) == (1.0, 1.0, 0.0), str(rgb(g2)))
 dhPersp.link_guides(s)
@@ -115,7 +115,7 @@ check("fitting to format leaves it alone", rgb(g2) == (1.0, 1.0, 0.0), str(rgb(g
 
 # Names have to be read before the clear: a Python node handle does not survive
 # it, and asking one for its name afterwards raises rather than returning stale
-# information, which is the better of the two behaviours.
+# information, which is the better of the two behaviors.
 n2, n3 = g2.name(), g3.name()
 path = os.path.join(TMP, "s16.nk").replace("\\", "/")
 nuke.scriptSaveAs(path, overwrite=1)

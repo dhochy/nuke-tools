@@ -51,7 +51,7 @@ g2 = guide(g1, [(200, 100), (1700, 300), (200, 800), (1700, 700)])
 g3 = guide(g2, [(500, 60), (512, 1020), (1400, 60), (1381, 1020)])
 
 # ------------------------------------------------------ 43. telling them apart
-print("\n=== 43. a third guide is recognised without being told ===")
+print("\n=== 43. a third guide is recognized without being told ===")
 check("the upright guide reads as vertical", dhPersp.looks_vertical(g3),
       "vp at %.0f, %.0f" % tuple(g3["vp"].value()))
 check("the first ground guide does not", not dhPersp.looks_vertical(g1),
@@ -95,9 +95,9 @@ check("connecting the chain linked it on its own, three guides and all",
 check("and switched the vertical on", bool(s["use_vertical"].value()), "")
 check("the vertical vanishing point is usable", s["_v3ok"].value() > 0.5, "")
 moved = math.hypot(s["_px"].value() - W / 2.0, s["_py"].value() - H / 2.0)
-check("the lens axis is solved off centre but still on the frame",
+check("the lens axis is solved off center but still on the frame",
       moved > 1.0 and moved < 0.5 * s["_diag"].value(),
-      "%.0f px off centre, frame diagonal %.0f" % (moved, s["_diag"].value()))
+      "%.0f px off center, frame diagonal %.0f" % (moved, s["_diag"].value()))
 check("the solve stands up", s["_solveok"].value() > 0.5,
       "%.2f mm" % s["cam_focal"].value())
 
@@ -123,12 +123,12 @@ check("the vertical vanishing point is inside the distance limits",
 off = math.hypot(s["_ox"].value() - W / 2.0, s["_oy"].value() - H / 2.0)
 if off > 0.5 * s["_diag"].value():
     check("but the lens axis it produces is off the frame, so it is not used",
-          s["_v3ok"].value() < 0.5, "%.0f px off centre" % off)
-    check("and the lens axis falls back to the centre of frame",
+          s["_v3ok"].value() < 0.5, "%.0f px off center" % off)
+    check("and the lens axis falls back to the center of frame",
           abs(s["_px"].value() - W / 2.0) < 0.5, "%.1f" % s["_px"].value())
 else:
     check("this fixture no longer throws the axis off frame, so it proves nothing",
-          False, "%.0f px off centre" % off)
+          False, "%.0f px off center" % off)
 dhPersp.link_guides(s)
 
 # ------------------------------------------------------- 46. thinning switch

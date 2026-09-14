@@ -18,7 +18,7 @@ Both carry their own instructions: the `?` button says what the node is, and the
 ### Solving a camera
 
 1. Put a **dhPerspGuide** under your plate. Drag its two lines onto two edges
-   that are parallel in real life but converge on screen. Two kerbs, the top and
+   that are parallel in real life but converge on screen. Two curbs, the top and
    bottom of the same wall, two window sills on the same facade.
 2. Set **these lines are**:
    - **ground** for a direction running away from you into the picture
@@ -27,9 +27,9 @@ Both carry their own instructions: the `?` button says what the node is, and the
 3. Add a second guide for the other level direction, at right angles to the
    first. One ground and one across.
 4. Optionally add a third along the uprights. It lets the solve find the real
-   lens axis instead of assuming the centre of frame, which is what makes a
+   lens axis instead of assuming the center of frame, which is what makes a
    cropped or shifted plate solve correctly. Leave it on **ground** if you like;
-   with three guides connected the upright one is recognised from its own lines.
+   with three guides connected the upright one is recognized from its own lines.
 5. Drop a **dhPerspSolve** under the last guide. It links itself.
 6. Read the verdict on the **Camera Solve** tab. It says whether these guides
    describe a camera that can exist, and what is wrong if they do not.
@@ -41,7 +41,7 @@ Both carry their own instructions: the `?` button says what the node is, and the
 
 **The lines do not have to be on the ground.** Every level edge running the same
 way shares a vanishing point whatever height it is at, so a roofline works as
-well as a kerb and is usually easier to trace. Longer lines are better than
+well as a curb and is usually easier to trace. Longer lines are better than
 shorter ones: a short line placed a pixel out swings its vanishing point a long
 way.
 

@@ -99,7 +99,7 @@ EDGES = {
     # along world X
     "across": [((-6.0, 11.0, -25.0), (6.0, 11.0, -25.0)),
                ((-6.0, 7.0, -25.0), (6.0, 7.0, -25.0))],
-    # two kerbs on the ground running away from the camera, along world Z
+    # two curbs on the ground running away from the camera, along world Z
     "ground": [((-4.0, 0.0, -7.0), (-4.0, 0.0, -30.0)),
                ((4.0, 0.0, -7.0), (4.0, 0.0, -30.0))],
     # two upright edges of the facade
@@ -138,7 +138,7 @@ print("\n=== 70. a two point shot: the horizontal pair is the right pair ===")
 rows = camera_rows(-4.0, 38.0)
 vps = traced(rows)
 off = math.hypot(vps["across"][0] - PX, vps["across"][1] - PY)
-print("     across vanishing point %.0f px from centre, %.0f frame diagonals"
+print("     across vanishing point %.0f px from center, %.0f frame diagonals"
       % (off, off / DIAG))
 got = solve(vps, False)
 check("two guides recover 35mm when both directions converge properly",
@@ -169,7 +169,7 @@ check("with two guides the answer is not a lens", abs(two - FOCAL) > 5.0,
 three = solve(vps, True)
 # Line ends land on whole pixels, which on a 667 wide frame is worth a few per
 # cent on its own; the two guide column of section 72 shows the same residual
-# where it is well conditioned. Anything inside three millimetres of thirty five
+# where it is well conditioned. Anything inside three millimeters of thirty five
 # is the rounding, not the method.
 check("THE FIX: the vertical guide rescues it", abs(three - FOCAL) < 3.0,
       "%.4f mm" % three)
@@ -242,7 +242,7 @@ vps = traced(rows, snap=False)
 solve(vps, True)
 check("the vertical guide is usable", s["_v3use"].value() > 0.5, "")
 check("and its orthocenter is a believable lens axis", s["_v3ok"].value() > 0.5,
-      "(%.1f, %.1f) against centre (%.1f, %.1f)"
+      "(%.1f, %.1f) against center (%.1f, %.1f)"
       % (s["_px"].value(), s["_py"].value(), PX, PY))
 d = [s["_d12"].value(), s["_d13"].value(), s["_d23"].value()]
 check("all three pairs give the same focal length, which is what an orthocenter "

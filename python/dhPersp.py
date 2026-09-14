@@ -252,19 +252,19 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 14
+BUILD = 15
 
 NL = chr(10)
 WARN_BLANK = (
     "<br><b>Warning: %s is still at the default cross. Nothing has been placed "
-    "on it, so its vanishing point sits on the centre of frame and the solved "
+    "on it, so its vanishing point sits on the center of frame and the solved "
     "focal length is meaningless. Draw its two lines along real receding "
     "edges.</b>")
 
 # Working units. A photograph carries no scale of its own, so one measured
 # length has to supply it, and camera height is the one a compositor knows.
 # Every other length on the node is then in the same unit.
-UNITS = (("feet", 0.3048), ("metres", 1.0), ("centimetres", 0.01))
+UNITS = (("feet", 0.3048), ("meters", 1.0), ("centimeters", 0.01))
 SCALED = ("camera_height", "cellsize")
 
 
@@ -299,7 +299,7 @@ def unit_metres(node):
 def convert_units(node):
     """Renumber every length when the working unit changes.
 
-    Switching feet to metres must leave the setup physically where it was, so
+    Switching feet to meters must leave the setup physically where it was, so
     the values are converted rather than reinterpreted. Without this the grid
     would jump by a factor of three the moment someone touched the dropdown.
     """
@@ -552,7 +552,7 @@ def set_link_label(node):
     label = "   ".join(parts)
     if not any("&larr;" in p for p in parts):
         label += "      (select two %s nodes and press 'link to selected guides')" % CLASS
-    # An untouched guide's two lines cross at the exact centre of frame, which
+    # An untouched guide's two lines cross at the exact center of frame, which
     # is the principal point, so its vanishing point lands there and the focal
     # length collapses to nothing. Reporting that as a lens would be a lie.
     blank = pristine_guides(node)
@@ -601,7 +601,7 @@ def _build_camera(nodes):
     inner = pow(OcVi, 2) - pow(OiVi, 2)
     if inner <= 0:
         nuke.tprint("dhPersp: cannot solve a focal length from these points. "
-                     "They are too close together or too near the frame centre.")
+                     "They are too close together or too near the frame center.")
         return
     f = sqrt(inner)
 
@@ -655,7 +655,7 @@ def export_camera(node=None):
     blank = pristine_guides(node)
     if blank:
         msg = ("%s has not been placed. Its two lines are still at the "
-               "default cross, which meets at the exact centre of frame. A "
+               "default cross, which meets at the exact center of frame. A "
                "vanishing point there makes the focal length collapse to "
                "zero, so this camera would be meaningless."
                % ", ".join(blank))
@@ -1043,7 +1043,7 @@ def link_guides(node=None):
     say(node,
         "<b>Found %d %s nodes and none of them is set to vertical.</b><br>"
         "A solve uses two level guides, one ground and one across. A third is "
-        "for upright edges, and it is normally recognised from its own lines: "
+        "for upright edges, and it is normally recognized from its own lines: "
         "this one was not, which usually means its lines are not steep enough to "
         "be uprights, or two guides are following the same direction.<br>"
         "Set the odd one's 'these lines are' to vertical, or select the two you "
@@ -1092,7 +1092,7 @@ def stale_nodes():
 
 
 # The two vanishing points are the whole reason the node exists, so they are the
-# safest thing to recognise it by: every build has had them, and no other node
+# safest thing to recognize it by: every build has had them, and no other node
 # here has both. Anything more specific risks naming a knob that a later build
 # removes, which is exactly what went wrong last time.
 SOLVE_SIGNATURE = ("vp1", "vp2")
@@ -1102,7 +1102,7 @@ def is_solve(node):
     """A solve node, identified the same way a guide is: by its knobs.
 
     It used to be identified by having a gridsize knob, which worked right up
-    until the build that removed gridsize. A node that cannot be recognised
+    until the build that removed gridsize. A node that cannot be recognized
     cannot be brought up to date, so this has to name knobs that are the point
     of the node rather than knobs that happen to be on it.
     """
@@ -1258,7 +1258,7 @@ def update_nodes(nodes=None, quiet=False):
 def pristine_guides(node):
     """Guides feeding this solve that are still at their default layout.
 
-    An untouched guide's two lines cross at the exact centre of frame, so its
+    An untouched guide's two lines cross at the exact center of frame, so its
     vanishing point sits on the principal point and the focal length collapses.
     """
     bad = []
@@ -1412,32 +1412,32 @@ def set_axis_note(node):
     if k is None:
         return
     if "use_vertical" not in node.knobs() or not node["use_vertical"].value():
-        k.setValue("lens axis: centre of frame (no vertical guide)")
+        k.setValue("lens axis: center of frame (no vertical guide)")
         return
     ok = node["_v3ok"].value() > 0.5
     if ok:
         k.setValue("lens axis solved from the vertical guide: %.1f, %.1f  "
-                   "(centre of frame is %.1f, %.1f)"
+                   "(center of frame is %.1f, %.1f)"
                    % (node["_px"].value(), node["_py"].value(),
                       node.width() / 2.0, node.height() / 2.0))
     else:
         # Two different guides fail this and they need different advice: one
-        # that was never drawn on has its vanishing point sitting on the centre
+        # that was never drawn on has its vanishing point sitting on the center
         # of frame, and one drawn along genuinely parallel uprights has it off
         # at infinity. Both make the orthocenter meaningless.
         d = math.hypot(node["vp3"].value()[0] - node.width() / 2.0,
                        node["vp3"].value()[1] - node.height() / 2.0)
         if d < node["_diag"].value():
             k.setValue("<b>The vertical guide has not been placed. Its two "
-                       "lines still cross at the centre of frame, so there is "
+                       "lines still cross at the center of frame, so there is "
                        "no vanishing point to solve from and the lens axis is "
-                       "being assumed at the centre. Draw its lines along two "
+                       "being assumed at the center. Draw its lines along two "
                        "upright edges in the plate.</b>")
         else:
             k.setValue("<b>The vertical guide is too close to parallel to be "
                        "used. Its vanishing point is off at infinity, where the "
                        "orthocenter is meaningless, so the lens axis is being "
-                       "assumed at the centre of frame. A camera tilted up or "
+                       "assumed at the center of frame. A camera tilted up or "
                        "down gives verticals that actually converge.</b>")
 
 
@@ -1449,7 +1449,7 @@ def set_verdict(node=None):
     product of the two signed distances has to be negative and big enough to
     leave room for the focal length. Guides that do not satisfy it have no
     camera at all, and the arithmetic that used to run anyway returned a few
-    millimetres, which reads like a fisheye rather than like an error.
+    millimeters, which reads like a fisheye rather than like an error.
     """
     node = node or nuke.thisNode()
     k = node.knobs().get("verdict")
@@ -1487,7 +1487,7 @@ def set_verdict(node=None):
             "directions it was solved from barely converges, so its vanishing "
             "point is a very long way off and the focal length depends mostly "
             "on which pixel you put the line ends on. It can be tens of "
-            "millimetres out while still looking like a lens. A guide along the "
+            "millimeters out while still looking like a lens. A guide along the "
             "upright edges fixes it, because vertical against a receding "
             "direction is well conditioned on exactly these shots. Otherwise "
             "tick 'I know the focal length'.")
@@ -1594,10 +1594,10 @@ def say(node, text):
 
 
 def apply_role_color(node=None):
-    """Colour a guide by what it is: red ground, green across, blue vertical.
+    """Color a guide by what it is: red ground, green across, blue vertical.
 
     The point is the viewer, not the panel. Three guides on a plate look the same
-    until they are coloured, and a colour chosen by hand means whatever you last
+    until they are colored, and a color chosen by hand means whatever you last
     remembered it to mean; tied to the role it means one thing, so a guide set to
     the wrong sort shows up without opening it.
     """

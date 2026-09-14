@@ -36,9 +36,9 @@ dhPersp.on_knob_changed(g, type("IC", (), {"name": staticmethod(lambda: "inputCh
 for n in nuke.allNodes():
     n.setSelected(False)
 vp = g["vp"].value()
-check("a fresh guide's vanishing point is the centre of frame",
+check("a fresh guide's vanishing point is the center of frame",
       abs(vp[0] - W / 2.0) < 1.0 and abs(vp[1] - H / 2.0) < 1.0,
-      "vp (%.1f, %.1f) vs centre (%.1f, %.1f)" % (vp[0], vp[1], W / 2.0, H / 2.0))
+      "vp (%.1f, %.1f) vs center (%.1f, %.1f)" % (vp[0], vp[1], W / 2.0, H / 2.0))
 check("and the tool knows it is untouched", dhPersp.is_pristine(g), "")
 
 g2 = nuke.createNode("dhPerspGuide", inpanel=False)
@@ -144,7 +144,7 @@ check("the knobs that still exist kept their values",
       new_solve is not None
       and all(abs(new_solve[k].value() - v) < 1e-6 for k, v in keep.items()),
       ", ".join("%s %.4g" % (k, new_solve[k].value()) for k in keep))
-check("and so did the colour",
+check("and so did the color",
       abs(new_solve["gridcolor"].value()[2] - 0.9) < 1e-6,
       str([round(v, 3) for v in new_solve["gridcolor"].value()]))
 ok_pts = True

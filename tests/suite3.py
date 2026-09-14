@@ -218,7 +218,7 @@ check("horizon follows the guides live",
 nuke.delete(cam)
 
 # ------------------------------------------------- 16. guide lines are drawn
-print("\n=== 16. guide lines are drawn, and colour is per node ===")
+print("\n=== 16. guide lines are drawn, and color is per node ===")
 g = nuke.createNode("dhPerspGuide", inpanel=False)
 g.setInput(0, plate)
 for n in nuke.allNodes():
@@ -231,7 +231,7 @@ check("guide draws its lines", nred > 500, "%d red pixels" % nred)
 g["linecolor"].setValue([0.0, 1.0, 0.0, 1.0])
 _, _, grn = render(g, "guide_green")
 ngrn = count(grn, lambda p: p[1] > 150 and p[0] < 90 and p[2] < 90)
-check("colour knob changes what is drawn",
+check("color knob changes what is drawn",
       ngrn > 500 and count(grn, lambda p: p[0] > 150 and p[1] < 90 and p[2] < 90) < 50,
       "%d green pixels" % ngrn)
 g["linecolor"].setValue([1.0, 0.0, 0.0, 1.0])
@@ -249,12 +249,12 @@ check("an added line is drawn too", more > base + 200, "%d -> %d pixels" % (base
 dhPersp.clear_lines(g)
 cleared = count(render(g, "guide_cleared")[2], lambda p: p[0] > 150 and p[1] < 90 and p[2] < 90)
 check("clearing removes it again", abs(cleared - base) < 200, "%d vs %d" % (cleared, base))
-# two guides hold independent colours
+# two guides hold independent colors
 g2 = nuke.createNode("dhPerspGuide", inpanel=False); g2.setInput(0, plate)
 for n in nuke.allNodes():
     n.setSelected(False)
 g2["linecolor"].setValue([0.0, 0.0, 1.0, 1.0])
-check("each guide keeps its own colour",
+check("each guide keeps its own color",
       list(g["linecolor"].value())[:3] != list(g2["linecolor"].value())[:3],
       "%s vs %s" % (list(g["linecolor"].value())[:3], list(g2["linecolor"].value())[:3]))
 

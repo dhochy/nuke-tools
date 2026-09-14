@@ -4,8 +4,8 @@ The focal length used to come from sqrt(v1*v2 - oivi^2) with v1 and v2 as plain
 distances. That is the right number only while the lens axis falls between the
 two vanishing points along the horizon, which is the only arrangement a real
 camera produces. Outside it the expression still returns something, and what it
-returns near the boundary is a few millimetres. A fifty five millimetre lens
-reading four millimetres is that, not a fisheye.
+returns near the boundary is a few millimeters. A fifty five millimeter lens
+reading four millimeters is that, not a fisheye.
 
 So this asks two things of every configuration: does the camera the node builds
 actually match the geometry the grid is drawn from, and when it cannot, does the
@@ -83,7 +83,7 @@ print("\n=== 37. where no camera exists, the node has to say so ===")
 BAD = [("both vanishing points to the right", (2200, 700), (5200, 690)),
        ("both to the left", (-5200, 690), (-2200, 700)),
        ("the two guides follow the same direction", (2400, 650), (2460, 648)),
-       ("both guides untouched, crossing at the centre", (960, 540), (960, 540))]
+       ("both guides untouched, crossing at the center", (960, 540), (960, 540))]
 for nm, a, b in BAD:
     s["vp1"].setValue([float(a[0]), float(a[1])])
     s["vp2"].setValue([float(b[0]), float(b[1])])
@@ -114,7 +114,7 @@ s["vp1"].setValue([-600.0, 700.0])
 s["vp2"].setValue([2900.0, 640.0])
 s["use_vertical"].setValue(False)
 base = (s["_px"].value(), s["_py"].value(), s["cam_focal"].value())
-check("with no vertical guide the lens axis is the centre of frame",
+check("with no vertical guide the lens axis is the center of frame",
       abs(base[0] - W / 2.0) < 0.5 and abs(base[1] - H / 2.0) < 0.5,
       "(%.1f, %.1f)" % (base[0], base[1]))
 
@@ -141,8 +141,8 @@ s["vp3"].setValue([1400.0, 6200.0])                    # verticals really conver
 check("a vertical guide that is actually placed is used",
       s["_v3ok"].value() > 0.5, "")
 moved = math.hypot(s["_px"].value() - base[0], s["_py"].value() - base[1])
-check("and it moves the lens axis off centre, which is the point of it",
-      moved > 1.0, "%.1f px off centre" % moved)
+check("and it moves the lens axis off center, which is the point of it",
+      moved > 1.0, "%.1f px off center" % moved)
 s["use_vertical"].setValue(False)
 
 print("\n" + "=" * 88)

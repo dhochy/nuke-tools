@@ -91,7 +91,7 @@ def grid_bbox(rows):
 
     The centroid of the drawn pixels is NOT invariant under a pure scale: a
     bigger ground plane reaches further away, and distance compresses toward the
-    horizon, so the centre of mass rises even though the card has not moved.
+    horizon, so the center of mass rises even though the card has not moved.
     What must hold is containment, a smaller grid sitting inside the footprint
     of a larger one.
     """
@@ -137,7 +137,7 @@ s["camera_height"].setValue(5.5)
 s["cellsize"].setValue(2.0)
 hz = 0.5 * (s["vp1"].value()[1] + s["vp2"].value()[1])
 
-# The old measurement asked where the card's centre was, and it always answered
+# The old measurement asked where the card's center was, and it always answered
 # the same thing while David watched the grid move. What moved was the card's
 # edges. So the measurement is the drawn footprint now, not a transform.
 foot = {}
@@ -231,10 +231,10 @@ ft = [s[k].value() for k in ("camera_height", "cellsize")]
 shape_ft = [round(v / s["cellsize"].value(), 6) for v in
             (s["camera_height"].value(), s["gridoffset"].value()[0])]
 
-s["unit"].setValue(1)                       # to metres
+s["unit"].setValue(1)                       # to meters
 dhPersp.convert_units(s)
 m = [s[k].value() for k in ("camera_height", "cellsize")]
-check("feet to metres converts every length",
+check("feet to meters converts every length",
       all(abs(a * 0.3048 - b) < 1e-6 for a, b in zip(ft, m)),
       "height %.4f ft -> %.4f m" % (ft[0], m[0]))
 check("the grid offset converts too",
@@ -246,9 +246,9 @@ check("the setup is physically unchanged by the switch",
       all(abs(a - b) < 1e-4 for a, b in zip(shape_ft, shape_m)),
       "cells: %s vs %s" % (shape_ft, shape_m))
 
-s["unit"].setValue(2)                       # to centimetres
+s["unit"].setValue(2)                       # to centimeters
 dhPersp.convert_units(s)
-check("metres to centimetres is a factor of a hundred",
+check("meters to centimeters is a factor of a hundred",
       abs(s["camera_height"].value() - m[0] * 100.0) < 1e-4,
       "%.3f cm" % s["camera_height"].value())
 s["unit"].setValue(0)                       # back to feet

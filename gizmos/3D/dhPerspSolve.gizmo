@@ -6,7 +6,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 14
+ _build 15
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -19,10 +19,10 @@ Group {
  vp1 {-600 900}
  addUserKnob {12 vp2 l "vp 2"}
  vp2 {2600 900}
- addUserKnob {12 vp3 l "vp 3 (vertical)" t "Vanishing point of the upright edges. Linked from a dhPerspGuide whose 'these lines are' is vertical. Leave the third guide off and the solve assumes the lens axis is at the centre of frame, as before."}
+ addUserKnob {12 vp3 l "vp 3 (vertical)" t "Vanishing point of the upright edges. Linked from a dhPerspGuide whose 'these lines are' is vertical. Leave the third guide off and the solve assumes the lens axis is at the center of frame, as before."}
  vp3 {960 1e9}
  addUserKnob {6 use_vertical l "solve the lens axis from a vertical guide" t "With three mutually perpendicular vanishing points the principal point is the orthocenter of their triangle, so it is solved instead of assumed. Ignored automatically when the verticals are too close to parallel for their vanishing point to mean anything." +STARTLINE}
- addUserKnob {26 axis_note l "" +STARTLINE T "lens axis: centre of frame"}
+ addUserKnob {26 axis_note l "" +STARTLINE T "lens axis: center of frame"}
  addUserKnob {26 linked_to l "" t "Which dhPerspGuide drives each vanishing point. Selection order is not click order, so check here before wondering why moving a guide did nothing." +STARTLINE T "vp1: set by hand   vp2: set by hand"}
  addUserKnob {22 link_guides l "solve from guides" t "Normally automatic: two dhPerspGuide nodes anywhere in this node's input chain are picked up on their own, and moving them updates the camera live. Press this only to re-link, or to link two guides that are selected but not connected." T "import dhPersp\ndhPersp.link_guides(nuke.thisNode())" +STARTLINE}
  addUserKnob {22 unlink_guides l unlink t "Keep the current vanishing points as plain numbers and stop following the guides." -STARTLINE T "import dhPersp\ndhPersp.unlink_guides(nuke.thisNode())"}
@@ -43,7 +43,7 @@ Group {
  addUserKnob {26 axis_state l "" +STARTLINE T ""}
  addUserKnob {20 scale_tab l Scale}
  addUserKnob {26 t_scale l "" +STARTLINE T "A photograph has no scale of its own. Set the height the camera was at and everything else becomes real."}
- addUserKnob {4 unit l "working unit" t "The unit every length on this node is in: camera height, cell size, grid size, distance and offset. Changing it converts the values you have already set, so the setup does not move." M {feet metres centimetres}}
+ addUserKnob {4 unit l "working unit" t "The unit every length on this node is in: camera height, cell size, grid size, distance and offset. Changing it converts the values you have already set, so the setup does not move." M {feet meters centimeters}}
  addUserKnob {7 camera_height l "camera height" t "Height of the camera above the ground plane, in the working unit. This is the one measurement that gives the solve a real scale. Eye level is about 5.5 ft or 1.7 m, a tripod about 4.5 ft or 1.4 m." R 0.1 40}
  camera_height 5.5
  addUserKnob {26 scale_note l "" +STARTLINE T "1 cell = 1 ft"}
@@ -53,7 +53,7 @@ Group {
  addUserKnob {6 use_known_focal l "I know the focal length" t "Use a measured focal length instead of solving one from the vanishing points. The vanishing points then only set the orientation." +STARTLINE}
  addUserKnob {7 known_focal l "focal (mm)" t "Focal length from the camera report or lens metadata." R 4 300}
  known_focal 35
- addUserKnob {7 filmback l "film back (mm)" t "Horizontal sensor size. Needed to turn millimetres into pixels. Nuke's default 35mm Academy is 24.576." R 4 70}
+ addUserKnob {7 filmback l "film back (mm)" t "Horizontal sensor size. Needed to turn millimeters into pixels. Nuke's default 35mm Academy is 24.576." R 4 70}
  filmback 24.576
  addUserKnob {26 dsolve l "" +STARTLINE}
  addUserKnob {26 tsolve l result}

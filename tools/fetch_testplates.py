@@ -3,7 +3,7 @@
 The hard part is not finding photos, it is finding photos whose stated focal
 length still describes the framing. A cropped upload keeps the camera's original
 EXIF, so the number is right about the lens and wrong about the picture: that is
-what made a Wikimedia frame labelled 24mm actually measure 37mm.
+what made a Wikimedia frame labeled 24mm actually measure 37mm.
 
 Two filters deal with it.
 

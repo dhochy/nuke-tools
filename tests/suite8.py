@@ -1,7 +1,7 @@
 """Part eight: the third guide, and what it is actually for.
 
 Two vanishing points can only give a focal length if you assume where the lens
-axis is. This tool assumed the centre of frame. The test that matters is
+axis is. This tool assumed the center of frame. The test that matters is
 therefore not "does it still work on a normal plate" but "does it now work on a
 plate where that assumption is false", because that is the case it was added for
 and the case that silently produced wrong answers before.
@@ -105,9 +105,9 @@ check("the vertical guide turns the option on", s["use_vertical"].value(), "")
 check("the vertical vanishing point is usable here", s["_v3ok"].value() > 0.5,
       "vp3 %s" % [round(x) for x in s["vp3"].value()])
 px, py = s["_px"].value(), s["_py"].value()
-check("the lens axis is solved back to the centre on a centred plate",
+check("the lens axis is solved back to the center on a centered plate",
       hypot(px - W / 2.0, py - H / 2.0) < 8.0,
-      "solved (%.1f, %.1f) vs centre (%.1f, %.1f)" % (px, py, W / 2.0, H / 2.0))
+      "solved (%.1f, %.1f) vs center (%.1f, %.1f)" % (px, py, W / 2.0, H / 2.0))
 s["axis_from"].setValue(1)
 check("and the focal is still right", abs(s["cam_focal"].value() - 35.0) < 0.1,
       "%.3f mm" % s["cam_focal"].value())
@@ -117,7 +117,7 @@ nuke.delete(cam)
 print("\n=== 34. a shifted lens axis: what two points cannot do ===")
 rows = []
 worst2 = worst3 = 0.0
-# 0.30 is a gentle shift; 0.75 is what an off-centre crop of roughly half the
+# 0.30 is a gentle shift; 0.75 is what an off-center crop of roughly half the
 # frame actually looks like, which is the case that bit us on the Chicago photo.
 for shift, label in (((0.30, 0.0), "shift right"),
                      ((0.0, -0.25), "shift down"),
@@ -143,7 +143,7 @@ for shift, label in (((0.30, 0.0), "shift right"),
           % (label, f2, f3, s3["_px"].value(), s3["_py"].value()))
     nuke.delete(cam)
 
-check("two points get it wrong when the axis is not centred, as expected",
+check("two points get it wrong when the axis is not centered, as expected",
       worst2 > 1.0, "worst error %.2f mm" % worst2)
 check("three points recover the focal anyway", worst3 < 0.2,
       "worst error %.4f mm" % worst3)
@@ -157,9 +157,9 @@ a4, b4, v4, s4 = rig(True)
 feed(a4, b4, v4, cam)
 far = hypot(s4["vp3"].value()[0] - W / 2.0, s4["vp3"].value()[1] - H / 2.0)
 check("the vertical vanishing point runs away on a level camera", far > 25000,
-      "%.0f px from centre" % far)
+      "%.0f px from center" % far)
 check("the solve refuses to use it", s4["_v3ok"].value() < 0.5, "")
-check("and falls back to the centre of frame",
+check("and falls back to the center of frame",
       abs(s4["_px"].value() - W / 2.0) < 1e-6, "%.1f" % s4["_px"].value())
 dhPersp.set_axis_note(s4)
 check("the panel explains why", "too close to parallel" in s4["axis_note"].value(),
@@ -184,7 +184,7 @@ check("pitch unchanged", abs(s5["cam_rx"].value() + 8.0) < 0.05,
       "%.4f deg" % s5["cam_rx"].value())
 dhPersp.set_axis_note(s5)
 check("the panel says the axis was assumed",
-      "centre of frame" in s5["axis_note"].value(), s5["axis_note"].value()[:52])
+      "center of frame" in s5["axis_note"].value(), s5["axis_note"].value()[:52])
 nuke.delete(cam)
 
 print("\n" + "=" * 82)

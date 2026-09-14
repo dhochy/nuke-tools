@@ -46,8 +46,8 @@ check("ground is the default", g["role"].value() == "ground", g["role"].value())
 tip = g["role"].tooltip()
 check("the tooltip says the lines need not be on the ground",
       "not have to be on the ground" in tip, tip[:70])
-check("and that a third guide is recognised on its own",
-      "recognised" in tip, "")
+check("and that a third guide is recognized on its own",
+      "recognized" in tip, "")
 
 # -------------------------------------------- 49. an older guide survives it
 print("\n=== 49. a guide saved before the rename keeps what it was set to ===")
@@ -117,26 +117,51 @@ for nm, want in pts.items():
             ok = False
 check("every placed point survived the rename", ok, "%d guides" % len(pts))
 
-# ---------------------------------- 50. and a label that is simply gone
+# ---------------------------------- 50. a label that is simply gone
 print("\n=== 50. a value whose label no longer exists falls back to its index ===")
-s = nuke.createNode("dhPerspSolve", inpanel=False)
-s.setInput(0, now_vert)
-check("the working unit knob is a pulldown with three options",
-      list(s["unit"].values()) == ["feet", "metres", "centimetres"],
-      str(list(s["unit"].values())))
-s["unit"].setValue(2)
-check("set to centimetres", s["unit"].value() == "centimetres", s["unit"].value())
-name = s.name()
-s["_build"].setValue(1)
-done = dhPersp.update_nodes([s], quiet=True)
-back = nuke.toNode(name)
-check("the solve rebuilt", back is not None and done == [name], str(done))
-check("and the unit is still centimetres",
-      back is not None and back["unit"].value() == "centimetres",
+check("the working unit is spelled the American way now",
+      list(nuke.createNode("dhPerspSolve", inpanel=False)["unit"].values())
+      == ["feet", "meters", "centimeters"], "")
+for n in nuke.allNodes():
+    n.setSelected(False)
+
+SFIX = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                    "fixtures", "dhPerspSolve_build5.gizmo")
+sbody = io.open(SFIX, encoding="utf-8").read().split("\n", 1)[1]
+check("the kept build 5 solve spells them the British way",
+      "M {feet metres centimetres}" in sbody, "")
+sbody = sbody.replace(" name dhPerspSolve\n", " name oldUnits\n", 1)
+spaste = os.path.join(TMP, "s13_units.nk").replace("\\", "/")
+io.open(spaste, "w", encoding="utf-8", newline="").write(
+    "set cut_paste_input [stack 0]\n" + sbody)
+for n in nuke.allNodes():
+    n.setSelected(False)
+plate.setSelected(True)
+nuke.nodePaste(spaste)
+old = nuke.toNode("oldUnits")
+old.setInput(0, plate)
+old["unit"].setValue("centimetres")
+old["camera_height"].setValue(168.0)
+check("the old node really is set to centimetres", old["unit"].value() == "centimetres",
+      old["unit"].value())
+check("and that option no longer exists in the current build",
+      "centimetres" not in list(nuke.toNode("dhPerspSolve")["unit"].values()), "")
+
+dhPersp.update_nodes([old], quiet=True)
+back = nuke.toNode("oldUnits")
+check("it rebuilt", back is not None, "")
+check("THE ONE THAT MATTERS: centimetres came back as centimeters, by index, "
+      "because the label it had was gone",
+      back is not None and back["unit"].value() == "centimeters",
       back["unit"].value() if back else "gone")
-check("which dhPersp reads as index 2",
-      back is not None and dhPersp.unit_index(back) == 2,
-      str(dhPersp.unit_index(back)) if back else "gone")
+check("dhPersp reads it as index 2", dhPersp.unit_index(back) == 2,
+      str(dhPersp.unit_index(back)))
+check("and the height it was measured in came with it",
+      abs(back["camera_height"].value() - 168.0) < 1e-6,
+      "%.2f" % back["camera_height"].value())
+check("so the scale note says centimeters", "centimeters" in
+      (back["scale_note"].value() or dhPersp.set_scale_note(back) or
+       back["scale_note"].value()), back["scale_note"].value()[:60])
 
 print("\n" + "=" * 88)
 npass = sum(1 for _, ok, _ in RESULTS if ok)

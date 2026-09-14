@@ -19,7 +19,7 @@ W, H = read.width(), read.height()
 print("plate %d x %d" % (W, H))
 
 
-def guide(after, pts, colour):
+def guide(after, pts, color):
     for n in nuke.allNodes():
         n.setSelected(False)
     g = nuke.createNode("dhPerspGuide", inpanel=False)
@@ -28,7 +28,7 @@ def guide(after, pts, colour):
         g, type("IC", (), {"name": staticmethod(lambda: "inputChange")})())
     for k, v in zip(("p1a", "p1b", "p2a", "p2b"), pts):
         g[k].setValue([float(v[0]), float(v[1])])
-    g["linecolor"].setValue(list(colour))
+    g["linecolor"].setValue(list(color))
     return g
 
 
@@ -69,7 +69,7 @@ print("  vp2 linked               : %s" % s["vp2"].hasExpression(0))
 print("  vp3 linked               : %s" % s["vp3"].hasExpression(0))
 print("  using the vertical       : %s" % bool(s["use_vertical"].value()))
 print("  third vp actually usable : %s" % (s["_v3ok"].value() > 0.5))
-print("  lens axis                : %.1f, %.1f   (centre is %.1f, %.1f)"
+print("  lens axis                : %.1f, %.1f   (center is %.1f, %.1f)"
       % (s["_px"].value(), s["_py"].value(), W / 2.0, H / 2.0))
 print("  focal                    : %.2f mm   (the plate says 35)"
       % s["cam_focal"].value())

@@ -2,11 +2,11 @@
 
 Caprile and Torre 1990, and Hartley and Zisserman chapter 8: for two vanishing
 points from perpendicular world directions, with square pixels and the principal
-point at the image centre,
+point at the image center,
 
     (v1 - p) . (v2 - p) + f^2 = 0
 
-The gizmo instead drops a perpendicular from the centre onto the horizon and uses
+The gizmo instead drops a perpendicular from the center onto the horizon and uses
 f = sqrt(ViV1 * ViV2 - OVi^2). Those are algebraically the same thing. This
 recomputes the published form here in plain Python, from the same vanishing
 points, and compares. An independent implementation agreeing is much stronger
@@ -58,7 +58,7 @@ while len(cases) < 40:
 for v1, v2 in cases:
     solve["vp1"].setValue(v1)
     solve["vp2"].setValue(v2)
-    # the gizmo reports millimetres against its film back, so convert back to pixels
+    # the gizmo reports millimeters against its film back, so convert back to pixels
     fmm = solve["cam_focal"].value()
     fb = solve["filmback"].value()
     va = fb * H / float(W)
@@ -102,7 +102,7 @@ for v1, v2 in cases[:10]:
     res = ((v1[0] - CX) * (v2[0] - CX) + (v1[1] - CY) * (v2[1] - CY) + fpx * fpx)
     worst_res = max(worst_res, abs(res) / (fpx * fpx))
 check("orthogonality constraint is satisfied", worst_res < 1e-4,
-      "worst normalised residual %.2e" % worst_res)
+      "worst normalized residual %.2e" % worst_res)
 
 # ------------------------------------------------------- 24. sensitivity, the honest caveat
 print("\n=== 24. how much a slipped guide line costs, by vanishing point distance ===")

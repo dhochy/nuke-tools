@@ -1,4 +1,4 @@
-"""Part two: guide behaviour, linking, export, formats, persistence."""
+"""Part two: guide behavior, linking, export, formats, persistence."""
 import os
 import nuke
 from math import hypot
@@ -132,7 +132,7 @@ print("\n=== 12. auto link and camera export ===")
 a = nuke.createNode("dhPerspGuide", inpanel=False); a.setInput(0, plate)
 b = nuke.createNode("dhPerspGuide", inpanel=False); b.setInput(0, a)
 # BOTH guides have to be placed. An untouched one has its lines crossing at the
-# centre of frame, which is the principal point, so the focal collapses and the
+# center of frame, which is the principal point, so the focal collapses and the
 # export now refuses it. This test used to leave `a` at its default cross.
 a["p1a"].setValue([0., 980.]); a["p1b"].setValue([900., 840.])
 a["p2a"].setValue([0., 240.]); a["p2b"].setValue([900., 420.])
