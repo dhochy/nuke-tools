@@ -70,17 +70,18 @@ check("its label says what it does",
 
 base = tuple(g["vp"].value())
 i = dhPersp.add_line(g)
-check("pressing add line creates a free one, because that is a deliberate act",
-      not g["pin%d" % i].value(), "pin%d %s" % (i, g["pin%d" % i].value()))
-check("and it starts out aimed where the others are, so nothing jumps",
-      math.hypot(g["vp"].value()[0] - base[0],
-                 g["vp"].value()[1] - base[1]) < 0.5,
-      "vp %s" % [round(v) for v in g["vp"].value()])
+check("a new line arrives attached, like every other slot",
+      g["pin%d" % i].value(), "pin%d %s" % (i, g["pin%d" % i].value()))
+check("so adding one cannot change the answer",
+      tuple(g["vp"].value()) == base, "vp %s" % [round(v) for v in g["vp"].value()])
+check("and its point B is hidden until it is freed",
+      not g["add%db" % i].visible(), "")
+check("the switch starts its own row: without +STARTLINE a Nuke checkbox joins "
+      "the row before it, which put this one under the delete button",
+      bool(g["pin%d" % i].getFlag(nuke.STARTLINE)), "")
 
 # ------------------------------------------------------ 82. attached is inert
 print("\n=== 82. an attached line cannot move the answer, however bad it is ===")
-g["pin1"].setValue(True)
-dhPersp.on_knob_changed(g, knob("pin1"))
 check("it carries no weight in the fit", g["_Lw3"].value() == 0.0,
       "weight %.3g" % g["_Lw3"].value())
 check("point B is hidden, because it means nothing for this line",
@@ -115,8 +116,6 @@ print("\n=== 84. unticking puts B on the line that was already drawn ===")
 g2 = new_guide()
 j = dhPersp.add_line(g2)
 clean = tuple(g2["vp"].value())
-g2["pin%d" % j].setValue(True)
-dhPersp.on_knob_changed(g2, knob("pin%d" % j))
 g2["add%db" % j].setValue(list(dhPersp.SLOT_DEFAULT))    # never placed
 g2["pin%d" % j].setValue(False)
 dhPersp.on_knob_changed(g2, knob("pin%d" % j))
@@ -148,6 +147,8 @@ def horizon(gg):
 g3 = new_guide()
 truth = horizon(g3)
 k = dhPersp.add_line(g3)
+g3["pin%d" % k].setValue(False)
+dhPersp.on_knob_changed(g3, knob("pin%d" % k))
 # drag it thirty degrees off the direction the others agree on
 a = g3["add%d" % k].value()
 ang = math.radians(30.0)
@@ -232,6 +233,8 @@ check("and the update after that does nothing at all",
       dhPersp.on_update_ui(gu) == 0, "")
 
 k = dhPersp.add_line(gu)
+gu["pin%d" % k].setValue(False)
+dhPersp.on_knob_changed(gu, knob("pin%d" % k))
 check("with a line added, exactly one switch shows",
       [n for n in range(1, 13) if gu["pin%d" % n].visible()] == [k],
       str([n for n in range(1, 13) if gu["pin%d" % n].visible()]))

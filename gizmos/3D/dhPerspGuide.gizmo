@@ -7,7 +7,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l PerspLines}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 19
+ _build 20
  addUserKnob {4 role l "these lines are" t "Which direction in the scene these two lines follow.
 
 ground: runs away from you into the picture. Curbs, road markings, the seams in paving, the long side of a building going away from you.
@@ -58,7 +58,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {22 del1 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(1, nuke.thisNode())"}
  addUserKnob {6 pin1 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin1 true
  addUserKnob {6 use_add2 l "" -STARTLINE}
  addUserKnob {12 add2 l "line 2  A"}
@@ -68,7 +68,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del2 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(2, nuke.thisNode())"}
  addUserKnob {6 pin2 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin2 true
  addUserKnob {6 use_add3 l "" -STARTLINE}
  addUserKnob {12 add3 l "line 3  A"}
@@ -78,7 +78,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del3 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(3, nuke.thisNode())"}
  addUserKnob {6 pin3 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin3 true
  addUserKnob {6 use_add4 l "" -STARTLINE}
  addUserKnob {12 add4 l "line 4  A"}
@@ -88,7 +88,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del4 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(4, nuke.thisNode())"}
  addUserKnob {6 pin4 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin4 true
  addUserKnob {6 use_add5 l "" -STARTLINE}
  addUserKnob {12 add5 l "line 5  A"}
@@ -98,7 +98,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del5 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(5, nuke.thisNode())"}
  addUserKnob {6 pin5 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin5 true
  addUserKnob {6 use_add6 l "" -STARTLINE}
  addUserKnob {12 add6 l "line 6  A"}
@@ -108,7 +108,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del6 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(6, nuke.thisNode())"}
  addUserKnob {6 pin6 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin6 true
  addUserKnob {6 use_add7 l "" -STARTLINE}
  addUserKnob {12 add7 l "line 7  A"}
@@ -118,7 +118,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del7 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(7, nuke.thisNode())"}
  addUserKnob {6 pin7 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin7 true
  addUserKnob {6 use_add8 l "" -STARTLINE}
  addUserKnob {12 add8 l "line 8  A"}
@@ -128,7 +128,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del8 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(8, nuke.thisNode())"}
  addUserKnob {6 pin8 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin8 true
  addUserKnob {6 use_add9 l "" -STARTLINE}
  addUserKnob {12 add9 l "line 9  A"}
@@ -138,7 +138,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del9 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(9, nuke.thisNode())"}
  addUserKnob {6 pin9 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin9 true
  addUserKnob {6 use_add10 l "" -STARTLINE}
  addUserKnob {12 add10 l "line 10  A"}
@@ -148,7 +148,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del10 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(10, nuke.thisNode())"}
  addUserKnob {6 pin10 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin10 true
  addUserKnob {6 use_add11 l "" -STARTLINE}
  addUserKnob {12 add11 l "line 11  A"}
@@ -158,7 +158,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del11 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(11, nuke.thisNode())"}
  addUserKnob {6 pin11 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin11 true
  addUserKnob {6 use_add12 l "" -STARTLINE}
  addUserKnob {12 add12 l "line 12  A"}
@@ -168,7 +168,7 @@ Off, it has two points and is a line in its own right, and it votes on the vanis
  addUserKnob {22 del12 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(12, nuke.thisNode())"}
  addUserKnob {6 pin12 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
 
-Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on."}
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +STARTLINE}
  pin12 true
  addUserKnob {20 howto l "How to use"}
  addUserKnob {26 howto_h l "" +STARTLINE T "<b>dhPerspGuide marks one direction in the scene</b>"}

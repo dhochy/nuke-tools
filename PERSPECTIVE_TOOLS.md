@@ -199,8 +199,8 @@ switch puts back under your control.
 The default is ticked, and that is also why a guide from any earlier build is
 safe to open. Rebuilding copies knob values by name; an older node has no switch
 to copy, so the new one keeps the default and its added lines do exactly what
-they always did. No conversion, and nothing to get wrong. Lines you add from here
-arrive unticked, because pressing the button is a deliberate act.
+they always did. No conversion, and nothing to get wrong. A line you add arrives
+ticked too, so adding one can never change the answer until you say it should.
 
 ### Lines that barely converge report a direction
 

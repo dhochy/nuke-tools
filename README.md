@@ -46,7 +46,7 @@ Ticked, the line runs out from the vanishing point through a single point. It is
 a prediction: here is where perspective says an edge should lie. It cannot move
 the answer, because it was drawn from it.
 
-Unticked, which is how a new one arrives, it has a point A and a point B and
+Unticked, it has a point A and a point B and
 votes on the vanishing point along with the first two. Trace four or six edges
 and no single mis-traced one can drag the answer around, which matters most on a
 wall square to the camera where the lines barely converge. Trace one badly and it

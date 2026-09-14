@@ -107,6 +107,10 @@ for k, v in zip(("p1a", "p1b", "p2a", "p2b"), A):
     g2[k].setValue(list(v))
 vp0 = tuple(g2["vp"].value())
 i = dhPersp.add_line(g2)
+# it arrives attached, which is the safe half; this section is about the line
+g2["pin%d" % i].setValue(False)
+dhPersp.on_knob_changed(g2, type("K", (), {
+    "name": staticmethod(lambda: "pin%d" % i)})())
 check("a slot was taken", i == 1, str(i))
 a, b = g2["add1"].value(), g2["add1b"].value()
 check("both ends were placed apart", math.hypot(b[0] - a[0], b[1] - a[1]) > 10.0,

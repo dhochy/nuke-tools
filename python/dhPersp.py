@@ -340,7 +340,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 19
+BUILD = 20
 
 NL = chr(10)
 WARN_BLANK = (
@@ -542,7 +542,13 @@ def active_lines(node):
 
 
 def add_line(node=None):
-    """Switch on the next free slot, place its point, and reveal it."""
+    """Switch on the next free slot, place its points, and reveal it.
+
+    It arrives attached to the vanishing point, which is the half that cannot
+    change the answer. Untick that to make it a line in its own right and let it
+    vote. Both points are placed either way, so unticking has something sensible
+    to show.
+    """
     node = node or nuke.thisNode()
     used = active_lines(node)
     free = [i for i in range(1, MAX_LINES + 1) if i not in used]
@@ -559,8 +565,6 @@ def add_line(node=None):
         node["add%d" % i].setValue(list(a))
         if "add%db" % i in node.knobs():
             node["add%db" % i].setValue(list(_toward_vp(node, a)))
-        if "pin%d" % i in node.knobs():
-            node["pin%d" % i].setValue(False)
         node["use_add%d" % i].setValue(True)
     sync_lines(node, refresh=True)
     return i
