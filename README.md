@@ -66,6 +66,10 @@ right. It reaches the horizon and fills in solid where the lines get finer than 
 pixel; `thin out lines too fine to draw` stops that at the cost of the grid
 ending short of the horizon.
 
+**If the floor does not sit on the paving**, use `grid offset`. X and Z slide it
+along the ground; Y raises and lowers the ground itself, for a plate where the
+floor is not at the height your camera height implies.
+
 **Camera height changes nothing in the solve.** Focal length, tilt, pan, roll and
 lens axis are identical at any height, because scale is unobservable in a single
 image. Height only decides how big the world is. Set `cell size` to something you

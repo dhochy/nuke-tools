@@ -101,7 +101,10 @@ def grid_bbox(rows):
     for i, row in enumerate(rows):
         y = len(rows) - 1 - i
         for x, px in enumerate(row):
-            if px[0] > 140 and 60 < px[1] < 200 and px[2] < 90:
+            # orange, whether it is a line or ground covered by lines:
+            # a window fitted to antialiased lines cannot see solid fill
+            if px[0] > 140 and px[1] > 60 and px[1] < px[0] \
+                    and px[2] < px[1] - 40:
                 x0 = min(x0, x); x1 = max(x1, x)
                 y0 = min(y0, y); y1 = max(y1, y)
                 n += 1

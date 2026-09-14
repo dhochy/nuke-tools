@@ -231,6 +231,13 @@ third along the upright edges is optional and solves the lens axis as well.
 
 `these lines are` says which sort a guide is:
 
+`grid offset` moves the floor. X and Z slide it along the ground in the two
+directions the guides marked. Y raises and lowers the ground itself: the camera
+stays at the height on the Scale tab and the ground sits at Y, so raising it
+brings the floor nearer and spreads the cells down the frame, lowering it pushes
+the ground away and bunches them toward the horizon. The horizon does not move
+either way, because the horizon is where the ground goes at infinity.
+
 | | |
 |---|---|
 | **ground** | runs away from you into the picture. Curbs, road markings, the seams in paving, the long side of a building going away. |
@@ -375,6 +382,40 @@ None of those apply to a plane with no edges. The floor now fills the frame side
 to side, starts at the bottom with no near edge, and converges into the horizon
 by construction, because ground above the horizon does not exist and the ray test
 drops it.
+
+### The cells are square by construction
+
+The two ground directions come from the two horizontal vanishing points, and they
+are perpendicular only when the focal length is exactly the one that makes them
+so. That used to be guaranteed, because the focal length was solved from that
+pair. It is not any more: on a facade the focal comes from a vertical pair, so
+nothing forces the ground square and the cells come out as diamonds.
+
+One Gram-Schmidt step fixes it. Whichever direction is better conditioned, meaning
+its vanishing point is nearer the lens axis, is kept, and the other is derived
+perpendicular to it in the same plane. Where the pair really was perpendicular
+this changes nothing at all, because the derived direction is the one that was
+already there. Where it was not, the direction being replaced is the one that was
+least trustworthy anyway. Measured: a case whose vanishing points disagreed by 31
+degrees draws at 90.0000.
+
+### Where the lines close up, coverage replaces nearest-line
+
+The mask asks how far a pixel is from the nearest grid line. That is the right
+question while the lines are further apart than a pixel. Closer than that several
+land inside one pixel, counting only the nearest throws the rest away, and the
+answer flips on and off with whichever line happened to fall nearest the sample.
+That is moire.
+
+Down there the answer is the fraction of the ground the lines cover, which is
+line width over line spacing. It reaches solid smoothly as the spacing closes,
+because the ground really is covered, and it cannot alias because it does not
+depend on where the sample fell. The two are blended on the spacing: nearest-line
+above four widths apart, coverage below two, a ramp between.
+
+The ground coordinate is clamped before `floor()` as well. At the horizon it
+grows without limit and `floor(inf) - inf` is a nan that would paint one bad
+pixel.
 
 ### `thin out lines too fine to draw`, and why it is off
 
