@@ -947,17 +947,39 @@ def stale_nodes():
             nm = n.knobs().get("name")
         except Exception:
             continue
-        if not (is_persplines(n) or "vp1" in n.knobs() and "gridsize" in n.knobs()):
+        if not (is_persplines(n) or is_solve(n)):
             continue
         if node_build(n) < BUILD:
             out.append(n)
     return out
 
 
+# The two vanishing points are the whole reason the node exists, so they are the
+# safest thing to recognise it by: every build has had them, and no other node
+# here has both. Anything more specific risks naming a knob that a later build
+# removes, which is exactly what went wrong last time.
+SOLVE_SIGNATURE = ("vp1", "vp2")
+
+
+def is_solve(node):
+    """A solve node, identified the same way a guide is: by its knobs.
+
+    It used to be identified by having a gridsize knob, which worked right up
+    until the build that removed gridsize. A node that cannot be recognised
+    cannot be brought up to date, so this has to name knobs that are the point
+    of the node rather than knobs that happen to be on it.
+    """
+    try:
+        k = node.knobs()
+    except Exception:
+        return False
+    return all(name in k for name in SOLVE_SIGNATURE) and not is_persplines(node)
+
+
 def _class_of(node):
     if is_persplines(node):
         return CLASS
-    if "gridsize" in node.knobs() and "vp1" in node.knobs():
+    if is_solve(node):
         return "dhPerspSolve"
     return None
 
@@ -1188,3 +1210,31 @@ def set_verdict(node=None):
     k.setValue("Solved: %.4g mm, roll %.2f degrees. That is a believable camera."
                % (focal, roll))
     return True
+
+
+def update_on_load():
+    """Bring any out of date dhPersp node in the opened script up to build.
+
+    Registered on script load in the GUI, so this is the only thing that ever
+    needs to happen and nobody has to know it did. Quiet unless something was
+    actually rebuilt, and it leaves the script's modified flag where it found
+    it: redoing this next time costs nothing, so there is no reason to make
+    someone save a change they did not ask for.
+    """
+    try:
+        stale = stale_nodes()
+        if not stale:
+            return []
+        root = nuke.root()
+        was_modified = root.modified()
+        done = update_nodes(stale, quiet=True)
+        if done and not was_modified:
+            root.setModified(False)
+        if done:
+            nuke.tprint("dhPersp: brought %d node%s up to build %d (%s)"
+                        % (len(done), "" if len(done) == 1 else "s", BUILD,
+                           ", ".join(done)))
+        return done
+    except Exception as e:
+        nuke.tprint("dhPersp: could not update nodes on load: %s" % e)
+        return []

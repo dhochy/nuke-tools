@@ -122,7 +122,7 @@ house photograph identically. Scale has to come from one measured length, and th
 one a compositor actually knows is how high the camera was off the ground.
 
 The Scale tab takes that height. Everything else on the node is then in the same
-unit: cell size, grid size, distance and offset.
+unit: cell size, and the grid offset that slides the floor along the ground.
 
 | knob | meaning |
 |---|---|
@@ -154,19 +154,17 @@ only becomes visible once the camera leaves Nuke and real geometry arrives on
 it, where it decides which world direction is X and which is Z. Check it before
 exporting, not after.
 
-### The grid never moves when you scale it
+### The grid cannot move, because there is nothing left to move it with
 
-Position and size are independent knobs. `translate` is built from the grid
-offset and the distance only, with no size term, and `uniform_scale` is the size,
-which a Card applies about its own centre. Cell count tracks size divided by cell
-size, so tiles stay the same size on the ground as the plane grows.
+There is no size knob and no distance knob. The floor is not an object that has
+to be placed in front of the camera; it is the ground, worked out per pixel, and
+the only things that change it are the solve and the camera height.
 
-Worth knowing if you ever test this yourself: the centre of mass of the drawn
-grid pixels is NOT invariant under a pure scale. A larger ground plane reaches
-further away, and distance compresses toward the horizon, so the centroid rises
-even though nothing moved. The invariants that do hold, and that the suite
-checks, are the card centre's projected pixel and containment of the smaller
-grid inside the larger one.
+This replaced a real and stubborn bug. While the floor was a Card, the card's
+`translate` genuinely did hold still across every size, and the grid still
+appeared to move, because what moves when you scale a rectangle is its edges.
+A test that measured the transform passed every time while the picture kept
+moving. If you ever test this sort of thing yourself, measure the render.
 
 ## The third guide: solving the lens axis instead of assuming it
 
@@ -210,30 +208,47 @@ earns its keep.
 
 Two-guide setups behave exactly as before.
 
-## The floor reads as ground, not as a card
+## The floor is the ground, not a card standing on it
 
-A finite card always has four edges. A ground plane has none: it runs past both
-sides of frame and meets the horizon at infinity. Two things make the card read
-as ground.
+There is no geometry in the floor at all. Every pixel is turned into a camera
+ray, intersected with the plane `y = 0`, and the result is that point's real
+position on the ground in the working unit. The grid is drawn from those two
+numbers.
 
-**It is fitted from the solve.** The card is centred under the camera rather than
-pushed out in front, because it is axis aligned to world X and Z while the camera
-can be at any yaw, so pushing it forward leaves its near corner in shot as a
-pointed edge. Centred, every direction is covered whatever the yaw. Side coverage
-went from 7 and 10 rows touching the frame edges to 152 and 155.
+That is worth the change because a card cannot do this job:
 
-**It fades out approaching the horizon.** This is the part that matters, and it
-is not cosmetic. Covering from the bottom of frame to the horizon with evenly
-spaced cells needs roughly `3 x (horizon height in px) / gap` cells, about 545 at
-a 4 px gap, and Nuke's Card caps at 400 rows. Push for the horizon and the cells
-grow larger than the whole near half of frame, so nothing is drawn where you
-actually judge alignment. Fading the far edge out removes the need to reach it,
-which frees the cell size to serve the near field. Cell size is therefore driven
-by `cells across the near edge`, and the plane reaches as far as the row ceiling
-then allows.
+- **A card has edges.** Scaling it about its centre holds the lines still and
+  walks its near edge toward the camera and its far edge toward the horizon, so
+  the visible floor moves on every size change. No pivot fixes that.
+- **A card cannot reach the horizon.** The horizon is the image of ground at
+  infinity, so a finite plane always stops short and shows a far corner.
+- **A card cannot be fine and far at once.** Covering the bottom of frame to the
+  horizon with even cells needs roughly `3 x (horizon height in px) / gap` of
+  them, about 545 at a 4 px gap, against Nuke's cap of 400 rows. Everything that
+  used to be on the floor tab, the fit, the textured mode, the horizon fade, was
+  a way of living with that number.
 
-`floor style` also offers a textured grid, which has no 400 row ceiling but
-softens where the near ground magnifies the texture. Wireframe is the default.
+None of those apply to a plane with no edges. The floor now fills the frame side
+to side, starts at the bottom with no near edge, and converges into the horizon
+by construction, because ground above the horizon does not exist and the ray test
+drops it.
+
+### Lines fade by their own spacing
+
+An infinite grid has to stop drawing lines it cannot resolve, or the far half of
+frame turns into moire. Each family fades on how far apart it is in pixels, not
+on how high up the frame it is, so the near field stays solid however fine the
+cells are and the far field thins out on its own.
+
+The fade runs on the square root of that spacing. A family of ground lines closes
+up as the square of the distance to the horizon, so a fade that is linear in
+spacing happens over almost no screen distance and reads as a hard edge. On the
+square root it is linear in distance from the horizon, which is the gradual taper
+it should have been.
+
+One consequence worth expecting: a thicker `line width` needs more room between
+lines before they can be drawn cleanly, so it runs out slightly further from the
+horizon. The sides and the bottom do not move.
 
 ## Updating nodes made by an older build
 
@@ -246,9 +261,44 @@ That is not theoretical. The floor card's position used to be tied to its size
 (`* parent.gridsize/2`), so growing the grid moved it. The expression was fixed,
 and nodes created before the fix carried on moving.
 
-**Tools > Perspective > Update dhPersp nodes in this script** rebuilds every
-stale node in place, keeping placed points, knob values and expression links.
-Each node carries a hidden build number so it knows whether it is behind.
+It happens on its own. Each node carries a hidden build number, and opening a
+script rebuilds any node that is behind, in place, keeping placed points, knob
+values and expression links. It is quiet unless something was actually rebuilt,
+and it leaves the script's modified flag where it found it, so a script that was
+clean when you opened it stays clean.
+
+Only in the GUI. A render runs the internals the script was saved with, which is
+the entire reason these are declared `Group` rather than `Gizmo`.
+
+The thing that has to keep working for this to keep working is recognition. A
+node used to be identified as a solve by having a `gridsize` knob, which was fine
+until the build that removed `gridsize`; after that a current node could not be
+recognised, so a later build could never have updated one. They are identified by
+their two vanishing points now, which is what the node is for and so is the last
+thing that would ever be taken away.
+
+## Guides that describe no camera are refused, not solved
+
+Two vanishing points only describe a real camera when the lens axis falls between
+them along the horizon. That is not a rule of thumb, it is what
+`(V1-P).(V2-P) + f^2 = 0` says: with `s1` and `s2` the signed distances from the
+lens axis along the horizon, `f^2 = -s1*s2 - oivi^2`, so the product has to be
+negative and large enough to leave room for a focal length.
+
+The focal length used to come from `sqrt(v1*v2 - oivi^2)` with `v1` and `v2` as
+plain unsigned distances. Those agree exactly wherever a camera exists, and where
+one does not the unsigned form still returns something: the suite has it
+inventing a 56 mm lens for a pair that describes nothing at all, and near the
+boundary it returns a few millimetres, which is how a 55 mm lens reads as 4 mm.
+
+The Camera Solve tab now carries a verdict line. It says the guides do not
+describe a camera, and the usual cause: one guide following the same ground
+direction as the other, or one of its lines not on a receding edge. It also flags
+a solve that works out but lands somewhere improbable, such as outside 8 to 200
+mm or rolled more than a few degrees.
+
+A near one point shot is the common honest case. There, tick **I know the focal
+length** and let the guides set orientation only.
 
 ## An unplaced guide is refused, not solved
 
