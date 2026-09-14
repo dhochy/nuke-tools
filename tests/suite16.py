@@ -98,7 +98,7 @@ check("connecting the solve recognized it as the upright one",
       g3["role"].value() == "vertical", g3["role"].value())
 check("and it went blue without anyone pressing anything",
       rgb(g3)[2] == 1.0 and rgb(g3)[0] == 0.0, str(rgb(g3)))
-check("the two level guides were not recoloured",
+check("the two level guides were not recolored",
       rgb(g1) == (1.0, 0.0, 0.0) and rgb(g2) == (1.0, 0.0, 0.0),
       "%s and %s" % (str(rgb(g1)), str(rgb(g2))))
 

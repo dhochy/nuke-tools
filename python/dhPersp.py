@@ -292,7 +292,7 @@ def unit_name(node):
     return UNITS[max(0, min(unit_index(node), len(UNITS) - 1))][0]
 
 
-def unit_metres(node):
+def unit_meters(node):
     return UNITS[max(0, min(unit_index(node), len(UNITS) - 1))][1]
 
 
@@ -333,7 +333,7 @@ def set_scale_note(node):
         height = float(node["camera_height"].value())
     except Exception:
         return
-    m = unit_metres(node)
+    m = unit_meters(node)
     cell_m, height_m = cell * m, height * m
     k.setValue(
         "1 cell = %.4g %s   (%.4g m / %.4g ft).   Camera %.4g %s above the "
