@@ -6,7 +6,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 12
+ _build 14
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -75,6 +75,10 @@ Group {
  _diag {{"sqrt(width*width + height*height)"}}
  addUserKnob {7 _v3d +INVISIBLE}
  _v3d {{"sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2))"}}
+ addUserKnob {7 _v3use +INVISIBLE}
+ _v3use {{"(use_vertical && _v3d > 0.75*_diag && _v3d < 25*_diag) ? 1 : 0"}}
+ addUserKnob {7 _tri +INVISIBLE}
+ _tri {{"(sqrt(pow(vp1.x-width/2,2) + pow(vp1.y-height/2,2)) < 8*_diag && sqrt(pow(vp2.x-width/2,2) + pow(vp2.y-height/2,2)) < 8*_diag) ? 1 : 0"}}
  addUserKnob {7 _oa1 +INVISIBLE}
  _oa1 {{"vp2.x - vp3.x"}}
  addUserKnob {7 _ob1 +INVISIBLE}
@@ -94,7 +98,7 @@ Group {
  addUserKnob {7 _oy +INVISIBLE}
  _oy {{"abs(_odet) < 1e-9 ? height/2 : (_oa1*_oc2 - _oa2*_oc1)/_odet"}}
  addUserKnob {7 _v3ok +INVISIBLE}
- _v3ok {{"(use_vertical && _v3d > 0.75*_diag && _v3d < 25*_diag && sqrt(pow(_ox-width/2,2) + pow(_oy-height/2,2)) < 0.5*_diag) ? 1 : 0"}}
+ _v3ok {{"(_v3use && _tri && sqrt(pow(_ox-width/2,2) + pow(_oy-height/2,2)) < 0.5*_diag) ? 1 : 0"}}
  addUserKnob {7 _px +INVISIBLE}
  _px {{"_v3ok ? _ox : width/2"}}
  addUserKnob {7 _py +INVISIBLE}
@@ -127,8 +131,34 @@ Group {
  _s1 {{"_hsign*((vp1.x-_vix)*_dx + (vp1.y-_viy)*_dy)/_hlen"}}
  addUserKnob {7 _s2 +INVISIBLE}
  _s2 {{"_hsign*((vp2.x-_vix)*_dx + (vp2.y-_viy)*_dy)/_hlen"}}
+ addUserKnob {7 _fmin +INVISIBLE}
+ _fmin {{"pow(0.02*_diag,2)"}}
+ addUserKnob {7 _d12 +INVISIBLE}
+ _d12 {{"-((vp1.x-_px)*(vp2.x-_px) + (vp1.y-_py)*(vp2.y-_py))"}}
+ addUserKnob {7 _d13 +INVISIBLE}
+ _d13 {{"-((vp1.x-_px)*(vp3.x-_px) + (vp1.y-_py)*(vp3.y-_py))"}}
+ addUserKnob {7 _d23 +INVISIBLE}
+ _d23 {{"-((vp2.x-_px)*(vp3.x-_px) + (vp2.y-_py)*(vp3.y-_py))"}}
+ addUserKnob {7 _rr1 +INVISIBLE}
+ _rr1 {{"sqrt(pow(vp1.x-_px,2) + pow(vp1.y-_py,2))"}}
+ addUserKnob {7 _rr2 +INVISIBLE}
+ _rr2 {{"sqrt(pow(vp2.x-_px,2) + pow(vp2.y-_py,2))"}}
+ addUserKnob {7 _rr3 +INVISIBLE}
+ _rr3 {{"sqrt(pow(vp3.x-_px,2) + pow(vp3.y-_py,2))"}}
+ addUserKnob {7 _q12 +INVISIBLE}
+ _q12 {{"_d12 > _fmin ? max(_rr1,_rr2) : 1e18"}}
+ addUserKnob {7 _q13 +INVISIBLE}
+ _q13 {{"(_v3use && _d13 > _fmin) ? max(_rr1,_rr3) : 1e18"}}
+ addUserKnob {7 _q23 +INVISIBLE}
+ _q23 {{"(_v3use && _d23 > _fmin) ? max(_rr2,_rr3) : 1e18"}}
+ addUserKnob {7 _qb +INVISIBLE}
+ _qb {{"min(_q12, min(_q13, _q23))"}}
+ addUserKnob {7 _pair +INVISIBLE}
+ _pair {{"_qb > 1e17 ? 0 : (_q12 <= _qb ? 12 : (_q13 <= _qb ? 13 : 23))"}}
+ addUserKnob {7 _ill +INVISIBLE}
+ _ill {{"(_qb > 8*_diag && _qb < 1e17) ? 1 : 0"}}
  addUserKnob {7 _fsq +INVISIBLE}
- _fsq {{"-_s1*_s2 - _oivi*_oivi"}}
+ _fsq {{"_pair == 13 ? _d13 : (_pair == 23 ? _d23 : _d12)"}}
  addUserKnob {7 _solveok +INVISIBLE}
  _solveok {{"(use_known_focal || _fsq > pow(0.02*_diag,2)) ? 1 : 0"}}
  addUserKnob {7 _fsolved +INVISIBLE}

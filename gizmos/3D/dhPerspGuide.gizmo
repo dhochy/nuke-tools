@@ -6,7 +6,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l PerspLines}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 12
+ _build 14
  addUserKnob {4 role l "these lines are" t "Which direction in the scene these two lines follow.
 
 ground: runs away from you into the picture. Kerbs, road markings, the seams in paving, the long side of a building going away from you.
@@ -16,7 +16,7 @@ across: runs left to right in front of you. The top of a wall facing the camera,
 vertical: upright. Building corners, door frames, lamp posts.
 
 A solve needs one ground and one across. Saying which is which also fixes which way the exported scene's X and Z axes run, so the camera arrives in Maya or Blender the right way round, and it stops the axis choice flipping in the middle of an animated solve. A vertical guide is optional and lets the solve work out where the lens axis really sits; with three guides connected the upright one is recognised from its own lines." M {ground across vertical}}
- addUserKnob {19 linecolor l color}
+ addUserKnob {19 linecolor l color t "Set on its own from 'these lines are': red for ground, green for across, blue for vertical. The buttons override it, for a plate where one of those disappears into the picture; that does not change the role, only the colour."}
  linecolor {1 0 0 1}
  addUserKnob {22 setR l R -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[1, 0, 0, 1])"}
  addUserKnob {22 setG l G -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[0, 1, 0, 1])"}

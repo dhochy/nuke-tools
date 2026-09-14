@@ -252,7 +252,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 12
+BUILD = 14
 
 NL = chr(10)
 WARN_BLANK = (
@@ -382,6 +382,9 @@ def on_knob_changed(node=None, knob=None):
         return
     name = knob.name()
 
+    if name == "role":
+        apply_role_color(node)
+        return
     if name == "use_vertical":
         set_axis_note(node)
         set_verdict(node)
@@ -1267,6 +1270,9 @@ def pristine_guides(node):
 
 GROUND, ACROSS, VERTICAL = 0, 1, 2
 ROLE_NAMES = ("ground", "across", "vertical")
+ROLE_COLORS = ((1.0, 0.0, 0.0, 1.0),      # ground
+               (0.0, 1.0, 0.0, 1.0),      # across
+               (0.0, 0.3, 1.0, 1.0))      # vertical
 
 
 def guide_role(node):
@@ -1348,6 +1354,7 @@ def split_guides(guides, decide=True):
                     g["role"].setValue("vertical")
                 except Exception:
                     pass
+                apply_role_color(g)
             level = [g for g in level if g not in upright]
             vertical = upright
     return level, vertical
@@ -1455,6 +1462,36 @@ def set_verdict(node=None):
         roll = float(node["cam_rz"].value())
     except Exception:
         return None
+    pair = 0
+    try:
+        pair = int(round(node["_pair"].value()))
+    except Exception:
+        pass
+    from_pair = ""
+    if pair == 13:
+        from_pair = (" Solved from the ground guide against the vertical one: "
+                     "the two level vanishing points are too nearly parallel to "
+                     "use against each other.")
+    elif pair == 23:
+        from_pair = (" Solved from the across guide against the vertical one: "
+                     "the two level vanishing points are too nearly parallel to "
+                     "use against each other.")
+
+    try:
+        ill = node["_ill"].value() > 0.5
+    except Exception:
+        ill = False
+    if ill:
+        from_pair += (
+            "<br><b>Treat this number with suspicion.</b> One of the two "
+            "directions it was solved from barely converges, so its vanishing "
+            "point is a very long way off and the focal length depends mostly "
+            "on which pixel you put the line ends on. It can be tens of "
+            "millimetres out while still looking like a lens. A guide along the "
+            "upright edges fixes it, because vertical against a receding "
+            "direction is well conditioned on exactly these shots. Otherwise "
+            "tick 'I know the focal length'.")
+
     if node.knobs().get("use_known_focal") is not None and \
             node["use_known_focal"].value():
         k.setValue("Focal length is being taken as given, %.4g mm. The guides "
@@ -1466,8 +1503,11 @@ def set_verdict(node=None):
             "the two vanishing points have to sit on opposite sides of the lens "
             "axis along the horizon, and these do not%s. Usually one guide is "
             "following the same direction on the ground as the other, or one of "
-            "its lines is not on a receding edge. The focal length below is a "
-            "floor value, not a solve."
+            "its lines is not on a receding edge. On a shot square to a wall "
+            "there may be no answer from two guides at all, because the wall's "
+            "own horizontals barely converge: add a third guide along the "
+            "upright edges, or tick 'I know the focal length'. The focal length "
+            "below is a floor value, not a solve."
             % ("" if fsq < 0 else " by enough to leave room for a focal length"))
         return False
     warn = []
@@ -1477,7 +1517,8 @@ def set_verdict(node=None):
         warn.append("the camera is rolled %.1f degrees, which is rare unless "
                     "the shot really is tilted" % roll)
     if warn:
-        k.setValue("<b>Solved, but check it: %s.</b>" % ", and ".join(warn))
+        k.setValue("<b>Solved, but check it: %s.</b>%s"
+                   % (", and ".join(warn), from_pair))
         return True
     moving = animated_guides(node)
     if moving and int(round(node["axis_from"].getValue())) == 0:
@@ -1493,11 +1534,12 @@ def set_verdict(node=None):
         return True
     if moving:
         k.setValue("Solved: %.4g mm, roll %.2f degrees, animated from %d guide%s. "
-                   "The camera follows them frame by frame."
-                   % (focal, roll, len(moving), "" if len(moving) == 1 else "s"))
+                   "The camera follows them frame by frame.%s"
+                   % (focal, roll, len(moving), "" if len(moving) == 1 else "s",
+                      from_pair))
         return True
-    k.setValue("Solved: %.4g mm, roll %.2f degrees. That is a believable camera."
-               % (focal, roll))
+    k.setValue("Solved: %.4g mm, roll %.2f degrees. That is a believable "
+               "camera.%s" % (focal, roll, from_pair))
     return True
 
 
@@ -1549,3 +1591,23 @@ def say(node, text):
     except Exception:
         pass
     return text
+
+
+def apply_role_color(node=None):
+    """Colour a guide by what it is: red ground, green across, blue vertical.
+
+    The point is the viewer, not the panel. Three guides on a plate look the same
+    until they are coloured, and a colour chosen by hand means whatever you last
+    remembered it to mean; tied to the role it means one thing, so a guide set to
+    the wrong sort shows up without opening it.
+    """
+    node = node or nuke.thisNode()
+    k = node.knobs().get("linecolor")
+    if k is None:
+        return None
+    rgba = ROLE_COLORS[max(0, min(guide_role(node), len(ROLE_COLORS) - 1))]
+    try:
+        k.setValue(list(rgba))
+    except Exception:
+        return None
+    return rgba
