@@ -180,24 +180,53 @@ def _extra_canonical(w, h, slot):
     return (w * frac, h * 0.15)
 
 
-def _toward_vp(node, a, reach=0.35):
+def _ray_room(a, u, w, h, margin):
+    """How far from a you can travel along u before leaving the frame."""
+    best = None
+    for i, lo, hi in ((0, margin, w - margin), (1, margin, h - margin)):
+        if abs(u[i]) < 1e-9:
+            continue
+        t = ((hi if u[i] > 0 else lo) - a[i]) / u[i]
+        best = t if best is None else min(best, t)
+    if best is None:
+        return max(w, h)
+    return max(best, 0.0)
+
+
+def _toward_vp(node, a, reach=0.3):
     """A second point on the line from the vanishing point out through A.
 
     A new line starts out aimed where the others are aimed, which is both a
     sensible default and a visible statement of what the line is for. Dragging
     either end off that ray is the measurement.
+
+    Where along the ray is decided by the frame, not by a fixed distance. A fixed
+    distance puts B outside the picture whenever A is near an edge or the
+    vanishing point is off to one side, and a handle you cannot see is worse than
+    one that was never placed. Either end of the line describes the same line, so
+    whichever direction has more room in frame wins.
     """
+    w, h = node_format(node)
+    margin = 0.04 * min(w, h)
     try:
         vx, vy = node["vp"].value()
     except Exception:
-        return (a[0], a[1] - 1.0)
-    w, h = node_format(node)
+        vx, vy = w / 2.0, h / 2.0
     dx, dy = a[0] - vx, a[1] - vy
     n = sqrt(dx * dx + dy * dy)
-    if n < 1e-6:
-        return (a[0], a[1] - max(h * reach, 1.0))
-    step = reach * sqrt(w * w + h * h)
-    return (a[0] + dx / n * step, a[1] + dy / n * step)
+    if n < 1e-6:                       # A is on the vanishing point: any line will do
+        dx, dy, n = 1.0, 0.0, 1.0
+    u = (dx / n, dy / n)
+    want = reach * sqrt(w * w + h * h)
+    fwd = _ray_room(a, u, w, h, margin)
+    back = _ray_room(a, (-u[0], -u[1]), w, h, margin)
+    if fwd >= back:
+        step, d = min(want, fwd), u
+    else:
+        step, d = min(want, back), (-u[0], -u[1])
+    if step < 1.0:                     # A is jammed in a corner
+        step, d = min(want, max(w, h) * 0.2), d
+    return (a[0] + d[0] * step, a[1] + d[1] * step)
 
 
 def is_pristine(node, tol=0.5):
@@ -274,6 +303,7 @@ def on_create(node=None):
             sync_vp_handle(node)
     sync_lines(node)
     migrate_extra_lines(node)
+    tidy_extra_lines(node)
 
 
 ANCHORED = (("p1a", "p1b"), ("p2a", "p2b"))
@@ -1282,6 +1312,7 @@ def update_nodes(nodes=None, quiet=False):
         n = nuke.toNode(nm)
         if n is not None and is_persplines(n):
             migrate_extra_lines(n)
+            tidy_extra_lines(n)
     if not quiet:
         msg = "updated %d node%s to build %d: %s" % (
             len(done), "" if len(done) == 1 else "s", BUILD, ", ".join(done))
@@ -1686,3 +1717,39 @@ def migrate_extra_lines(node=None):
             k.setValue(list(target))
             done.append(i)
     return done
+
+
+def tidy_extra_lines(node=None):
+    """Bring any added line's point B back inside the frame, along its own line.
+
+    A handle outside the picture cannot be seen or dragged. Moving it along the
+    line it is already on leaves the line, and therefore the solve, exactly where
+    it was: only the grab point changes. Point A is left alone, because if it is
+    outside the frame that is where somebody put it.
+    """
+    node = node or nuke.thisNode()
+    if "add1b" not in node.knobs():
+        return []
+    w, h = node_format(node)
+    margin = 0.04 * min(w, h)
+    moved = []
+    with _NoUndo():
+        for i in active_lines(node):
+            a = node["add%d" % i].value()
+            b = node["add%db" % i].value()
+            if margin <= b[0] <= w - margin and margin <= b[1] <= h - margin:
+                continue
+            if not (0 <= a[0] <= w and 0 <= a[1] <= h):
+                continue                 # A is out too; leave the pair alone
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            n = sqrt(dx * dx + dy * dy)
+            if n < 1e-6:
+                continue
+            u = (dx / n, dy / n)
+            room = _ray_room(a, u, w, h, margin)
+            if room < 1.0:
+                continue
+            step = min(n, room)
+            node["add%db" % i].setValue([a[0] + u[0] * step, a[1] + u[1] * step])
+            moved.append(i)
+    return moved

@@ -281,6 +281,66 @@ check("and point A is declared at the same place, so an unused slot is not a lin
                  fresh["add1"].value()[1] - dhPersp.SLOT_DEFAULT[1]) < 1e-6,
       str(fresh["add1"].value()))
 
+# --------------------------------- 80. the handle has to be reachable
+print("\n=== 80. point B is placed where you can actually get at it ===")
+off = 0
+short = 0
+for vpos in ((-1500.0, 600.0), (3700.0, 567.0), (-120000.0, 500.0),
+             (PX, 100000.0), (300.0, 400.0)):
+    gp = new_guide()
+    gp["p1a"].setValue([W * 0.2, H * 0.2]); gp["p1b"].setValue(list(vpos))
+    gp["p2a"].setValue([W * 0.8, H * 0.3]); gp["p2b"].setValue(list(vpos))
+    for k in range(1, 7):
+        dhPersp.add_line(gp)
+        pa = gp["add%d" % k].value()
+        pb = gp["add%db" % k].value()
+        if not (0 <= pb[0] <= W and 0 <= pb[1] <= H):
+            off += 1
+        if math.hypot(pb[0] - pa[0], pb[1] - pa[1]) < 20.0:
+            short += 1
+    nuke.delete(gp)
+check("every added line puts B inside the frame, wherever the vanishing point is",
+      off == 0, "%d off canvas out of 30" % off)
+check("and long enough to be a line rather than a dot", short == 0,
+      "%d too short" % short)
+
+# A B that is already off the picture is pulled back along its own line. Sliding
+# a point along the line it defines does not change the line, so this must leave
+# the answer untouched, which is the thing to check about a function that edits
+# guide points on load.
+gt = new_guide()
+for k, v0 in zip(("p1a", "p1b", "p2a", "p2b"), A):
+    gt[k].setValue(list(v0))
+gt["add1"].setValue([300.0, 400.0])
+gt["add1b"].setValue([9000.0, 2600.0])            # miles off the picture
+gt["use_add1"].setValue(True)
+was = tuple(gt["vp"].value())
+moved = dhPersp.tidy_extra_lines(gt)
+pb = gt["add1b"].value()
+check("an unreachable B is brought back into frame",
+      moved == [1] and 0 <= pb[0] <= W and 0 <= pb[1] <= H,
+      "B now %s" % [round(v) for v in pb])
+cross = abs((9000.0 - 300.0) * (pb[1] - 400.0) - (2600.0 - 400.0) * (pb[0] - 300.0))
+span = math.hypot(9000.0 - 300.0, 2600.0 - 400.0) * \
+    max(math.hypot(pb[0] - 300.0, pb[1] - 400.0), 1e-9)
+check("it stayed on the same line", cross / span < 1e-9,
+      "off the line by %.3g" % (cross / span))
+now = tuple(gt["vp"].value())
+# The line got 99.8% shorter, and every normalised sum behind the fit moved by
+# about three parts in 1e16, which is the last bit of a double. Comparing two
+# numbers near a million with == asks for more than that. Direction is also the
+# honest measure here: this fit is in its far form, where the point stands in for
+# a direction and its distance is arbitrary.
+was_dir = math.degrees(math.atan2(was[1] - PY, was[0] - PX))
+now_dir = math.degrees(math.atan2(now[1] - PY, now[0] - PX))
+check("so the answer did not move", abs(now_dir - was_dir) < 1e-9,
+      "direction %.9f against %.9f deg" % (now_dir, was_dir))
+check("and the line it came from really did change length, so that was not a "
+      "no-op", abs(gt["_Ln3"].value() - 80530000.0) > 1e6,
+      "%.0f against 80530000" % gt["_Ln3"].value())
+check("a B that is already in frame is left alone",
+      dhPersp.tidy_extra_lines(gt) == [], "")
+
 print("\n" + "=" * 88)
 npass = sum(1 for _, ok, _ in RESULTS if ok)
 print("part 18: %d of %d passed" % (npass, len(RESULTS)))
