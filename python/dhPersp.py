@@ -89,10 +89,15 @@ SIGNATURE = ("vp", "p1a", "p1b", "p2a", "p2b")
 # fixed set of knobs, so the slots always exist; unused ones are hidden, which
 # also removes their handle from the viewer.
 MAX_LINES = 12
+# What an added line's two points are declared as in the gizmo. An added line
+# whose B is still sitting exactly here has never been placed, which is what a
+# node from before build 16 loads as. Kept in step with the gizmo by a test.
+SLOT_DEFAULT = (1024.0, 400.0)
 
 
 def _slot_knobs(node, i):
-    return node.knobs().get("add%d" % i), node.knobs().get("del%d" % i)
+    return (node.knobs().get("add%d" % i), node.knobs().get("add%db" % i),
+            node.knobs().get("del%d" % i))
 
 
 def _refresh_panel(node):
@@ -175,6 +180,26 @@ def _extra_canonical(w, h, slot):
     return (w * frac, h * 0.15)
 
 
+def _toward_vp(node, a, reach=0.35):
+    """A second point on the line from the vanishing point out through A.
+
+    A new line starts out aimed where the others are aimed, which is both a
+    sensible default and a visible statement of what the line is for. Dragging
+    either end off that ray is the measurement.
+    """
+    try:
+        vx, vy = node["vp"].value()
+    except Exception:
+        return (a[0], a[1] - 1.0)
+    w, h = node_format(node)
+    dx, dy = a[0] - vx, a[1] - vy
+    n = sqrt(dx * dx + dy * dy)
+    if n < 1e-6:
+        return (a[0], a[1] - max(h * reach, 1.0))
+    step = reach * sqrt(w * w + h * h)
+    return (a[0] + dx / n * step, a[1] + dy / n * step)
+
+
 def is_pristine(node, tol=0.5):
     """True only if every point still sits exactly where the last fit put it.
 
@@ -213,7 +238,10 @@ def fit_to_format(node=None, quiet=True):
         for name, (cx, cy) in _canonical(w, h).items():
             node[name].setValue([cx, cy])
         for slot, i in enumerate(active_lines(node)):
-            node["add%d" % i].setValue(list(_extra_canonical(w, h, slot)))
+            a = _extra_canonical(w, h, slot)
+            node["add%d" % i].setValue(list(a))
+            if "add%db" % i in node.knobs():
+                node["add%db" % i].setValue(list(_toward_vp(node, a)))
         if "_fitted" in node.knobs():
             node["_fitted"].setValue(True)
         # remember what we fitted to, so a later format change can tell whether
@@ -245,6 +273,7 @@ def on_create(node=None):
         with _Busy(node):
             sync_vp_handle(node)
     sync_lines(node)
+    migrate_extra_lines(node)
 
 
 ANCHORED = (("p1a", "p1b"), ("p2a", "p2b"))
@@ -252,7 +281,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 15
+BUILD = 16
 
 NL = chr(10)
 WARN_BLANK = (
@@ -462,7 +491,10 @@ def add_line(node=None):
     w, h = node_format(node)
     with _UndoGroup("%s: add line" % CLASS):
         # same placement the fit uses, so adding a line keeps the node pristine
-        node["add%d" % i].setValue(list(_extra_canonical(w, h, len(used))))
+        a = _extra_canonical(w, h, len(used))
+        node["add%d" % i].setValue(list(a))
+        if "add%db" % i in node.knobs():
+            node["add%db" % i].setValue(list(_toward_vp(node, a)))
         node["use_add%d" % i].setValue(True)
     sync_lines(node, refresh=True)
     return i
@@ -1246,6 +1278,10 @@ def update_nodes(nodes=None, quiet=False):
 
     for n in nuke.allNodes():
         n.setSelected(False)
+    for nm in done:
+        n = nuke.toNode(nm)
+        if n is not None and is_persplines(n):
+            migrate_extra_lines(n)
     if not quiet:
         msg = "updated %d node%s to build %d: %s" % (
             len(done), "" if len(done) == 1 else "s", BUILD, ", ".join(done))
@@ -1611,3 +1647,42 @@ def apply_role_color(node=None):
     except Exception:
         return None
     return rgba
+
+
+def migrate_extra_lines(node=None):
+    """Give an older node's added lines the point B they never had.
+
+    Before build 16 an added line was one point and was drawn out from the
+    vanishing point through it. Rebuilt onto the current gizmo, its point B lands
+    on the default, on top of A, and a line with no direction weighs nothing and
+    draws nothing. Safe, but the line the user drew would vanish.
+
+    Putting B on the ray from the vanishing point through A gives back exactly
+    the line that was on screen, as a two point line that can now be moved. The
+    vanishing point used is the one fitted from the lines that do have length, so
+    the slot being converted is not voting on its own position.
+    """
+    node = node or nuke.thisNode()
+    if "add1b" not in node.knobs():
+        return []
+    done = []
+    with _NoUndo():
+        for i in active_lines(node):
+            k = node["add%db" % i]
+            b = k.value()
+            if hypot(b[0] - SLOT_DEFAULT[0], b[1] - SLOT_DEFAULT[1]) > 1e-6:
+                continue                      # somebody placed it
+            a = node["add%d" % i].value()
+            # The ray has to come from the other lines. Left switched on, this
+            # broken line votes on where it should be pointed, and it points a
+            # long way off, so it would convert itself onto its own mistake.
+            use = node["use_add%d" % i]
+            was = use.value()
+            use.setValue(False)
+            try:
+                target = _toward_vp(node, a)
+            finally:
+                use.setValue(was)
+            k.setValue(list(target))
+            done.append(i)
+    return done

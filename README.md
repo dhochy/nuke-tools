@@ -39,6 +39,14 @@ Both carry their own instructions: the `?` button says what the node is, and the
 
 ### Things worth knowing
 
+**More lines make a better guide.** `add line` gives you another line with its
+own point A and point B, and every line on the node feeds the vanishing point,
+not just the first two. Two lines still give exactly their intersection, so
+nothing about an existing guide changes; four or six give a point that no single
+mis-traced edge can drag around. That matters most on a wall square to the
+camera, where the lines barely converge and a pixel of placement moves the
+vanishing point by thousands.
+
 **The lines do not have to be on the ground.** Every level edge running the same
 way shares a vanishing point whatever height it is at, so a roofline works as
 well as a curb and is usually easier to trace. Longer lines are better than

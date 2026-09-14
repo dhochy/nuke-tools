@@ -115,8 +115,16 @@ print("\n=== 10. parallel guide lines ===")
 g["p1a"].setValue([500., 0.]); g["p1b"].setValue([500., 1080.])
 g["p2a"].setValue([1400., 0.]); g["p2b"].setValue([1400., 1080.])
 v = g["vp"].value()
-check("parallel verticals give a finite-safe vanishing point",
-      abs(v[0] - 500.) < 1 and abs(v[1]) > 1e6 and v[1] == v[1], "vp (%.0f, %.3g)" % (v[0], v[1]))
+# Two exactly parallel lines meet at infinity, and the answer is a DIRECTION.
+# The old code returned x on one of the two lines, which was an artifact of
+# dividing by a determinant of zero; the fit names the direction instead and
+# puts the point a long way along it, which is the same line and is stable.
+check("parallel verticals give a finite vanishing point, not a nan",
+      v[0] == v[0] and v[1] == v[1], "vp (%.0f, %.3g)" % (v[0], v[1]))
+check("it is a very long way off, because that is where they meet",
+      abs(v[1] - 540.) > 1e5, "%.3g px up" % (v[1] - 540.))
+check("and it is straight up, which is the direction the lines run",
+      abs(v[0] - 960.) < 1.0, "x %.1f against the center 960" % v[0])
 
 # ------------------------------------------------------------ independence
 print("\n=== 11. two guides are independent ===")

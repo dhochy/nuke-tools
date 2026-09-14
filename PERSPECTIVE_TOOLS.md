@@ -166,6 +166,43 @@ appeared to move, because what moves when you scale a rectangle is its edges.
 A test that measured the transform passed every time while the picture kept
 moving. If you ever test this sort of thing yourself, measure the render.
 
+## Every line feeds the vanishing point
+
+A guide's two base lines and any line added with `add line` are fitted together.
+The fit minimizes the perpendicular distance from the point to each line, with
+each line normalized first so a long edge does not outvote a short one: line
+length is how much of the edge was visible, not how much it deserves to be
+trusted.
+
+Two lines give exactly their intersection, to the last decimal, because a least
+squares fit through two lines passes through both. So no existing guide moved.
+
+A line whose two points sit on top of each other has no direction, weighs nothing
+and draws nothing. That is what an unplaced slot looks like, and it is why a guide
+from before build 16 is safe to load: its added lines carry a point A and no point
+B, and they are converted on load onto the line they used to draw.
+
+### Lines that barely converge report a direction
+
+Nearly parallel lines meet a very long way off, and out there the meeting point is
+not a real quantity: it swings by a hundred thousand pixels when a line end moves
+one, and it can land on the wrong side entirely. Their common direction is one of
+the best determined things in the picture, because it is exactly what makes them
+nearly parallel.
+
+So the fit is rejected and replaced by that direction, placed very far along it,
+when any of three things is true: the system is singular, the point lands beyond
+a hundred frame diagonals, or the fit's angular error is over about half a degree.
+
+The third is the one that matters and it took three attempts to find. The
+determinant does not separate a good far fit from a failed near one: measured on a
+facade, a fit that worked and a fit that put thirty degrees of roll on the camera
+had determinants within 10% of each other. Nor does the raw residual, because a
+point far away turns a hair of angular error into tens of pixels, so a good fit at
+forty diagonals has a larger residual than a failed one sitting in the middle of
+frame. The residual divided by how far away the fit landed is the angular error of
+the fit, and that separated them by a factor of a hundred.
+
 ## Two guides, or three
 
 Each guide marks one vanishing point. Two of them, following directions at right
