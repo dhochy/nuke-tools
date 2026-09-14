@@ -6,7 +6,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l PerspLines}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 16
+ _build 17
  addUserKnob {4 role l "these lines are" t "Which direction in the scene these two lines follow.
 
 ground: runs away from you into the picture. Curbs, road markings, the seams in paving, the long side of a building going away from you.
@@ -47,79 +47,127 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {12 vp_drag l "drag vanishing point" t "Drag this to aim both lines at a new vanishing point. Each line swings about its point A, which stays put, so put those on features you trust."}
  addUserKnob {26 d3 l "" +STARTLINE}
  addUserKnob {26 l3 l "additional lines"}
- addUserKnob {22 addline l "add line" t "Add another line along the same direction. It gets its own point A and point B, and it feeds the vanishing point along with the first two, so more lines means a better fit. Up to 12." -STARTLINE T "import dhPersp\ndhPersp.add_line(nuke.thisNode())"}
+ addUserKnob {22 addline l "add line" t "Add another line along the same direction, with its own point A and point B, feeding the vanishing point along with the first two: more lines traced well means a better fit. Tick 'follows the vanishing point' on it instead and it goes back to being a single point drawn out from the vanishing point, which cannot move the answer either way. Up to 12." -STARTLINE T "import dhPersp\ndhPersp.add_line(nuke.thisNode())"}
  addUserKnob {22 clearlines l "clear all" -STARTLINE T "import dhPersp\ndhPersp.clear_lines(nuke.thisNode())"}
  addUserKnob {6 use_add1 l "" -STARTLINE}
  addUserKnob {12 add1 l "line 1  A"}
  add1 {1024 400}
  addUserKnob {12 add1b l B -STARTLINE}
  add1b {1024 400}
+ addUserKnob {6 pin1 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin1 true
  addUserKnob {22 del1 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(1, nuke.thisNode())"}
  addUserKnob {6 use_add2 l "" -STARTLINE}
  addUserKnob {12 add2 l "line 2  A"}
  add2 {1024 400}
  addUserKnob {12 add2b l B -STARTLINE}
  add2b {1024 400}
+ addUserKnob {6 pin2 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin2 true
  addUserKnob {22 del2 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(2, nuke.thisNode())"}
  addUserKnob {6 use_add3 l "" -STARTLINE}
  addUserKnob {12 add3 l "line 3  A"}
  add3 {1024 400}
  addUserKnob {12 add3b l B -STARTLINE}
  add3b {1024 400}
+ addUserKnob {6 pin3 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin3 true
  addUserKnob {22 del3 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(3, nuke.thisNode())"}
  addUserKnob {6 use_add4 l "" -STARTLINE}
  addUserKnob {12 add4 l "line 4  A"}
  add4 {1024 400}
  addUserKnob {12 add4b l B -STARTLINE}
  add4b {1024 400}
+ addUserKnob {6 pin4 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin4 true
  addUserKnob {22 del4 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(4, nuke.thisNode())"}
  addUserKnob {6 use_add5 l "" -STARTLINE}
  addUserKnob {12 add5 l "line 5  A"}
  add5 {1024 400}
  addUserKnob {12 add5b l B -STARTLINE}
  add5b {1024 400}
+ addUserKnob {6 pin5 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin5 true
  addUserKnob {22 del5 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(5, nuke.thisNode())"}
  addUserKnob {6 use_add6 l "" -STARTLINE}
  addUserKnob {12 add6 l "line 6  A"}
  add6 {1024 400}
  addUserKnob {12 add6b l B -STARTLINE}
  add6b {1024 400}
+ addUserKnob {6 pin6 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin6 true
  addUserKnob {22 del6 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(6, nuke.thisNode())"}
  addUserKnob {6 use_add7 l "" -STARTLINE}
  addUserKnob {12 add7 l "line 7  A"}
  add7 {1024 400}
  addUserKnob {12 add7b l B -STARTLINE}
  add7b {1024 400}
+ addUserKnob {6 pin7 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin7 true
  addUserKnob {22 del7 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(7, nuke.thisNode())"}
  addUserKnob {6 use_add8 l "" -STARTLINE}
  addUserKnob {12 add8 l "line 8  A"}
  add8 {1024 400}
  addUserKnob {12 add8b l B -STARTLINE}
  add8b {1024 400}
+ addUserKnob {6 pin8 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin8 true
  addUserKnob {22 del8 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(8, nuke.thisNode())"}
  addUserKnob {6 use_add9 l "" -STARTLINE}
  addUserKnob {12 add9 l "line 9  A"}
  add9 {1024 400}
  addUserKnob {12 add9b l B -STARTLINE}
  add9b {1024 400}
+ addUserKnob {6 pin9 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin9 true
  addUserKnob {22 del9 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(9, nuke.thisNode())"}
  addUserKnob {6 use_add10 l "" -STARTLINE}
  addUserKnob {12 add10 l "line 10  A"}
  add10 {1024 400}
  addUserKnob {12 add10b l B -STARTLINE}
  add10b {1024 400}
+ addUserKnob {6 pin10 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin10 true
  addUserKnob {22 del10 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(10, nuke.thisNode())"}
  addUserKnob {6 use_add11 l "" -STARTLINE}
  addUserKnob {12 add11 l "line 11  A"}
  add11 {1024 400}
  addUserKnob {12 add11b l B -STARTLINE}
  add11b {1024 400}
+ addUserKnob {6 pin11 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin11 true
  addUserKnob {22 del11 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(11, nuke.thisNode())"}
  addUserKnob {6 use_add12 l "" -STARTLINE}
  addUserKnob {12 add12 l "line 12  A"}
  add12 {1024 400}
  addUserKnob {12 add12b l B -STARTLINE}
  add12b {1024 400}
+ addUserKnob {6 pin12 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.
+
+Off, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." -STARTLINE}
+ pin12 true
  addUserKnob {22 del12 l delete -STARTLINE T "import dhPersp\ndhPersp.del_line(12, nuke.thisNode())"}
  addUserKnob {20 howto l "How to use"}
  addUserKnob {26 howto_h l "" +STARTLINE T "<b>dhPerspGuide marks one direction in the scene</b>"}
@@ -155,7 +203,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln3 +INVISIBLE}
  _Ln3 {{"_La3*_La3 + _Lb3*_Lb3"}}
  addUserKnob {7 _Lw3 +INVISIBLE}
- _Lw3 {{"(use_add1 && _Ln3 > 1e-9) ? 1/_Ln3 : 0"}}
+ _Lw3 {{"(use_add1 && !pin1 && _Ln3 > 1e-9) ? 1/_Ln3 : 0"}}
  addUserKnob {7 _La4 +INVISIBLE}
  _La4 {{"add2.y - add2b.y"}}
  addUserKnob {7 _Lb4 +INVISIBLE}
@@ -165,7 +213,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln4 +INVISIBLE}
  _Ln4 {{"_La4*_La4 + _Lb4*_Lb4"}}
  addUserKnob {7 _Lw4 +INVISIBLE}
- _Lw4 {{"(use_add2 && _Ln4 > 1e-9) ? 1/_Ln4 : 0"}}
+ _Lw4 {{"(use_add2 && !pin2 && _Ln4 > 1e-9) ? 1/_Ln4 : 0"}}
  addUserKnob {7 _La5 +INVISIBLE}
  _La5 {{"add3.y - add3b.y"}}
  addUserKnob {7 _Lb5 +INVISIBLE}
@@ -175,7 +223,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln5 +INVISIBLE}
  _Ln5 {{"_La5*_La5 + _Lb5*_Lb5"}}
  addUserKnob {7 _Lw5 +INVISIBLE}
- _Lw5 {{"(use_add3 && _Ln5 > 1e-9) ? 1/_Ln5 : 0"}}
+ _Lw5 {{"(use_add3 && !pin3 && _Ln5 > 1e-9) ? 1/_Ln5 : 0"}}
  addUserKnob {7 _La6 +INVISIBLE}
  _La6 {{"add4.y - add4b.y"}}
  addUserKnob {7 _Lb6 +INVISIBLE}
@@ -185,7 +233,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln6 +INVISIBLE}
  _Ln6 {{"_La6*_La6 + _Lb6*_Lb6"}}
  addUserKnob {7 _Lw6 +INVISIBLE}
- _Lw6 {{"(use_add4 && _Ln6 > 1e-9) ? 1/_Ln6 : 0"}}
+ _Lw6 {{"(use_add4 && !pin4 && _Ln6 > 1e-9) ? 1/_Ln6 : 0"}}
  addUserKnob {7 _La7 +INVISIBLE}
  _La7 {{"add5.y - add5b.y"}}
  addUserKnob {7 _Lb7 +INVISIBLE}
@@ -195,7 +243,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln7 +INVISIBLE}
  _Ln7 {{"_La7*_La7 + _Lb7*_Lb7"}}
  addUserKnob {7 _Lw7 +INVISIBLE}
- _Lw7 {{"(use_add5 && _Ln7 > 1e-9) ? 1/_Ln7 : 0"}}
+ _Lw7 {{"(use_add5 && !pin5 && _Ln7 > 1e-9) ? 1/_Ln7 : 0"}}
  addUserKnob {7 _La8 +INVISIBLE}
  _La8 {{"add6.y - add6b.y"}}
  addUserKnob {7 _Lb8 +INVISIBLE}
@@ -205,7 +253,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln8 +INVISIBLE}
  _Ln8 {{"_La8*_La8 + _Lb8*_Lb8"}}
  addUserKnob {7 _Lw8 +INVISIBLE}
- _Lw8 {{"(use_add6 && _Ln8 > 1e-9) ? 1/_Ln8 : 0"}}
+ _Lw8 {{"(use_add6 && !pin6 && _Ln8 > 1e-9) ? 1/_Ln8 : 0"}}
  addUserKnob {7 _La9 +INVISIBLE}
  _La9 {{"add7.y - add7b.y"}}
  addUserKnob {7 _Lb9 +INVISIBLE}
@@ -215,7 +263,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln9 +INVISIBLE}
  _Ln9 {{"_La9*_La9 + _Lb9*_Lb9"}}
  addUserKnob {7 _Lw9 +INVISIBLE}
- _Lw9 {{"(use_add7 && _Ln9 > 1e-9) ? 1/_Ln9 : 0"}}
+ _Lw9 {{"(use_add7 && !pin7 && _Ln9 > 1e-9) ? 1/_Ln9 : 0"}}
  addUserKnob {7 _La10 +INVISIBLE}
  _La10 {{"add8.y - add8b.y"}}
  addUserKnob {7 _Lb10 +INVISIBLE}
@@ -225,7 +273,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln10 +INVISIBLE}
  _Ln10 {{"_La10*_La10 + _Lb10*_Lb10"}}
  addUserKnob {7 _Lw10 +INVISIBLE}
- _Lw10 {{"(use_add8 && _Ln10 > 1e-9) ? 1/_Ln10 : 0"}}
+ _Lw10 {{"(use_add8 && !pin8 && _Ln10 > 1e-9) ? 1/_Ln10 : 0"}}
  addUserKnob {7 _La11 +INVISIBLE}
  _La11 {{"add9.y - add9b.y"}}
  addUserKnob {7 _Lb11 +INVISIBLE}
@@ -235,7 +283,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln11 +INVISIBLE}
  _Ln11 {{"_La11*_La11 + _Lb11*_Lb11"}}
  addUserKnob {7 _Lw11 +INVISIBLE}
- _Lw11 {{"(use_add9 && _Ln11 > 1e-9) ? 1/_Ln11 : 0"}}
+ _Lw11 {{"(use_add9 && !pin9 && _Ln11 > 1e-9) ? 1/_Ln11 : 0"}}
  addUserKnob {7 _La12 +INVISIBLE}
  _La12 {{"add10.y - add10b.y"}}
  addUserKnob {7 _Lb12 +INVISIBLE}
@@ -245,7 +293,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln12 +INVISIBLE}
  _Ln12 {{"_La12*_La12 + _Lb12*_Lb12"}}
  addUserKnob {7 _Lw12 +INVISIBLE}
- _Lw12 {{"(use_add10 && _Ln12 > 1e-9) ? 1/_Ln12 : 0"}}
+ _Lw12 {{"(use_add10 && !pin10 && _Ln12 > 1e-9) ? 1/_Ln12 : 0"}}
  addUserKnob {7 _La13 +INVISIBLE}
  _La13 {{"add11.y - add11b.y"}}
  addUserKnob {7 _Lb13 +INVISIBLE}
@@ -255,7 +303,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln13 +INVISIBLE}
  _Ln13 {{"_La13*_La13 + _Lb13*_Lb13"}}
  addUserKnob {7 _Lw13 +INVISIBLE}
- _Lw13 {{"(use_add11 && _Ln13 > 1e-9) ? 1/_Ln13 : 0"}}
+ _Lw13 {{"(use_add11 && !pin11 && _Ln13 > 1e-9) ? 1/_Ln13 : 0"}}
  addUserKnob {7 _La14 +INVISIBLE}
  _La14 {{"add12.y - add12b.y"}}
  addUserKnob {7 _Lb14 +INVISIBLE}
@@ -265,7 +313,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
  addUserKnob {7 _Ln14 +INVISIBLE}
  _Ln14 {{"_La14*_La14 + _Lb14*_Lb14"}}
  addUserKnob {7 _Lw14 +INVISIBLE}
- _Lw14 {{"(use_add12 && _Ln14 > 1e-9) ? 1/_Ln14 : 0"}}
+ _Lw14 {{"(use_add12 && !pin12 && _Ln14 > 1e-9) ? 1/_Ln14 : 0"}}
  addUserKnob {7 _Saa +INVISIBLE}
  _Saa {{"_Lw1*_La1*_La1 + _Lw2*_La2*_La2 + _Lw3*_La3*_La3 + _Lw4*_La4*_La4 + _Lw5*_La5*_La5 + _Lw6*_La6*_La6 + _Lw7*_La7*_La7 + _Lw8*_La8*_La8 + _Lw9*_La9*_La9 + _Lw10*_La10*_La10 + _Lw11*_La11*_La11 + _Lw12*_La12*_La12 + _Lw13*_La13*_La13 + _Lw14*_La14*_La14"}}
  addUserKnob {7 _Sab +INVISIBLE}
@@ -322,7 +370,7 @@ A solve needs one ground and one across. Saying which is which also fixes which 
 set N506fc000 [stack 0]
  Expression {
   temp_name0 cov
-  temp_expr0 "(max(max(max(max(max(max(max(max(max(max(max(max(max(clamp((parent.linewidth/2 + 0.5) - (abs((parent.p1b.y-parent.p1a.y)*(x+0.5-parent.p1a.x) - (parent.p1b.x-parent.p1a.x)*(y+0.5-parent.p1a.y))/max(sqrt((parent.p1b.y-parent.p1a.y)*(parent.p1b.y-parent.p1a.y) + (parent.p1b.x-parent.p1a.x)*(parent.p1b.x-parent.p1a.x)),1e-6)),0,1),clamp((parent.linewidth/2 + 0.5) - (abs((parent.p2b.y-parent.p2a.y)*(x+0.5-parent.p2a.x) - (parent.p2b.x-parent.p2a.x)*(y+0.5-parent.p2a.y))/max(sqrt((parent.p2b.y-parent.p2a.y)*(parent.p2b.y-parent.p2a.y) + (parent.p2b.x-parent.p2a.x)*(parent.p2b.x-parent.p2a.x)),1e-6)),0,1)),(parent.use_add1 && parent._Ln3 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.add1b.y)*(x+0.5-parent.add1b.x) - (parent.add1.x-parent.add1b.x)*(y+0.5-parent.add1b.y))/max(sqrt(parent._Ln3),1e-6)),0,1) : 0)),(parent.use_add2 && parent._Ln4 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.add2b.y)*(x+0.5-parent.add2b.x) - (parent.add2.x-parent.add2b.x)*(y+0.5-parent.add2b.y))/max(sqrt(parent._Ln4),1e-6)),0,1) : 0)),(parent.use_add3 && parent._Ln5 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.add3b.y)*(x+0.5-parent.add3b.x) - (parent.add3.x-parent.add3b.x)*(y+0.5-parent.add3b.y))/max(sqrt(parent._Ln5),1e-6)),0,1) : 0)),(parent.use_add4 && parent._Ln6 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.add4b.y)*(x+0.5-parent.add4b.x) - (parent.add4.x-parent.add4b.x)*(y+0.5-parent.add4b.y))/max(sqrt(parent._Ln6),1e-6)),0,1) : 0)),(parent.use_add5 && parent._Ln7 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.add5b.y)*(x+0.5-parent.add5b.x) - (parent.add5.x-parent.add5b.x)*(y+0.5-parent.add5b.y))/max(sqrt(parent._Ln7),1e-6)),0,1) : 0)),(parent.use_add6 && parent._Ln8 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.add6b.y)*(x+0.5-parent.add6b.x) - (parent.add6.x-parent.add6b.x)*(y+0.5-parent.add6b.y))/max(sqrt(parent._Ln8),1e-6)),0,1) : 0)),(parent.use_add7 && parent._Ln9 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.add7b.y)*(x+0.5-parent.add7b.x) - (parent.add7.x-parent.add7b.x)*(y+0.5-parent.add7b.y))/max(sqrt(parent._Ln9),1e-6)),0,1) : 0)),(parent.use_add8 && parent._Ln10 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.add8b.y)*(x+0.5-parent.add8b.x) - (parent.add8.x-parent.add8b.x)*(y+0.5-parent.add8b.y))/max(sqrt(parent._Ln10),1e-6)),0,1) : 0)),(parent.use_add9 && parent._Ln11 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.add9b.y)*(x+0.5-parent.add9b.x) - (parent.add9.x-parent.add9b.x)*(y+0.5-parent.add9b.y))/max(sqrt(parent._Ln11),1e-6)),0,1) : 0)),(parent.use_add10 && parent._Ln12 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.add10b.y)*(x+0.5-parent.add10b.x) - (parent.add10.x-parent.add10b.x)*(y+0.5-parent.add10b.y))/max(sqrt(parent._Ln12),1e-6)),0,1) : 0)),(parent.use_add11 && parent._Ln13 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.add11b.y)*(x+0.5-parent.add11b.x) - (parent.add11.x-parent.add11b.x)*(y+0.5-parent.add11b.y))/max(sqrt(parent._Ln13),1e-6)),0,1) : 0)),(parent.use_add12 && parent._Ln14 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.add12b.y)*(x+0.5-parent.add12b.x) - (parent.add12.x-parent.add12b.x)*(y+0.5-parent.add12b.y))/max(sqrt(parent._Ln14),1e-6)),0,1) : 0))) * parent.opacity * parent.linecolor.a"
+  temp_expr0 "(max(max(max(max(max(max(max(max(max(max(max(max(max(clamp((parent.linewidth/2 + 0.5) - (abs((parent.p1b.y-parent.p1a.y)*(x+0.5-parent.p1a.x) - (parent.p1b.x-parent.p1a.x)*(y+0.5-parent.p1a.y))/max(sqrt((parent.p1b.y-parent.p1a.y)*(parent.p1b.y-parent.p1a.y) + (parent.p1b.x-parent.p1a.x)*(parent.p1b.x-parent.p1a.x)),1e-6)),0,1),clamp((parent.linewidth/2 + 0.5) - (abs((parent.p2b.y-parent.p2a.y)*(x+0.5-parent.p2a.x) - (parent.p2b.x-parent.p2a.x)*(y+0.5-parent.p2a.y))/max(sqrt((parent.p2b.y-parent.p2a.y)*(parent.p2b.y-parent.p2a.y) + (parent.p2b.x-parent.p2a.x)*(parent.p2b.x-parent.p2a.x)),1e-6)),0,1)),(parent.use_add1 ? (parent.pin1 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add1.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add1.y-parent.vp.y,2) + pow(parent.add1.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln3 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.add1b.y)*(x+0.5-parent.add1b.x) - (parent.add1.x-parent.add1b.x)*(y+0.5-parent.add1b.y))/max(sqrt(parent._Ln3),1e-6)),0,1) : 0)) : 0)),(parent.use_add2 ? (parent.pin2 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add2.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add2.y-parent.vp.y,2) + pow(parent.add2.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln4 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.add2b.y)*(x+0.5-parent.add2b.x) - (parent.add2.x-parent.add2b.x)*(y+0.5-parent.add2b.y))/max(sqrt(parent._Ln4),1e-6)),0,1) : 0)) : 0)),(parent.use_add3 ? (parent.pin3 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add3.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add3.y-parent.vp.y,2) + pow(parent.add3.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln5 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.add3b.y)*(x+0.5-parent.add3b.x) - (parent.add3.x-parent.add3b.x)*(y+0.5-parent.add3b.y))/max(sqrt(parent._Ln5),1e-6)),0,1) : 0)) : 0)),(parent.use_add4 ? (parent.pin4 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add4.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add4.y-parent.vp.y,2) + pow(parent.add4.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln6 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.add4b.y)*(x+0.5-parent.add4b.x) - (parent.add4.x-parent.add4b.x)*(y+0.5-parent.add4b.y))/max(sqrt(parent._Ln6),1e-6)),0,1) : 0)) : 0)),(parent.use_add5 ? (parent.pin5 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add5.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add5.y-parent.vp.y,2) + pow(parent.add5.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln7 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.add5b.y)*(x+0.5-parent.add5b.x) - (parent.add5.x-parent.add5b.x)*(y+0.5-parent.add5b.y))/max(sqrt(parent._Ln7),1e-6)),0,1) : 0)) : 0)),(parent.use_add6 ? (parent.pin6 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add6.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add6.y-parent.vp.y,2) + pow(parent.add6.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln8 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.add6b.y)*(x+0.5-parent.add6b.x) - (parent.add6.x-parent.add6b.x)*(y+0.5-parent.add6b.y))/max(sqrt(parent._Ln8),1e-6)),0,1) : 0)) : 0)),(parent.use_add7 ? (parent.pin7 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add7.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add7.y-parent.vp.y,2) + pow(parent.add7.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln9 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.add7b.y)*(x+0.5-parent.add7b.x) - (parent.add7.x-parent.add7b.x)*(y+0.5-parent.add7b.y))/max(sqrt(parent._Ln9),1e-6)),0,1) : 0)) : 0)),(parent.use_add8 ? (parent.pin8 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add8.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add8.y-parent.vp.y,2) + pow(parent.add8.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln10 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.add8b.y)*(x+0.5-parent.add8b.x) - (parent.add8.x-parent.add8b.x)*(y+0.5-parent.add8b.y))/max(sqrt(parent._Ln10),1e-6)),0,1) : 0)) : 0)),(parent.use_add9 ? (parent.pin9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add9.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add9.y-parent.vp.y,2) + pow(parent.add9.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln11 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.add9b.y)*(x+0.5-parent.add9b.x) - (parent.add9.x-parent.add9b.x)*(y+0.5-parent.add9b.y))/max(sqrt(parent._Ln11),1e-6)),0,1) : 0)) : 0)),(parent.use_add10 ? (parent.pin10 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add10.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add10.y-parent.vp.y,2) + pow(parent.add10.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln12 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.add10b.y)*(x+0.5-parent.add10b.x) - (parent.add10.x-parent.add10b.x)*(y+0.5-parent.add10b.y))/max(sqrt(parent._Ln12),1e-6)),0,1) : 0)) : 0)),(parent.use_add11 ? (parent.pin11 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add11.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add11.y-parent.vp.y,2) + pow(parent.add11.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln13 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.add11b.y)*(x+0.5-parent.add11b.x) - (parent.add11.x-parent.add11b.x)*(y+0.5-parent.add11b.y))/max(sqrt(parent._Ln13),1e-6)),0,1) : 0)) : 0)),(parent.use_add12 ? (parent.pin12 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add12.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add12.y-parent.vp.y,2) + pow(parent.add12.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln14 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.add12b.y)*(x+0.5-parent.add12b.x) - (parent.add12.x-parent.add12b.x)*(y+0.5-parent.add12b.y))/max(sqrt(parent._Ln14),1e-6)),0,1) : 0)) : 0))) * parent.opacity * parent.linecolor.a"
   expr0 "parent.linecolor.r * cov"
   expr1 "parent.linecolor.g * cov"
   expr2 "parent.linecolor.b * cov"

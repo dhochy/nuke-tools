@@ -39,13 +39,20 @@ Both carry their own instructions: the `?` button says what the node is, and the
 
 ### Things worth knowing
 
-**More lines make a better guide.** `add line` gives you another line with its
-own point A and point B, and every line on the node feeds the vanishing point,
-not just the first two. Two lines still give exactly their intersection, so
-nothing about an existing guide changes; four or six give a point that no single
-mis-traced edge can drag around. That matters most on a wall square to the
-camera, where the lines barely converge and a pixel of placement moves the
-vanishing point by thousands.
+**More lines make a better guide, and each one has a switch.** `add line` gives
+you another line, with **follows the vanishing point** on it.
+
+Ticked, the line runs out from the vanishing point through a single point. It is
+a prediction: here is where perspective says an edge should lie. It cannot move
+the answer, because it was drawn from it.
+
+Unticked, which is how a new one arrives, it has a point A and a point B and
+votes on the vanishing point along with the first two. Trace four or six edges
+and no single mis-traced one can drag the answer around, which matters most on a
+wall square to the camera where the lines barely converge. Trace one badly and it
+does drag it: a line thirty degrees off the others costs about four degrees of
+camera roll. Tick the switch on any line you are not sure about and it costs
+nothing at all.
 
 **The lines do not have to be on the ground.** Every level edge running the same
 way shares a vanishing point whatever height it is at, so a roofline works as

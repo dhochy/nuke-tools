@@ -16,7 +16,8 @@ edges projected through a real camera with their ends landed on whole pixels,
 which is the error a person tracing by eye actually makes.
 
 And a line with no length must weigh nothing, because that is what an unplaced
-slot looks like and what a node from an older build loads as.
+slot looks like. What an older node loads as is part 19's problem now: it comes
+back attached to the vanishing point, which is what it always was.
 """
 import math
 import nuke
@@ -83,14 +84,21 @@ check("every slot has a point B now",
       all("add%db" % i in g.knobs() for i in range(1, 13)), "")
 check("an unused slot's two points sit on top of each other, so it is not a line",
       g["add1"].value() == g["add1b"].value(), str(g["add1"].value()))
-check("and it weighs nothing", abs(g["_Lw3"].value()) < 1e-12,
-      "weight %.3g" % g["_Lw3"].value())
+g["pin1"].setValue(False)
+check("and even freed it weighs nothing, because it has no length",
+      abs(g["_Lw3"].value()) < 1e-12, "weight %.3g" % g["_Lw3"].value())
+g["pin1"].setValue(True)
 
+g["pin1"].setValue(False)          # free it first: unticking places B
+g["add1b"].setValue(list(g["add1"].value()))     # now make it genuinely zero length
 before = tuple(g["vp"].value())
 g["use_add1"].setValue(True)
+after = tuple(g["vp"].value())
 check("switching on a slot with no length changes nothing",
-      tuple(g["vp"].value()) == before, str(g["vp"].value()))
+      abs(after[0] - before[0]) < 1e-6 and abs(after[1] - before[1]) < 1e-6,
+      "%s against %s" % (str(after), str(before)))
 g["use_add1"].setValue(False)
+g["pin1"].setValue(True)
 
 # ------------------------------------------------ 77. adding a line
 print("\n=== 77. add line gives you both ends, aimed where the others are ===")
@@ -153,6 +161,9 @@ def fit_with(n):
         slot = k - 1
         gg["add%d" % slot].setValue(list(traced[k][0]))
         gg["add%db" % slot].setValue(list(traced[k][1]))
+        # a slot built by hand comes up attached, which is inert on purpose; this
+        # section is about lines that vote
+        gg["pin%d" % slot].setValue(False)
         gg["use_add%d" % slot].setValue(True)
     v = gg["vp"].value()
     nuke.delete(gg)
@@ -229,57 +240,10 @@ check("three nearly parallel lines give a direction along them, not across them"
       abs(angb) < 3.0 or abs(angb - 180.0) < 3.0,
       "%.3f deg from horizontal, vp (%.0f, %.0f)" % (angb, vb[0], vb[1]))
 
-# ------------------------------------------------- 79. an older node loads safe
-print("\n=== 79. a guide from before this keeps its added lines ===")
-g3 = new_guide()
-for k, v in zip(("p1a", "p1b", "p2a", "p2b"), A):
-    g3[k].setValue(list(v))
-vp_base = tuple(g3["vp"].value())
-# exactly what a rebuilt older node looks like: A placed, B still on its default
-g3["add1"].setValue([420.0, 260.0])
-g3["add1b"].setValue([1024.0, 400.0])   # the default, as a rebuild leaves it
-g3["use_add1"].setValue(True)
-check("its point B is sitting on the default",
-      abs(g3["add1b"].value()[0] - 1024.0) < 1e-6, str(g3["add1b"].value()))
-# The default is nowhere near A, so this IS a line, and left alone it would feed
-# the fit and drag the answer. That is what makes converting it necessary rather
-# than merely tidy, and it is what the first version of this got wrong.
-check("left alone it is a line pointing at nothing, and it moves the answer",
-      tuple(g3["vp"].value()) != vp_base,
-      "vp %s against %s" % ([round(v) for v in g3["vp"].value()],
-                            [round(v) for v in vp_base]))
-
-done = dhPersp.migrate_extra_lines(g3)
-check("loading converts it", done == [1], str(done))
-a, b = g3["add1"].value(), g3["add1b"].value()
-check("A is where it was", abs(a[0] - 420.0) < 1e-6 and abs(a[1] - 260.0) < 1e-6,
-      str(a))
-# the converted line must be the line that used to be drawn: vp through A
-cross = abs((a[0] - vp_base[0]) * (b[1] - vp_base[1])
-            - (a[1] - vp_base[1]) * (b[0] - vp_base[0]))
-scale = math.hypot(a[0] - vp_base[0], a[1] - vp_base[1]) * \
-    math.hypot(b[0] - vp_base[0], b[1] - vp_base[1])
-check("and B lands on the line that used to be drawn, from the vanishing point "
-      "through A", cross / max(scale, 1e-9) < 1e-6,
-      "off the ray by %.3g" % (cross / max(scale, 1e-9)))
-after = tuple(g3["vp"].value())
-check("converting it does not move the answer either, because it was already "
-      "aimed there",
-      math.hypot(after[0] - vp_base[0], after[1] - vp_base[1]) < 0.5,
-      "moved %.4f px" % math.hypot(after[0] - vp_base[0], after[1] - vp_base[1]))
-check("running it twice does nothing the second time",
-      dhPersp.migrate_extra_lines(g3) == [], "")
-
-# the sentinel is a number written down in two places, so check they agree
-fresh = new_guide()
-check("dhPersp's idea of an unplaced point matches what the gizmo declares",
-      math.hypot(fresh["add1b"].value()[0] - dhPersp.SLOT_DEFAULT[0],
-                 fresh["add1b"].value()[1] - dhPersp.SLOT_DEFAULT[1]) < 1e-6,
-      "gizmo %s, dhPersp %s" % (fresh["add1b"].value(), dhPersp.SLOT_DEFAULT))
-check("and point A is declared at the same place, so an unused slot is not a line",
-      math.hypot(fresh["add1"].value()[0] - dhPersp.SLOT_DEFAULT[0],
-                 fresh["add1"].value()[1] - dhPersp.SLOT_DEFAULT[1]) < 1e-6,
-      str(fresh["add1"].value()))
+# Section 79 was about converting an older node's added lines, which had a
+# point A and no point B. The per line switch removed the need: an older
+# line comes back attached, which is what it was, and its point B is never
+# consulted until the switch is unticked. Part 19 covers that.
 
 # --------------------------------- 80. the handle has to be reachable
 print("\n=== 80. point B is placed where you can actually get at it ===")
@@ -311,9 +275,12 @@ check("and long enough to be a line rather than a dot", short == 0,
 gt = new_guide()
 for k, v0 in zip(("p1a", "p1b", "p2a", "p2b"), A):
     gt[k].setValue(list(v0))
+# Free it first. Unticking runs release_line, which places B, so a B set before
+# the untick is the one thing that cannot survive to be tested.
+gt["pin1"].setValue(False)
+gt["use_add1"].setValue(True)
 gt["add1"].setValue([300.0, 400.0])
 gt["add1b"].setValue([9000.0, 2600.0])            # miles off the picture
-gt["use_add1"].setValue(True)
 was = tuple(gt["vp"].value())
 moved = dhPersp.tidy_extra_lines(gt)
 pb = gt["add1b"].value()

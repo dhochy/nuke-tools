@@ -96,7 +96,13 @@ SLOT_DEFAULT = (1024.0, 400.0)
 
 
 def _slot_knobs(node, i):
-    return (node.knobs().get("add%d" % i), node.knobs().get("add%db" % i),
+    """The knobs that appear and disappear with a slot.
+
+    Point B is not in this list. It belongs to the slot but it is only meaningful
+    for a line that stands on its own, so its visibility follows the switch
+    rather than the slot.
+    """
+    return (node.knobs().get("add%d" % i), node.knobs().get("pin%d" % i),
             node.knobs().get("del%d" % i))
 
 
@@ -127,6 +133,11 @@ def sync_lines(node, refresh=False):
             for k in _slot_knobs(node, i):
                 if k is not None:
                     k.setVisible(on)
+            # B only exists for a line that stands on its own
+            b = node.knobs().get("add%db" % i)
+            pin = node.knobs().get("pin%d" % i)
+            if b is not None:
+                b.setVisible(on and not (pin is not None and pin.value()))
             # the on/off flag is never shown; the delete button stands in for it
             use.setVisible(False)
     if refresh:
@@ -302,7 +313,6 @@ def on_create(node=None):
         with _Busy(node):
             sync_vp_handle(node)
     sync_lines(node)
-    migrate_extra_lines(node)
     tidy_extra_lines(node)
 
 
@@ -311,7 +321,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 16
+BUILD = 17
 
 NL = chr(10)
 WARN_BLANK = (
@@ -444,6 +454,11 @@ def on_knob_changed(node=None, knob=None):
     if name == "role":
         apply_role_color(node)
         return
+    m = re.match(r"^pin(\d+)$", name)
+    if m:
+        with _Busy(node):
+            release_line(node, int(m.group(1)))
+        return
     if name == "use_vertical":
         set_axis_note(node)
         set_verdict(node)
@@ -525,6 +540,8 @@ def add_line(node=None):
         node["add%d" % i].setValue(list(a))
         if "add%db" % i in node.knobs():
             node["add%db" % i].setValue(list(_toward_vp(node, a)))
+        if "pin%d" % i in node.knobs():
+            node["pin%d" % i].setValue(False)
         node["use_add%d" % i].setValue(True)
     sync_lines(node, refresh=True)
     return i
@@ -1311,7 +1328,6 @@ def update_nodes(nodes=None, quiet=False):
     for nm in done:
         n = nuke.toNode(nm)
         if n is not None and is_persplines(n):
-            migrate_extra_lines(n)
             tidy_extra_lines(n)
     if not quiet:
         msg = "updated %d node%s to build %d: %s" % (
@@ -1680,45 +1696,6 @@ def apply_role_color(node=None):
     return rgba
 
 
-def migrate_extra_lines(node=None):
-    """Give an older node's added lines the point B they never had.
-
-    Before build 16 an added line was one point and was drawn out from the
-    vanishing point through it. Rebuilt onto the current gizmo, its point B lands
-    on the default, on top of A, and a line with no direction weighs nothing and
-    draws nothing. Safe, but the line the user drew would vanish.
-
-    Putting B on the ray from the vanishing point through A gives back exactly
-    the line that was on screen, as a two point line that can now be moved. The
-    vanishing point used is the one fitted from the lines that do have length, so
-    the slot being converted is not voting on its own position.
-    """
-    node = node or nuke.thisNode()
-    if "add1b" not in node.knobs():
-        return []
-    done = []
-    with _NoUndo():
-        for i in active_lines(node):
-            k = node["add%db" % i]
-            b = k.value()
-            if hypot(b[0] - SLOT_DEFAULT[0], b[1] - SLOT_DEFAULT[1]) > 1e-6:
-                continue                      # somebody placed it
-            a = node["add%d" % i].value()
-            # The ray has to come from the other lines. Left switched on, this
-            # broken line votes on where it should be pointed, and it points a
-            # long way off, so it would convert itself onto its own mistake.
-            use = node["use_add%d" % i]
-            was = use.value()
-            use.setValue(False)
-            try:
-                target = _toward_vp(node, a)
-            finally:
-                use.setValue(was)
-            k.setValue(list(target))
-            done.append(i)
-    return done
-
-
 def tidy_extra_lines(node=None):
     """Bring any added line's point B back inside the frame, along its own line.
 
@@ -1753,3 +1730,44 @@ def tidy_extra_lines(node=None):
             node["add%db" % i].setValue([a[0] + u[0] * step, a[1] + u[1] * step])
             moved.append(i)
     return moved
+
+
+def release_line(node, i):
+    """Called when a line's 'follows the vanishing point' switch is touched.
+
+    Turning it off makes the line stand on its own, so it needs a second point,
+    and it needs one that is visible. If B has never been placed it goes on the
+    line that was being drawn a moment ago, from the vanishing point out through
+    A, so nothing jumps: the same line is on screen before and after, it has just
+    stopped being derived and started being a measurement.
+    """
+    b = node.knobs().get("add%db" % i)
+    pin = node.knobs().get("pin%d" % i)
+    if b is None or pin is None:
+        return None
+    freed = not pin.value()
+    if freed:
+        a = node["add%d" % i].value()
+        v = b.value()
+        w, h = node_format(node)
+        margin = 0.04 * min(w, h)
+        unplaced = hypot(v[0] - SLOT_DEFAULT[0], v[1] - SLOT_DEFAULT[1]) < 1e-6
+        # Genuinely off the picture, not merely close to an edge. The margin is
+        # where a NEW point gets put; it is not a reason to move one somebody
+        # placed on purpose, and a point on a building at the edge of frame is
+        # exactly where you would place one.
+        offscreen = not (0 <= v[0] <= w and 0 <= v[1] <= h)
+        if unplaced or offscreen:
+            # The switch is already off, so this line is already voting with B
+            # wherever it happens to be, which is the thing being fixed. Pin it
+            # again for the moment it takes to read the vanishing point, or it
+            # gets placed on the ray of an answer it has itself corrupted.
+            with _NoUndo():
+                pin.setValue(True)
+                try:
+                    target = _toward_vp(node, a)
+                finally:
+                    pin.setValue(False)
+                b.setValue(list(target))
+    sync_lines(node)
+    return freed

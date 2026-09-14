@@ -178,9 +178,29 @@ Two lines give exactly their intersection, to the last decimal, because a least
 squares fit through two lines passes through both. So no existing guide moved.
 
 A line whose two points sit on top of each other has no direction, weighs nothing
-and draws nothing. That is what an unplaced slot looks like, and it is why a guide
-from before build 16 is safe to load: its added lines carry a point A and no point
-B, and they are converted on load onto the line they used to draw.
+and draws nothing. That is what an unplaced slot looks like.
+
+### `follows the vanishing point`, per line
+
+The two behaviours are not one tool wearing different hats. They answer different
+questions and both are worth having.
+
+Ticked, the line runs out from the vanishing point through one point: a
+prediction of where an edge should lie, for checking the fit against another
+feature. It cannot vote, because it was drawn from the thing it would be voting
+on, so it can neither help nor hurt.
+
+Unticked, it is a line in its own right and a measurement: does this edge agree
+with the others. Measured on traced lines, one thirty degrees off costs about
+four degrees of camera roll among six good ones, and least squares squares the
+residual so one bad line can outvote several good ones. That is the risk the
+switch puts back under your control.
+
+The default is ticked, and that is also why a guide from any earlier build is
+safe to open. Rebuilding copies knob values by name; an older node has no switch
+to copy, so the new one keeps the default and its added lines do exactly what
+they always did. No conversion, and nothing to get wrong. Lines you add from here
+arrive unticked, because pressing the button is a deliberate act.
 
 ### Lines that barely converge report a direction
 
