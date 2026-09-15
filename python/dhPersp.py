@@ -348,7 +348,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 30
+BUILD = 31
 
 NL = chr(10)
 WARN_BLANK = (
@@ -1620,9 +1620,12 @@ def set_verdict(node=None):
             "its lines is not on a receding edge. On a shot square to a wall "
             "there may be no answer from two guides at all, because the wall's "
             "own horizontals barely converge: add a third guide along the "
-            "upright edges, or tick 'I know the focal length'. The focal length "
-            "below is a floor value, not a solve, and the floor and horizon are "
-            "not being drawn because there is no camera to draw them from."
+            "upright edges.<br><br>The focal length below is not a solve. "
+            "It is the number in the <i>focal (mm)</i> box at the top of "
+            "this tab, taken as an assumption, and the guides are setting "
+            "the orientation around it. The floor is drawn from that "
+            "assumption so you have something to work with: drag "
+            "<i>focal (mm)</i> until the grid lies down on the plate."
             % ("" if fsq < 0 else " by enough to leave room for a focal length"))
         return False
     warn = []

@@ -297,7 +297,7 @@ span = math.hypot(9000.0 - 300.0, 2600.0 - 400.0) * \
 check("it stayed on the same line", cross / span < 1e-9,
       "off the line by %.3g" % (cross / span))
 now = tuple(gt["vp"].value())
-# The line got 99.8% shorter, and every normalised sum behind the fit moved by
+# The line got 99.8% shorter, and every normalized sum behind the fit moved by
 # about three parts in 1e16, which is the last bit of a double. Comparing two
 # numbers near a million with == asks for more than that. Direction is also the
 # honest measure here: this fit is in its far form, where the point stands in for

@@ -55,8 +55,22 @@ dhPersp.on_knob_changed(s, type("IC", (), {"name": staticmethod(lambda: "inputCh
 blank = dhPersp.pristine_guides(s)
 check("the solve reports which guide was never placed", g.name() in blank, str(blank))
 check("a placed guide is not flagged", g2.name() not in blank, str(blank))
-check("the focal collapses when fed the blank guide, which is the bug David saw",
-      s["cam_focal"].value() < 4.0, "%.3f mm" % s["cam_focal"].value())
+# What David originally saw was the focal collapsing to a fraction of a
+# millimeter, and that is what this used to assert. The collapse was only ever
+# the symptom: a blank guide puts its vanishing point at the center of frame, the
+# pair describes no camera, and the number that came out was the clamp inside
+# _fsolved. Build 31 shows the assumption in the box instead of the clamp, so the
+# focal no longer collapses and asserting that it does would now be asserting the
+# absence of a fix. The finding this check exists to protect is the one below it:
+# a guide nobody placed must not produce a solve.
+check("a blank guide leaves the solve refused, which is what the collapsed "
+      "focal was telling him",
+      s["_solveok"].value() < 0.5,
+      "_fsq %.4g" % s["_fsq"].value())
+check("so the number on the panel is the assumption, not a solve",
+      abs(s["cam_focal"].value() - s["known_focal"].value()) < 0.01,
+      "%.3f mm, and the box says %.3f"
+      % (s["cam_focal"].value(), s["known_focal"].value()))
 label = s["linked_to"].value()
 check("the panel says so in the link label",
       "Warning" in label and g.name() in label, label[-80:])

@@ -209,7 +209,7 @@ print("\n=== 95. none of which is allowed to move the camera ===")
 s["use_known_focal"].setValue(False)
 before = (s["cam_focal"].value(), s["cam_rx"].value(), s["cam_ry"].value(),
           s["cam_rz"].value())
-# In pixels, which is what the plate was actually built with. Millimetres
+# In pixels, which is what the plate was actually built with. Millimeters
 # depend on the camera's aperture settings and would be testing those.
 check("the solve still finds the lens the plate was built with",
       abs(s["_f"].value() - FOCAL_PX) < 1.0,
