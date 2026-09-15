@@ -178,6 +178,9 @@ def node_format(node):
     return w, h
 
 
+REACH = 0.8
+
+
 def _canonical(w, h):
     """Where a fresh fit puts the four base points for a given format.
 
@@ -186,10 +189,15 @@ def _canonical(w, h):
     lines pivot about anchors at very different distances when the vanishing point
     is dragged. The lines themselves are unchanged, only which end is the anchor.
     """
+    # REACH is how far along the ray the inner point sits. The ray itself runs
+    # from the corner through the exact center of frame, so any value keeps the
+    # two lines crossing there; larger just makes them longer, and a longer line
+    # is a more accurate one. Four fifths leaves the handle a margin off the top
+    # of frame so it is still easy to grab.
     return {"p1a": (0.0, 0.0),                  # left corner  -> anchor
-            "p1b": (w / 3.0, h / 3.0),          # inner
+            "p1b": (REACH * w, REACH * h),      # inner, along the ray
             "p2a": (w, 0.0),                    # right corner -> anchor
-            "p2b": (2.0 * w / 3.0, h / 3.0)}    # inner
+            "p2b": ((1.0 - REACH) * w, REACH * h)}
 
 
 def _extra_canonical(w, h, slot):
@@ -340,7 +348,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 25
+BUILD = 28
 
 NL = chr(10)
 WARN_BLANK = (

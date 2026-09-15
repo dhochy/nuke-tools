@@ -36,7 +36,12 @@ for nm, w, h in (("hd", 1920, 1080), ("tall", 864, 1216), ("wide", 4096, 1716), 
     for n in nuke.allNodes():
         n.setSelected(False)
     pts = {k: g[k].value() for k in ("p1a", "p1b", "p2a", "p2b")}
-    want = {"p1a": (0, 0), "p1b": (w / 3.0, h / 3.0), "p2a": (w, 0), "p2b": (2 * w / 3.0, h / 3.0)}
+    # the inner points sit REACH of the way along the ray from each corner
+    # through the center of frame; the ray is what fixes the crossing, the
+    # distance along it is only how long the line is
+    r = dhPersp.REACH
+    want = {"p1a": (0, 0), "p1b": (r * w, r * h),
+            "p2a": (w, 0), "p2b": ((1 - r) * w, r * h)}
     for k, (cx, cy) in want.items():
         if abs(pts[k][0] - cx) > 1 or abs(pts[k][1] - cy) > 1:
             bad.append("%s %s got %s want %s" % (nm, k, [round(v) for v in pts[k]], (round(cx), round(cy))))
@@ -52,7 +57,8 @@ for n in nuke.allNodes():
 ga.setInput(0, big)
 dhPersp.on_knob_changed(ga, IC)
 check("untouched guide re-fits to a new plate",
-      abs(ga["p1b"].value()[0] - 4096 / 3.0) < 1, "p1b.x %.0f" % ga["p1b"].value()[0])
+      abs(ga["p1b"].value()[0] - dhPersp.REACH * 4096) < 1,
+      "p1b.x %.0f, want %.0f" % (ga["p1b"].value()[0], dhPersp.REACH * 4096))
 
 small.setSelected(True)
 gb = nuke.createNode("dhPerspGuide", inpanel=False)

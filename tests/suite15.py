@@ -209,8 +209,11 @@ for node, what in ((g1, "guide"), (s, "solve")):
           "<b>1.</b>" in steps and "<b>5.</b>" in steps, "%d chars" % len(steps))
     check("the %s tab has notes under them" % what,
           len(node["howto_n"].value()) > 200, "%d chars" % len(node["howto_n"].value()))
+# case insensitive: the help names them at the start of sentences too
 check("the guide help explains the three kinds",
-      all(w in g1.help() for w in ("ground", "across", "vertical")), "")
+      all(w in g1.help().lower() for w in ("ground", "across", "vertical")),
+      "missing: %s" % [w for w in ("ground", "across", "vertical")
+                       if w not in g1.help().lower()])
 check("the solve help mentions camera height, which is the one thing to set",
       "camera height" in s.help(), "")
 

@@ -6,7 +6,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 25
+ _build 28
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -77,8 +77,10 @@ Group {
  _v3d {{"sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2))"}}
  addUserKnob {7 _v3use +INVISIBLE}
  _v3use {{"(use_vertical && _v3d > 0.75*_diag && _v3d < 25*_diag) ? 1 : 0"}}
+ addUserKnob {7 _d12c +INVISIBLE}
+ _d12c {{"-((vp1.x-width/2)*(vp2.x-width/2) + (vp1.y-height/2)*(vp2.y-height/2))"}}
  addUserKnob {7 _tri +INVISIBLE}
- _tri {{"(sqrt(pow(vp1.x-width/2,2) + pow(vp1.y-height/2,2)) < 8*_diag && sqrt(pow(vp2.x-width/2,2) + pow(vp2.y-height/2,2)) < 8*_diag) ? 1 : 0"}}
+ _tri {{"(sqrt(pow(vp1.x-width/2,2) + pow(vp1.y-height/2,2)) < 8*_diag && sqrt(pow(vp2.x-width/2,2) + pow(vp2.y-height/2,2)) < 8*_diag && _d12c > _fmin) ? 1 : 0"}}
  addUserKnob {7 _oa1 +INVISIBLE}
  _oa1 {{"vp2.x - vp3.x"}}
  addUserKnob {7 _ob1 +INVISIBLE}
@@ -197,6 +199,18 @@ Group {
  _a2y {{"_r2y/_l2"}}
  addUserKnob {7 _a2z +INVISIBLE}
  _a2z {{"-1/_l2"}}
+ addUserKnob {7 _r3x +INVISIBLE}
+ _r3x {{"(vp3.x - _px)/max(_f,1e-6)"}}
+ addUserKnob {7 _r3y +INVISIBLE}
+ _r3y {{"(vp3.y - _py)/max(_f,1e-6)"}}
+ addUserKnob {7 _vl +INVISIBLE}
+ _vl {{"max(sqrt(_r3x*_r3x + _r3y*_r3y + 1),1e-9) * (_r3y < 0 ? -1 : 1)"}}
+ addUserKnob {7 _vnx +INVISIBLE}
+ _vnx {{"_r3x/_vl"}}
+ addUserKnob {7 _vny +INVISIBLE}
+ _vny {{"_r3y/_vl"}}
+ addUserKnob {7 _vnz +INVISIBLE}
+ _vnz {{"-1/_vl"}}
  addUserKnob {7 _cx +INVISIBLE}
  _cx {{"_a1y*_a2z - _a1z*_a2y"}}
  addUserKnob {7 _cy +INVISIBLE}
@@ -206,46 +220,56 @@ Group {
  addUserKnob {7 _cl +INVISIBLE}
  _cl {{"max(sqrt(_cx*_cx + _cy*_cy + _cz*_cz),1e-9) * (_cy < 0 ? -1 : 1)"}}
  addUserKnob {7 _nx +INVISIBLE}
- _nx {{"_cx/_cl"}}
+ _nx {{"_v3use ? _vnx : _cx/_cl"}}
  addUserKnob {7 _ny +INVISIBLE}
- _ny {{"_cy/_cl"}}
+ _ny {{"_v3use ? _vny : _cy/_cl"}}
  addUserKnob {7 _nz +INVISIBLE}
- _nz {{"_cz/_cl"}}
- addUserKnob {7 _e2x +INVISIBLE}
- _e2x {{"_ny*_a1z - _nz*_a1y"}}
- addUserKnob {7 _e2y +INVISIBLE}
- _e2y {{"_nz*_a1x - _nx*_a1z"}}
- addUserKnob {7 _e2z +INVISIBLE}
- _e2z {{"_nx*_a1y - _ny*_a1x"}}
- addUserKnob {7 _e2n +INVISIBLE}
- _e2n {{"max(sqrt(_e2x*_e2x + _e2y*_e2y + _e2z*_e2z),1e-12) * ((_e2x*_a2x + _e2y*_a2y + _e2z*_a2z) < 0 ? -1 : 1)"}}
- addUserKnob {7 _e1x +INVISIBLE}
- _e1x {{"_ny*_a2z - _nz*_a2y"}}
- addUserKnob {7 _e1y +INVISIBLE}
- _e1y {{"_nz*_a2x - _nx*_a2z"}}
- addUserKnob {7 _e1z +INVISIBLE}
- _e1z {{"_nx*_a2y - _ny*_a2x"}}
- addUserKnob {7 _e1n +INVISIBLE}
- _e1n {{"max(sqrt(_e1x*_e1x + _e1y*_e1y + _e1z*_e1z),1e-12) * ((_e1x*_a1x + _e1y*_a1y + _e1z*_a1z) < 0 ? -1 : 1)"}}
+ _nz {{"_v3use ? _vnz : _cz/_cl"}}
  addUserKnob {7 _keep1 +INVISIBLE}
  _keep1 {{"_rr1 <= _rr2 ? 1 : 0"}}
+ addUserKnob {7 _kx +INVISIBLE}
+ _kx {{"_keep1 ? _a1x : _a2x"}}
+ addUserKnob {7 _ky +INVISIBLE}
+ _ky {{"_keep1 ? _a1y : _a2y"}}
+ addUserKnob {7 _kz +INVISIBLE}
+ _kz {{"_keep1 ? _a1z : _a2z"}}
+ addUserKnob {7 _kd +INVISIBLE}
+ _kd {{"_kx*_nx + _ky*_ny + _kz*_nz"}}
+ addUserKnob {7 _px1 +INVISIBLE}
+ _px1 {{"_kx - _kd*_nx"}}
+ addUserKnob {7 _py1 +INVISIBLE}
+ _py1 {{"_ky - _kd*_ny"}}
+ addUserKnob {7 _pz1 +INVISIBLE}
+ _pz1 {{"_kz - _kd*_nz"}}
+ addUserKnob {7 _pl1 +INVISIBLE}
+ _pl1 {{"max(sqrt(_px1*_px1 + _py1*_py1 + _pz1*_pz1),1e-12)"}}
+ addUserKnob {7 _wx +INVISIBLE}
+ _wx {{"_ny*(_pz1/_pl1) - _nz*(_py1/_pl1)"}}
+ addUserKnob {7 _wy +INVISIBLE}
+ _wy {{"_nz*(_px1/_pl1) - _nx*(_pz1/_pl1)"}}
+ addUserKnob {7 _wz +INVISIBLE}
+ _wz {{"_nx*(_py1/_pl1) - _ny*(_px1/_pl1)"}}
+ addUserKnob {7 _wdot +INVISIBLE}
+ _wdot {{"_keep1 ? (_wx*_a2x + _wy*_a2y + _wz*_a2z) : (_wx*_a1x + _wy*_a1y + _wz*_a1z)"}}
+ addUserKnob {7 _wl +INVISIBLE}
+ _wl {{"max(sqrt(_wx*_wx + _wy*_wy + _wz*_wz),1e-12) * (_wdot < 0 ? -1 : 1)"}}
  addUserKnob {7 _u1x +INVISIBLE}
- _u1x {{"_keep1 ? _a1x : _e1x/_e1n"}}
+ _u1x {{"_keep1 ? _px1/_pl1 : _wx/_wl"}}
  addUserKnob {7 _u1y +INVISIBLE}
- _u1y {{"_keep1 ? _a1y : _e1y/_e1n"}}
+ _u1y {{"_keep1 ? _py1/_pl1 : _wy/_wl"}}
  addUserKnob {7 _u1z +INVISIBLE}
- _u1z {{"_keep1 ? _a1z : _e1z/_e1n"}}
+ _u1z {{"_keep1 ? _pz1/_pl1 : _wz/_wl"}}
  addUserKnob {7 _u2x +INVISIBLE}
- _u2x {{"_keep1 ? _e2x/_e2n : _a2x"}}
+ _u2x {{"_keep1 ? _wx/_wl : _px1/_pl1"}}
  addUserKnob {7 _u2y +INVISIBLE}
- _u2y {{"_keep1 ? _e2y/_e2n : _a2y"}}
+ _u2y {{"_keep1 ? _wy/_wl : _py1/_pl1"}}
  addUserKnob {7 _u2z +INVISIBLE}
- _u2z {{"_keep1 ? _e2z/_e2n : _a2z"}}
+ _u2z {{"_keep1 ? _wz/_wl : _pz1/_pl1"}}
  addUserKnob {20 howto l "How to use"}
  addUserKnob {26 howto_h l "" +STARTLINE T "<b>dhPerspSolve turns the guides into a camera</b>"}
  addUserKnob {26 howto_s l "" +STARTLINE T "<b>1.</b> Connect this under two or three <b>dhPerspGuide</b> nodes. It links itself; the Horizon tab says which guide feeds which vanishing point.<br><b>2.</b> Read the verdict on the <b>Camera Solve</b> tab. It says whether the guides describe a camera that can exist, and what is wrong if not.<br><b>3.</b> Check the floor. If the grid lies flat on the ground in the plate and runs along the same directions, the solve is right. If it looks turned, set <i>these lines are</i> on your guides, or change <i>ground X axis runs toward</i>.<br><b>4.</b> Set the <b>camera height</b> on the Scale tab. Eye level is about 5.5 ft, a tripod about 4.5 ft. Set <i>cell size</i> to something you can measure in the plate and adjust the height until the cells match.<br><b>5.</b> Press <b>export camera</b>."}
  addUserKnob {26 howto_d l "" +STARTLINE}
- addUserKnob {26 howto_n l "" +STARTLINE T "<b>If the focal length looks wrong.</b> The verdict line says why. The usual cause is two guides following the same direction on the ground, or a line that is not on a receding edge. A shot looking straight down a street, where one direction barely converges, cannot be solved from guides alone: tick <i>I know the focal length</i> and let the guides set the orientation only.<br><br><b>Lens distortion, if you ever need it.</b> Every vanishing point here comes from a straight line, and a lens bends straight edges a little, most in the corners of frame and most on a wide one. Usually too small to matter. On a wide plate that will not settle, trace nearer the middle of frame, and if that is not enough put a LensDistortion above the guides.<br><br><b>Scale.</b> A photograph carries no scale, so camera height is the one measurement that gives it one. Changing it moves nothing in the solve: the focal length, the angles and the lens axis are identical at any height. It only decides how big the world is.<br><br><b>Before exporting to Maya or Blender.</b> Set the same linear unit at the other end, and set <i>these lines are</i> on both level guides so the X and Z axes are pinned rather than guessed.<br><br><b>Animation.</b> Key the guide points and the camera follows, frame by frame. Pin the axis first, or the automatic choice can flip ninety degrees mid shot. <i>bake values</i> keeps the whole move."}
+ addUserKnob {26 howto_n l "" +STARTLINE T "<b>The one thing that most improves a solve.</b> Long guide lines. Place each end within about a pixel and a line's angle is uncertain by roughly 2/L radians for a line L pixels long, so a 200 pixel line carries about 0.6 degrees and an 800 pixel line about 0.14. Stretch every line as far as its edge allows before reaching for anything else.<br><br><b>If the focal length looks wrong.</b> The verdict line says why. The usual cause is two guides following the same direction on the ground, or a line that is not on a receding edge. A shot looking straight down a street, where one direction barely converges, cannot be solved from guides alone: tick <i>I know the focal length</i> and let the guides set the orientation only.<br><br><b>Lens distortion, if you ever need it.</b> Every vanishing point here comes from a straight line, and a lens bends straight edges a little, most in the corners of frame and most on a wide one. Usually too small to matter. On a wide plate that will not settle, trace nearer the middle of frame, and if that is not enough put a LensDistortion above the guides.<br><br><b>Scale.</b> A photograph carries no scale, so camera height is the one measurement that gives it one. Changing it moves nothing in the solve: the focal length, the angles and the lens axis are identical at any height. It only decides how big the world is.<br><br><b>Before exporting to Maya or Blender.</b> Set the same linear unit at the other end, and set <i>these lines are</i> on both level guides so the X and Z axes are pinned rather than guessed.<br><br><b>Animation.</b> Key the guide points and the camera follows, frame by frame. Pin the axis first, or the automatic choice can flip ninety degrees mid shot. <i>bake values</i> keeps the whole move."}
 }
  Input {
   inputs 0

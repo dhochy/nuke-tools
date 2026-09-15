@@ -1,0 +1,1276 @@
+#! C:/Program Files/Nuke17.0v1/nuke-17.0.1.dll -nx
+version 17.0 v1
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="-7" w="2560" h="1369" maximized="1" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1898" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1014"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                </dock>
+                <split size="312"/>
+                <dock id="" activePageId="Curve Editor.1">
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="614"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+                <page id="uk.co.thefoundry.scripteditor.2"/>
+            </dock>
+        </splitter>
+    </window>
+    <window x="3840" y="0" w="2560" h="1410" maximized="1" screen="1">
+        <splitter orientation="2">
+            <split size="1410"/>
+            <dock id="" activePageId="Viewer.1">
+                <page id="Viewer.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name D:/Storage/Projects/Nuke_Tools/tests/nukepersp_test_v001.nk
+ format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f026_3679262207.jpg
+ localizationPolicy on
+ format "847 1024 0 0 847 1024 1 "
+ origset true
+ version 1
+ name Read2
+ xpos 70
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f032_30419432927.jpg
+ localizationPolicy on
+ format "1024 684 0 0 1024 684 1 "
+ origset true
+ version 1
+ name Read3
+ xpos 180
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f034_24933321300.jpg
+ localizationPolicy on
+ format "1024 683 0 0 1024 683 1 "
+ origset true
+ version 1
+ name Read4
+ xpos 290
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f050_41539029324.jpg
+ localizationPolicy on
+ format "1024 684 0 0 1024 684 1 "
+ origset true
+ version 1
+ name Read5
+ xpos 400
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f052_28359855024.jpg
+ localizationPolicy on
+ format "683 1024 0 0 683 1024 1 "
+ origset true
+ version 1
+ name Read6
+ xpos 510
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f067_23594676630.jpg
+ localizationPolicy on
+ format "1024 683 0 0 1024 683 1 "
+ origset true
+ version 1
+ name Read7
+ xpos 620
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f078_4870386621.jpg
+ localizationPolicy on
+ format "872 1024 0 0 872 1024 1 "
+ origset true
+ version 1
+ name Read8
+ xpos 730
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f078_45012522334.jpg
+ localizationPolicy on
+ format "1024 683 0 0 1024 683 1 "
+ origset true
+ version 1
+ name Read9
+ xpos 840
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f085_53004825589.jpg
+ localizationPolicy on
+ format "1024 638 0 0 1024 638 1 "
+ origset true
+ version 1
+ name Read10
+ xpos 950
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f100_30546535327.jpg
+ localizationPolicy on
+ format "1023 676 0 0 1023 676 1 "
+ origset true
+ version 1
+ name Read11
+ xpos 1060
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f138_50836866193.jpg
+ localizationPolicy on
+ format "1023 709 0 0 1023 709 1 "
+ origset true
+ version 1
+ name Read12
+ xpos 1170
+ ypos 104
+}
+Read {
+ inputs 0
+ file_type jpeg
+ file C:/temp/perspective_tests/plates/f022_28461775580.jpg
+ localizationPolicy on
+ format "1024 683 0 0 1024 683 1 "
+ origset true
+ version 1
+ name Read1
+ xpos -41
+ ypos 104
+}
+Group {
+ name dhPerspGuide
+ help "Marks one direction in the scene.\n\nDrag its two lines onto two edges that are parallel in the real world but converge on screen: two curbs, two window sills, two building corners. Where those lines cross is that direction's vanishing point, and that is the number dhPerspSolve reads.\n\nSay which sort of direction it is with 'these lines are'. Ground runs away from you, across runs left to right in front of you, vertical is upright.\n\nA camera solve needs two of these, one ground and one across. A third set to vertical is optional and lets the solve find the real lens axis instead of assuming the center of frame.\n\nStack them under the plate and drop a dhPerspSolve at the bottom. It picks them up on its own.\n\nWorth knowing: this reads a straight edge as a straight line, and a real lens bends them a little, most in the corners of frame and most on a wide lens. Usually too small to matter. If a wide plate gives an answer you cannot make sit right, undistorting it first is the thing to try."
+ onCreate "try:\n    import dhPersp\n    dhPersp.on_create(nuke.thisNode())\nexcept Exception:\n    pass"
+ knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
+ updateUI "try:\n    import dhPersp\n    dhPersp.on_update_ui(nuke.thisNode())\nexcept Exception:\n    pass"
+ xpos -41
+ ypos 190
+ addUserKnob {20 main l PerspLines}
+ addUserKnob {7 _build l "" -STARTLINE +INVISIBLE}
+ _build 25
+ addUserKnob {4 role l "these lines are" t "Which direction in the scene these two lines follow.\n\nground: runs away from you into the picture. Curbs, road markings, the seams in paving, the long side of a building going away from you.\n\nacross: runs left to right in front of you. The top of a wall facing the camera, a window sill or a roofline on it. It does not have to be at ground level and it does not have to be on the ground: every level edge running the same way shares a vanishing point whatever height it is at, and a long clean edge up in the air is usually easier to trace than a curb with people standing on it.\n\nvertical: upright. Building corners, door frames, lamp posts.\n\nA solve needs one ground and one across. Saying which is which also fixes which way the exported scene's X and Z axes run, so the camera arrives in Maya or Blender the right way round, and it stops the axis choice flipping in the middle of an animated solve. A vertical guide is optional and lets the solve work out where the lens axis really sits; with three guides connected the upright one is recognized from its own lines." M {ground across vertical}}
+ addUserKnob {19 linecolor l color t "Set on its own from 'these lines are': red for ground, green for across, blue for vertical. The buttons override it, for a plate where one of those disappears into the picture; that does not change the role, only the color."}
+ linecolor {1 0 0 1}
+ addUserKnob {6 linecolor_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {22 setR l R -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[1, 0, 0, 1])"}
+ addUserKnob {22 setG l G -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[0, 1, 0, 1])"}
+ addUserKnob {22 setB l B -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[0, 0, 1, 1])"}
+ addUserKnob {7 opacity}
+ opacity 1
+ addUserKnob {7 linewidth l "line width" R 0.5 10}
+ linewidth 2
+ addUserKnob {6 lines_only l "output lines only" +STARTLINE}
+ addUserKnob {26 d1 l "" +STARTLINE}
+ addUserKnob {26 l1 l "line 1"}
+ addUserKnob {12 p1a l "point A"}
+ p1a {7.5 -6}
+ addUserKnob {12 p1b l "point B"}
+ p1b {738.5999756 188}
+ addUserKnob {26 l2 l "line 2"}
+ addUserKnob {12 p2a l "point A"}
+ p2a {1024.199951 6}
+ addUserKnob {12 p2b l "point B"}
+ p2b {803.5999756 190.8000031}
+ addUserKnob {22 fitformat l "fit to format" t "Re-place the points against the current format. Uses the connected image if there is one, otherwise the project format." T "import dhPersp\ndhPersp.fit_to_format(nuke.thisNode(), quiet=False)" +STARTLINE}
+ addUserKnob {6 _fitted l "" -STARTLINE +INVISIBLE}
+ _fitted true
+ addUserKnob {7 _fitw +INVISIBLE}
+ _fitw 1024
+ addUserKnob {7 _fith +INVISIBLE}
+ _fith 683
+ addUserKnob {26 d2 l "" +STARTLINE}
+ addUserKnob {26 status l "" +STARTLINE T ""}
+ addUserKnob {12 vp l "vanishing point" t "Fitted from every line on this node that has length: the two base lines and any added ones. Two lines give exactly their intersection; more than two give the point that sits closest to all of them, which no single mis-traced edge can drag around. Lines that barely converge meet so far away that the meeting point is not a real quantity, so past a hundred frame diagonals this reports their common direction placed very far along it instead, which is the same line and is stable. dhPerspSolve links to this." +DISABLED}
+ vp {{"_Sfar ? width/2 + _Ssg*_Sdx/_Sdn*1e6 : _Spx"} {"_Sfar ? height/2 + _Ssg*_Sdy/_Sdn*1e6 : _Spy"}}
+ addUserKnob {12 vp_drag l "drag vanishing point" t "Drag this to aim both lines at a new vanishing point. Each line swings about its point A, which stays put, so put those on features you trust."}
+ vp_drag {790.5019918 201.7723861}
+ addUserKnob {26 d3 l "" +STARTLINE}
+ addUserKnob {26 l3 l "additional lines"}
+ addUserKnob {22 addline l "add line" t "Add another line along the same direction, with its own point A and point B, feeding the vanishing point along with the first two: more lines traced well means a better fit. Tick 'follows the vanishing point' on it instead and it goes back to being a single point drawn out from the vanishing point, which cannot move the answer either way. Up to 12." -STARTLINE T "import dhPersp\ndhPersp.add_line(nuke.thisNode())"}
+ addUserKnob {22 clearlines l "clear all" -STARTLINE T "import dhPersp\ndhPersp.clear_lines(nuke.thisNode())"}
+ addUserKnob {6 use_add1 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add1 l "line 1  A" +HIDDEN}
+ add1 {1024 400}
+ addUserKnob {12 add1b l B -STARTLINE +HIDDEN}
+ add1b {1024 400}
+ addUserKnob {22 del1 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(1, nuke.thisNode())"}
+ addUserKnob {6 pin1 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin1 true
+ addUserKnob {6 use_add2 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add2 l "line 2  A" +HIDDEN}
+ add2 {1024 400}
+ addUserKnob {12 add2b l B -STARTLINE +HIDDEN}
+ add2b {1024 400}
+ addUserKnob {22 del2 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(2, nuke.thisNode())"}
+ addUserKnob {6 pin2 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin2 true
+ addUserKnob {6 use_add3 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add3 l "line 3  A" +HIDDEN}
+ add3 {1024 400}
+ addUserKnob {12 add3b l B -STARTLINE +HIDDEN}
+ add3b {1024 400}
+ addUserKnob {22 del3 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(3, nuke.thisNode())"}
+ addUserKnob {6 pin3 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin3 true
+ addUserKnob {6 use_add4 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add4 l "line 4  A" +HIDDEN}
+ add4 {1024 400}
+ addUserKnob {12 add4b l B -STARTLINE +HIDDEN}
+ add4b {1024 400}
+ addUserKnob {22 del4 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(4, nuke.thisNode())"}
+ addUserKnob {6 pin4 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin4 true
+ addUserKnob {6 use_add5 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add5 l "line 5  A" +HIDDEN}
+ add5 {1024 400}
+ addUserKnob {12 add5b l B -STARTLINE +HIDDEN}
+ add5b {1024 400}
+ addUserKnob {22 del5 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(5, nuke.thisNode())"}
+ addUserKnob {6 pin5 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin5 true
+ addUserKnob {6 use_add6 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add6 l "line 6  A" +HIDDEN}
+ add6 {1024 400}
+ addUserKnob {12 add6b l B -STARTLINE +HIDDEN}
+ add6b {1024 400}
+ addUserKnob {22 del6 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(6, nuke.thisNode())"}
+ addUserKnob {6 pin6 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin6 true
+ addUserKnob {6 use_add7 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add7 l "line 7  A" +HIDDEN}
+ add7 {1024 400}
+ addUserKnob {12 add7b l B -STARTLINE +HIDDEN}
+ add7b {1024 400}
+ addUserKnob {22 del7 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(7, nuke.thisNode())"}
+ addUserKnob {6 pin7 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin7 true
+ addUserKnob {6 use_add8 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add8 l "line 8  A" +HIDDEN}
+ add8 {1024 400}
+ addUserKnob {12 add8b l B -STARTLINE +HIDDEN}
+ add8b {1024 400}
+ addUserKnob {22 del8 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(8, nuke.thisNode())"}
+ addUserKnob {6 pin8 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin8 true
+ addUserKnob {6 use_add9 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add9 l "line 9  A" +HIDDEN}
+ add9 {1024 400}
+ addUserKnob {12 add9b l B -STARTLINE +HIDDEN}
+ add9b {1024 400}
+ addUserKnob {22 del9 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(9, nuke.thisNode())"}
+ addUserKnob {6 pin9 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin9 true
+ addUserKnob {6 use_add10 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add10 l "line 10  A" +HIDDEN}
+ add10 {1024 400}
+ addUserKnob {12 add10b l B -STARTLINE +HIDDEN}
+ add10b {1024 400}
+ addUserKnob {22 del10 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(10, nuke.thisNode())"}
+ addUserKnob {6 pin10 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin10 true
+ addUserKnob {6 use_add11 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add11 l "line 11  A" +HIDDEN}
+ add11 {1024 400}
+ addUserKnob {12 add11b l B -STARTLINE +HIDDEN}
+ add11b {1024 400}
+ addUserKnob {22 del11 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(11, nuke.thisNode())"}
+ addUserKnob {6 pin11 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin11 true
+ addUserKnob {6 use_add12 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add12 l "line 12  A" +HIDDEN}
+ add12 {1024 400}
+ addUserKnob {12 add12b l B -STARTLINE +HIDDEN}
+ add12b {1024 400}
+ addUserKnob {22 del12 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(12, nuke.thisNode())"}
+ addUserKnob {6 pin12 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin12 true
+ addUserKnob {20 howto l "How to use"}
+ addUserKnob {26 howto_h l "" +STARTLINE T "<b>dhPerspGuide marks one direction in the scene</b>"}
+ addUserKnob {26 howto_s l "" +STARTLINE T "<b>1.</b> Put this under your plate.<br><b>2.</b> Find two edges that are parallel in real life but converge on screen. Drag <i>line 1</i> onto one and <i>line 2</i> onto the other. They do not have to be on the ground, and longer is better than shorter.<br><b>3.</b> Set <i>these lines are</i>: <b>ground</b> for a direction running away from you, <b>across</b> for one running left to right in front of you, <b>vertical</b> for upright edges.<br><b>4.</b> Add a second guide for the other level direction, at right angles to the first. Add a third on the uprights if you like; it makes the solve better and it is recognized on its own.<br><b>5.</b> Drop a <b>dhPerspSolve</b> under the last one."}
+ addUserKnob {26 howto_d l "" +STARTLINE}
+ addUserKnob {26 howto_n l "" +STARTLINE T "<b>Picking edges.</b> The two lines must follow the same real direction. Two curbs on opposite sides of a street, the top and bottom of the same wall, two window sills on the same facade. Two edges that only look parallel will give a confident wrong answer.<br><br><b>Longer is better.</b> A short line placed a pixel out swings its vanishing point a long way. Trace the longest clean run of the edge you can find.<br><br><b>Lens distortion, if you ever need it.</b> A lens bends straight edges a little, most in the corners of frame and most on a wide one, and this fits a straight line to whatever you trace. Usually too small to be worth a thought. On a wide plate that will not settle, trace nearer the middle of frame, and if that is not enough put a LensDistortion above the guides.<br><br><b>Height does not matter.</b> Every level edge running the same way shares a vanishing point whatever height it is at, so a roofline works as well as a curb and is usually easier to trace.<br><br><b>More than two lines.</b> <i>add line</i> on the PerspLines tab draws extra lines out through the same vanishing point, for checking the fit against other edges in the plate. They do not change the solve."}
+ addUserKnob {7 _La1 +INVISIBLE}
+ _La1 {{"p1a.y - p1b.y"}}
+ addUserKnob {7 _Lb1 +INVISIBLE}
+ _Lb1 {{"p1b.x - p1a.x"}}
+ addUserKnob {7 _Lc1 +INVISIBLE}
+ _Lc1 {{"p1a.x*p1b.y - p1b.x*p1a.y"}}
+ addUserKnob {7 _Ln1 +INVISIBLE}
+ _Ln1 {{"_La1*_La1 + _Lb1*_Lb1"}}
+ addUserKnob {7 _Lw1 +INVISIBLE}
+ _Lw1 {{"(1 && _Ln1 > 1e-9) ? 1/_Ln1 : 0"}}
+ addUserKnob {7 _La2 +INVISIBLE}
+ _La2 {{"p2a.y - p2b.y"}}
+ addUserKnob {7 _Lb2 +INVISIBLE}
+ _Lb2 {{"p2b.x - p2a.x"}}
+ addUserKnob {7 _Lc2 +INVISIBLE}
+ _Lc2 {{"p2a.x*p2b.y - p2b.x*p2a.y"}}
+ addUserKnob {7 _Ln2 +INVISIBLE}
+ _Ln2 {{"_La2*_La2 + _Lb2*_Lb2"}}
+ addUserKnob {7 _Lw2 +INVISIBLE}
+ _Lw2 {{"(1 && _Ln2 > 1e-9) ? 1/_Ln2 : 0"}}
+ addUserKnob {7 _La3 +INVISIBLE}
+ _La3 {{"add1.y - add1b.y"}}
+ addUserKnob {7 _Lb3 +INVISIBLE}
+ _Lb3 {{"add1b.x - add1.x"}}
+ addUserKnob {7 _Lc3 +INVISIBLE}
+ _Lc3 {{"add1.x*add1b.y - add1b.x*add1.y"}}
+ addUserKnob {7 _Ln3 +INVISIBLE}
+ _Ln3 {{"_La3*_La3 + _Lb3*_Lb3"}}
+ addUserKnob {7 _Lw3 +INVISIBLE}
+ _Lw3 {{"(use_add1 && !pin1 && _Ln3 > 1e-9) ? 1/_Ln3 : 0"}}
+ addUserKnob {7 _La4 +INVISIBLE}
+ _La4 {{"add2.y - add2b.y"}}
+ addUserKnob {7 _Lb4 +INVISIBLE}
+ _Lb4 {{"add2b.x - add2.x"}}
+ addUserKnob {7 _Lc4 +INVISIBLE}
+ _Lc4 {{"add2.x*add2b.y - add2b.x*add2.y"}}
+ addUserKnob {7 _Ln4 +INVISIBLE}
+ _Ln4 {{"_La4*_La4 + _Lb4*_Lb4"}}
+ addUserKnob {7 _Lw4 +INVISIBLE}
+ _Lw4 {{"(use_add2 && !pin2 && _Ln4 > 1e-9) ? 1/_Ln4 : 0"}}
+ addUserKnob {7 _La5 +INVISIBLE}
+ _La5 {{"add3.y - add3b.y"}}
+ addUserKnob {7 _Lb5 +INVISIBLE}
+ _Lb5 {{"add3b.x - add3.x"}}
+ addUserKnob {7 _Lc5 +INVISIBLE}
+ _Lc5 {{"add3.x*add3b.y - add3b.x*add3.y"}}
+ addUserKnob {7 _Ln5 +INVISIBLE}
+ _Ln5 {{"_La5*_La5 + _Lb5*_Lb5"}}
+ addUserKnob {7 _Lw5 +INVISIBLE}
+ _Lw5 {{"(use_add3 && !pin3 && _Ln5 > 1e-9) ? 1/_Ln5 : 0"}}
+ addUserKnob {7 _La6 +INVISIBLE}
+ _La6 {{"add4.y - add4b.y"}}
+ addUserKnob {7 _Lb6 +INVISIBLE}
+ _Lb6 {{"add4b.x - add4.x"}}
+ addUserKnob {7 _Lc6 +INVISIBLE}
+ _Lc6 {{"add4.x*add4b.y - add4b.x*add4.y"}}
+ addUserKnob {7 _Ln6 +INVISIBLE}
+ _Ln6 {{"_La6*_La6 + _Lb6*_Lb6"}}
+ addUserKnob {7 _Lw6 +INVISIBLE}
+ _Lw6 {{"(use_add4 && !pin4 && _Ln6 > 1e-9) ? 1/_Ln6 : 0"}}
+ addUserKnob {7 _La7 +INVISIBLE}
+ _La7 {{"add5.y - add5b.y"}}
+ addUserKnob {7 _Lb7 +INVISIBLE}
+ _Lb7 {{"add5b.x - add5.x"}}
+ addUserKnob {7 _Lc7 +INVISIBLE}
+ _Lc7 {{"add5.x*add5b.y - add5b.x*add5.y"}}
+ addUserKnob {7 _Ln7 +INVISIBLE}
+ _Ln7 {{"_La7*_La7 + _Lb7*_Lb7"}}
+ addUserKnob {7 _Lw7 +INVISIBLE}
+ _Lw7 {{"(use_add5 && !pin5 && _Ln7 > 1e-9) ? 1/_Ln7 : 0"}}
+ addUserKnob {7 _La8 +INVISIBLE}
+ _La8 {{"add6.y - add6b.y"}}
+ addUserKnob {7 _Lb8 +INVISIBLE}
+ _Lb8 {{"add6b.x - add6.x"}}
+ addUserKnob {7 _Lc8 +INVISIBLE}
+ _Lc8 {{"add6.x*add6b.y - add6b.x*add6.y"}}
+ addUserKnob {7 _Ln8 +INVISIBLE}
+ _Ln8 {{"_La8*_La8 + _Lb8*_Lb8"}}
+ addUserKnob {7 _Lw8 +INVISIBLE}
+ _Lw8 {{"(use_add6 && !pin6 && _Ln8 > 1e-9) ? 1/_Ln8 : 0"}}
+ addUserKnob {7 _La9 +INVISIBLE}
+ _La9 {{"add7.y - add7b.y"}}
+ addUserKnob {7 _Lb9 +INVISIBLE}
+ _Lb9 {{"add7b.x - add7.x"}}
+ addUserKnob {7 _Lc9 +INVISIBLE}
+ _Lc9 {{"add7.x*add7b.y - add7b.x*add7.y"}}
+ addUserKnob {7 _Ln9 +INVISIBLE}
+ _Ln9 {{"_La9*_La9 + _Lb9*_Lb9"}}
+ addUserKnob {7 _Lw9 +INVISIBLE}
+ _Lw9 {{"(use_add7 && !pin7 && _Ln9 > 1e-9) ? 1/_Ln9 : 0"}}
+ addUserKnob {7 _La10 +INVISIBLE}
+ _La10 {{"add8.y - add8b.y"}}
+ addUserKnob {7 _Lb10 +INVISIBLE}
+ _Lb10 {{"add8b.x - add8.x"}}
+ addUserKnob {7 _Lc10 +INVISIBLE}
+ _Lc10 {{"add8.x*add8b.y - add8b.x*add8.y"}}
+ addUserKnob {7 _Ln10 +INVISIBLE}
+ _Ln10 {{"_La10*_La10 + _Lb10*_Lb10"}}
+ addUserKnob {7 _Lw10 +INVISIBLE}
+ _Lw10 {{"(use_add8 && !pin8 && _Ln10 > 1e-9) ? 1/_Ln10 : 0"}}
+ addUserKnob {7 _La11 +INVISIBLE}
+ _La11 {{"add9.y - add9b.y"}}
+ addUserKnob {7 _Lb11 +INVISIBLE}
+ _Lb11 {{"add9b.x - add9.x"}}
+ addUserKnob {7 _Lc11 +INVISIBLE}
+ _Lc11 {{"add9.x*add9b.y - add9b.x*add9.y"}}
+ addUserKnob {7 _Ln11 +INVISIBLE}
+ _Ln11 {{"_La11*_La11 + _Lb11*_Lb11"}}
+ addUserKnob {7 _Lw11 +INVISIBLE}
+ _Lw11 {{"(use_add9 && !pin9 && _Ln11 > 1e-9) ? 1/_Ln11 : 0"}}
+ addUserKnob {7 _La12 +INVISIBLE}
+ _La12 {{"add10.y - add10b.y"}}
+ addUserKnob {7 _Lb12 +INVISIBLE}
+ _Lb12 {{"add10b.x - add10.x"}}
+ addUserKnob {7 _Lc12 +INVISIBLE}
+ _Lc12 {{"add10.x*add10b.y - add10b.x*add10.y"}}
+ addUserKnob {7 _Ln12 +INVISIBLE}
+ _Ln12 {{"_La12*_La12 + _Lb12*_Lb12"}}
+ addUserKnob {7 _Lw12 +INVISIBLE}
+ _Lw12 {{"(use_add10 && !pin10 && _Ln12 > 1e-9) ? 1/_Ln12 : 0"}}
+ addUserKnob {7 _La13 +INVISIBLE}
+ _La13 {{"add11.y - add11b.y"}}
+ addUserKnob {7 _Lb13 +INVISIBLE}
+ _Lb13 {{"add11b.x - add11.x"}}
+ addUserKnob {7 _Lc13 +INVISIBLE}
+ _Lc13 {{"add11.x*add11b.y - add11b.x*add11.y"}}
+ addUserKnob {7 _Ln13 +INVISIBLE}
+ _Ln13 {{"_La13*_La13 + _Lb13*_Lb13"}}
+ addUserKnob {7 _Lw13 +INVISIBLE}
+ _Lw13 {{"(use_add11 && !pin11 && _Ln13 > 1e-9) ? 1/_Ln13 : 0"}}
+ addUserKnob {7 _La14 +INVISIBLE}
+ _La14 {{"add12.y - add12b.y"}}
+ addUserKnob {7 _Lb14 +INVISIBLE}
+ _Lb14 {{"add12b.x - add12.x"}}
+ addUserKnob {7 _Lc14 +INVISIBLE}
+ _Lc14 {{"add12.x*add12b.y - add12b.x*add12.y"}}
+ addUserKnob {7 _Ln14 +INVISIBLE}
+ _Ln14 {{"_La14*_La14 + _Lb14*_Lb14"}}
+ addUserKnob {7 _Lw14 +INVISIBLE}
+ _Lw14 {{"(use_add12 && !pin12 && _Ln14 > 1e-9) ? 1/_Ln14 : 0"}}
+ addUserKnob {7 _Saa +INVISIBLE}
+ _Saa {{"_Lw1*_La1*_La1 + _Lw2*_La2*_La2 + _Lw3*_La3*_La3 + _Lw4*_La4*_La4 + _Lw5*_La5*_La5 + _Lw6*_La6*_La6 + _Lw7*_La7*_La7 + _Lw8*_La8*_La8 + _Lw9*_La9*_La9 + _Lw10*_La10*_La10 + _Lw11*_La11*_La11 + _Lw12*_La12*_La12 + _Lw13*_La13*_La13 + _Lw14*_La14*_La14"}}
+ addUserKnob {7 _Sab +INVISIBLE}
+ _Sab {{"_Lw1*_La1*_Lb1 + _Lw2*_La2*_Lb2 + _Lw3*_La3*_Lb3 + _Lw4*_La4*_Lb4 + _Lw5*_La5*_Lb5 + _Lw6*_La6*_Lb6 + _Lw7*_La7*_Lb7 + _Lw8*_La8*_Lb8 + _Lw9*_La9*_Lb9 + _Lw10*_La10*_Lb10 + _Lw11*_La11*_Lb11 + _Lw12*_La12*_Lb12 + _Lw13*_La13*_Lb13 + _Lw14*_La14*_Lb14"}}
+ addUserKnob {7 _Sbb +INVISIBLE}
+ _Sbb {{"_Lw1*_Lb1*_Lb1 + _Lw2*_Lb2*_Lb2 + _Lw3*_Lb3*_Lb3 + _Lw4*_Lb4*_Lb4 + _Lw5*_Lb5*_Lb5 + _Lw6*_Lb6*_Lb6 + _Lw7*_Lb7*_Lb7 + _Lw8*_Lb8*_Lb8 + _Lw9*_Lb9*_Lb9 + _Lw10*_Lb10*_Lb10 + _Lw11*_Lb11*_Lb11 + _Lw12*_Lb12*_Lb12 + _Lw13*_Lb13*_Lb13 + _Lw14*_Lb14*_Lb14"}}
+ addUserKnob {7 _Sac +INVISIBLE}
+ _Sac {{"_Lw1*_La1*_Lc1 + _Lw2*_La2*_Lc2 + _Lw3*_La3*_Lc3 + _Lw4*_La4*_Lc4 + _Lw5*_La5*_Lc5 + _Lw6*_La6*_Lc6 + _Lw7*_La7*_Lc7 + _Lw8*_La8*_Lc8 + _Lw9*_La9*_Lc9 + _Lw10*_La10*_Lc10 + _Lw11*_La11*_Lc11 + _Lw12*_La12*_Lc12 + _Lw13*_La13*_Lc13 + _Lw14*_La14*_Lc14"}}
+ addUserKnob {7 _Sbc +INVISIBLE}
+ _Sbc {{"_Lw1*_Lb1*_Lc1 + _Lw2*_Lb2*_Lc2 + _Lw3*_Lb3*_Lc3 + _Lw4*_Lb4*_Lc4 + _Lw5*_Lb5*_Lc5 + _Lw6*_Lb6*_Lc6 + _Lw7*_Lb7*_Lc7 + _Lw8*_Lb8*_Lc8 + _Lw9*_Lb9*_Lc9 + _Lw10*_Lb10*_Lc10 + _Lw11*_Lb11*_Lc11 + _Lw12*_Lb12*_Lc12 + _Lw13*_Lb13*_Lc13 + _Lw14*_Lb14*_Lc14"}}
+ addUserKnob {7 _Scc +INVISIBLE}
+ _Scc {{"_Lw1*_Lc1*_Lc1 + _Lw2*_Lc2*_Lc2 + _Lw3*_Lc3*_Lc3 + _Lw4*_Lc4*_Lc4 + _Lw5*_Lc5*_Lc5 + _Lw6*_Lc6*_Lc6 + _Lw7*_Lc7*_Lc7 + _Lw8*_Lc8*_Lc8 + _Lw9*_Lc9*_Lc9 + _Lw10*_Lc10*_Lc10 + _Lw11*_Lc11*_Lc11 + _Lw12*_Lc12*_Lc12 + _Lw13*_Lc13*_Lc13 + _Lw14*_Lc14*_Lc14"}}
+ addUserKnob {7 _Snum +INVISIBLE}
+ _Snum {{"max(_Saa + _Sbb, 1e-9)"}}
+ addUserKnob {7 _Sdet +INVISIBLE}
+ _Sdet {{"_Saa*_Sbb - _Sab*_Sab"}}
+ addUserKnob {7 _Spx +INVISIBLE}
+ _Spx {{"abs(_Sdet) < 1e-12 ? width/2 : (_Sab*_Sbc - _Sac*_Sbb)/_Sdet"}}
+ addUserKnob {7 _Spy +INVISIBLE}
+ _Spy {{"abs(_Sdet) < 1e-12 ? height/2 : (_Sac*_Sab - _Saa*_Sbc)/_Sdet"}}
+ addUserKnob {7 _Sdisc +INVISIBLE}
+ _Sdisc {{"sqrt(pow(_Saa-_Sbb,2) + 4*_Sab*_Sab)"}}
+ addUserKnob {7 _Slam +INVISIBLE}
+ _Slam {{"(_Saa + _Sbb - _Sdisc)/2"}}
+ addUserKnob {7 _Sn1 +INVISIBLE}
+ _Sn1 {{"_Sab*_Sab + (_Slam-_Saa)*(_Slam-_Saa)"}}
+ addUserKnob {7 _Sn2 +INVISIBLE}
+ _Sn2 {{"(_Slam-_Sbb)*(_Slam-_Sbb) + _Sab*_Sab"}}
+ addUserKnob {7 _Sdx +INVISIBLE}
+ _Sdx {{"_Sn1 >= _Sn2 ? _Sab : _Slam-_Sbb"}}
+ addUserKnob {7 _Sdy +INVISIBLE}
+ _Sdy {{"_Sn1 >= _Sn2 ? _Slam-_Saa : _Sab"}}
+ addUserKnob {7 _Sdn +INVISIBLE}
+ _Sdn {{"max(sqrt(_Sdx*_Sdx + _Sdy*_Sdy),1e-12)"}}
+ addUserKnob {7 _Sdot +INVISIBLE}
+ _Sdot {{"(_Spx - width/2)*_Sdx + (_Spy - height/2)*_Sdy"}}
+ addUserKnob {7 _Ssg +INVISIBLE}
+ _Ssg {{"abs(_Sdet) < 1e-12 ? (_Sdx < -1e-12 ? -1 : (_Sdx > 1e-12 ? 1 : (_Sdy < 0 ? -1 : 1))) : (_Sdot < 0 ? -1 : 1)"}}
+ addUserKnob {7 _Sdiag +INVISIBLE}
+ _Sdiag {{"sqrt(width*width + height*height)"}}
+ addUserKnob {7 _Srms +INVISIBLE}
+ _Srms {{"sqrt(max((_Scc + _Sac*_Spx + _Sbc*_Spy)/_Snum, 0))"}}
+ addUserKnob {7 _Sreach +INVISIBLE}
+ _Sreach {{"max(sqrt(pow(_Spx-width/2,2) + pow(_Spy-height/2,2)), _Sdiag)"}}
+ addUserKnob {7 _Sang +INVISIBLE}
+ _Sang {{_Srms/_Sreach}}
+ addUserKnob {7 _Sfar +INVISIBLE}
+ _Sfar {{"(abs(_Sdet) < 1e-12 || _Sreach > 100*_Sdiag || _Sang > 0.01) ? 1 : 0"}}
+}
+ Input {
+  inputs 0
+  name Input1
+ }
+set Nc9a08480 [stack 0]
+ Expression {
+  temp_name0 cov
+  temp_expr0 "(max(max(max(max(max(max(max(max(max(max(max(max(max(clamp((parent.linewidth/2 + 0.5) - (abs((parent.p1b.y-parent.p1a.y)*(x+0.5-parent.p1a.x) - (parent.p1b.x-parent.p1a.x)*(y+0.5-parent.p1a.y))/max(sqrt((parent.p1b.y-parent.p1a.y)*(parent.p1b.y-parent.p1a.y) + (parent.p1b.x-parent.p1a.x)*(parent.p1b.x-parent.p1a.x)),1e-6)),0,1),clamp((parent.linewidth/2 + 0.5) - (abs((parent.p2b.y-parent.p2a.y)*(x+0.5-parent.p2a.x) - (parent.p2b.x-parent.p2a.x)*(y+0.5-parent.p2a.y))/max(sqrt((parent.p2b.y-parent.p2a.y)*(parent.p2b.y-parent.p2a.y) + (parent.p2b.x-parent.p2a.x)*(parent.p2b.x-parent.p2a.x)),1e-6)),0,1)),(parent.use_add1 ? (parent.pin1 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add1.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add1.y-parent.vp.y,2) + pow(parent.add1.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln3 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.add1b.y)*(x+0.5-parent.add1b.x) - (parent.add1.x-parent.add1b.x)*(y+0.5-parent.add1b.y))/max(sqrt(parent._Ln3),1e-6)),0,1) : 0)) : 0)),(parent.use_add2 ? (parent.pin2 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add2.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add2.y-parent.vp.y,2) + pow(parent.add2.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln4 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.add2b.y)*(x+0.5-parent.add2b.x) - (parent.add2.x-parent.add2b.x)*(y+0.5-parent.add2b.y))/max(sqrt(parent._Ln4),1e-6)),0,1) : 0)) : 0)),(parent.use_add3 ? (parent.pin3 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add3.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add3.y-parent.vp.y,2) + pow(parent.add3.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln5 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.add3b.y)*(x+0.5-parent.add3b.x) - (parent.add3.x-parent.add3b.x)*(y+0.5-parent.add3b.y))/max(sqrt(parent._Ln5),1e-6)),0,1) : 0)) : 0)),(parent.use_add4 ? (parent.pin4 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add4.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add4.y-parent.vp.y,2) + pow(parent.add4.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln6 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.add4b.y)*(x+0.5-parent.add4b.x) - (parent.add4.x-parent.add4b.x)*(y+0.5-parent.add4b.y))/max(sqrt(parent._Ln6),1e-6)),0,1) : 0)) : 0)),(parent.use_add5 ? (parent.pin5 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add5.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add5.y-parent.vp.y,2) + pow(parent.add5.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln7 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.add5b.y)*(x+0.5-parent.add5b.x) - (parent.add5.x-parent.add5b.x)*(y+0.5-parent.add5b.y))/max(sqrt(parent._Ln7),1e-6)),0,1) : 0)) : 0)),(parent.use_add6 ? (parent.pin6 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add6.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add6.y-parent.vp.y,2) + pow(parent.add6.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln8 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.add6b.y)*(x+0.5-parent.add6b.x) - (parent.add6.x-parent.add6b.x)*(y+0.5-parent.add6b.y))/max(sqrt(parent._Ln8),1e-6)),0,1) : 0)) : 0)),(parent.use_add7 ? (parent.pin7 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add7.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add7.y-parent.vp.y,2) + pow(parent.add7.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln9 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.add7b.y)*(x+0.5-parent.add7b.x) - (parent.add7.x-parent.add7b.x)*(y+0.5-parent.add7b.y))/max(sqrt(parent._Ln9),1e-6)),0,1) : 0)) : 0)),(parent.use_add8 ? (parent.pin8 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add8.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add8.y-parent.vp.y,2) + pow(parent.add8.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln10 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.add8b.y)*(x+0.5-parent.add8b.x) - (parent.add8.x-parent.add8b.x)*(y+0.5-parent.add8b.y))/max(sqrt(parent._Ln10),1e-6)),0,1) : 0)) : 0)),(parent.use_add9 ? (parent.pin9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add9.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add9.y-parent.vp.y,2) + pow(parent.add9.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln11 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.add9b.y)*(x+0.5-parent.add9b.x) - (parent.add9.x-parent.add9b.x)*(y+0.5-parent.add9b.y))/max(sqrt(parent._Ln11),1e-6)),0,1) : 0)) : 0)),(parent.use_add10 ? (parent.pin10 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add10.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add10.y-parent.vp.y,2) + pow(parent.add10.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln12 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.add10b.y)*(x+0.5-parent.add10b.x) - (parent.add10.x-parent.add10b.x)*(y+0.5-parent.add10b.y))/max(sqrt(parent._Ln12),1e-6)),0,1) : 0)) : 0)),(parent.use_add11 ? (parent.pin11 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add11.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add11.y-parent.vp.y,2) + pow(parent.add11.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln13 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.add11b.y)*(x+0.5-parent.add11b.x) - (parent.add11.x-parent.add11b.x)*(y+0.5-parent.add11b.y))/max(sqrt(parent._Ln13),1e-6)),0,1) : 0)) : 0)),(parent.use_add12 ? (parent.pin12 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add12.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add12.y-parent.vp.y,2) + pow(parent.add12.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln14 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.add12b.y)*(x+0.5-parent.add12b.x) - (parent.add12.x-parent.add12b.x)*(y+0.5-parent.add12b.y))/max(sqrt(parent._Ln14),1e-6)),0,1) : 0)) : 0))) * parent.opacity * parent.linecolor.a"
+  expr0 "parent.linecolor.r * cov"
+  expr1 "parent.linecolor.g * cov"
+  expr2 "parent.linecolor.b * cov"
+  expr3 cov
+  name lines
+ }
+set Ndc320d00 [stack 0]
+push $Ndc320d00
+push $Nc9a08480
+ Merge2 {
+  inputs 2
+  name overlay
+ }
+ Switch {
+  inputs 2
+  which {{parent.lines_only}}
+  name outmode
+ }
+ Output {
+  name Output1
+ }
+end_group
+Group {
+ name dhPerspGuide1
+ help "Marks one direction in the scene.\n\nDrag its two lines onto two edges that are parallel in the real world but converge on screen: two curbs, two window sills, two building corners. Where those lines cross is that direction's vanishing point, and that is the number dhPerspSolve reads.\n\nSay which sort of direction it is with 'these lines are'. Ground runs away from you, across runs left to right in front of you, vertical is upright.\n\nA camera solve needs two of these, one ground and one across. A third set to vertical is optional and lets the solve find the real lens axis instead of assuming the center of frame.\n\nStack them under the plate and drop a dhPerspSolve at the bottom. It picks them up on its own.\n\nWorth knowing: this reads a straight edge as a straight line, and a real lens bends them a little, most in the corners of frame and most on a wide lens. Usually too small to matter. If a wide plate gives an answer you cannot make sit right, undistorting it first is the thing to try."
+ onCreate "try:\n    import dhPersp\n    dhPersp.on_create(nuke.thisNode())\nexcept Exception:\n    pass"
+ knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
+ updateUI "try:\n    import dhPersp\n    dhPersp.on_update_ui(nuke.thisNode())\nexcept Exception:\n    pass"
+ xpos -40
+ ypos 226
+ addUserKnob {20 main l PerspLines}
+ addUserKnob {7 _build l "" -STARTLINE +INVISIBLE}
+ _build 25
+ addUserKnob {4 role l "these lines are" t "Which direction in the scene these two lines follow.\n\nground: runs away from you into the picture. Curbs, road markings, the seams in paving, the long side of a building going away from you.\n\nacross: runs left to right in front of you. The top of a wall facing the camera, a window sill or a roofline on it. It does not have to be at ground level and it does not have to be on the ground: every level edge running the same way shares a vanishing point whatever height it is at, and a long clean edge up in the air is usually easier to trace than a curb with people standing on it.\n\nvertical: upright. Building corners, door frames, lamp posts.\n\nA solve needs one ground and one across. Saying which is which also fixes which way the exported scene's X and Z axes run, so the camera arrives in Maya or Blender the right way round, and it stops the axis choice flipping in the middle of an animated solve. A vertical guide is optional and lets the solve work out where the lens axis really sits; with three guides connected the upright one is recognized from its own lines." M {ground across vertical}}
+ addUserKnob {19 linecolor l color t "Set on its own from 'these lines are': red for ground, green for across, blue for vertical. The buttons override it, for a plate where one of those disappears into the picture; that does not change the role, only the color."}
+ linecolor {0 1 0 1}
+ addUserKnob {6 linecolor_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {22 setR l R -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[1, 0, 0, 1])"}
+ addUserKnob {22 setG l G -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[0, 1, 0, 1])"}
+ addUserKnob {22 setB l B -STARTLINE T "nuke.thisNode()\['linecolor'].setValue(\[0, 0, 1, 1])"}
+ addUserKnob {7 opacity}
+ opacity 1
+ addUserKnob {7 linewidth l "line width" R 0.5 10}
+ linewidth 2
+ addUserKnob {6 lines_only l "output lines only" +STARTLINE}
+ addUserKnob {26 d1 l "" +STARTLINE}
+ addUserKnob {26 l1 l "line 1"}
+ addUserKnob {12 p1a l "point A"}
+ p1a {312.3999939 542.7999878}
+ addUserKnob {12 p1b l "point B"}
+ p1b {845 272.3999939}
+ addUserKnob {26 l2 l "line 2"}
+ addUserKnob {12 p2a l "point A"}
+ p2a {469.6000061 331.2000122}
+ addUserKnob {12 p2b l "point B"}
+ p2b {805.4000244 232.3999939}
+ addUserKnob {22 fitformat l "fit to format" t "Re-place the points against the current format. Uses the connected image if there is one, otherwise the project format." T "import dhPersp\ndhPersp.fit_to_format(nuke.thisNode(), quiet=False)" +STARTLINE}
+ addUserKnob {6 _fitted l "" -STARTLINE +INVISIBLE}
+ _fitted true
+ addUserKnob {7 _fitw +INVISIBLE}
+ _fitw 1024
+ addUserKnob {7 _fith +INVISIBLE}
+ _fith 683
+ addUserKnob {26 d2 l "" +STARTLINE}
+ addUserKnob {26 status l "" +STARTLINE T ""}
+ addUserKnob {12 vp l "vanishing point" t "Fitted from every line on this node that has length: the two base lines and any added ones. Two lines give exactly their intersection; more than two give the point that sits closest to all of them, which no single mis-traced edge can drag around. Lines that barely converge meet so far away that the meeting point is not a real quantity, so past a hundred frame diagonals this reports their common direction placed very far along it instead, which is the same line and is stable. dhPerspSolve links to this." +DISABLED}
+ vp {{"_Sfar ? width/2 + _Ssg*_Sdx/_Sdn*1e6 : _Spx"} {"_Sfar ? height/2 + _Ssg*_Sdy/_Sdn*1e6 : _Spy"}}
+ addUserKnob {12 vp_drag l "drag vanishing point" t "Drag this to aim both lines at a new vanishing point. Each line swings about its point A, which stays put, so put those on features you trust."}
+ vp_drag {1086.954084 149.5603728}
+ addUserKnob {26 d3 l "" +STARTLINE}
+ addUserKnob {26 l3 l "additional lines"}
+ addUserKnob {22 addline l "add line" t "Add another line along the same direction, with its own point A and point B, feeding the vanishing point along with the first two: more lines traced well means a better fit. Tick 'follows the vanishing point' on it instead and it goes back to being a single point drawn out from the vanishing point, which cannot move the answer either way. Up to 12." -STARTLINE T "import dhPersp\ndhPersp.add_line(nuke.thisNode())"}
+ addUserKnob {22 clearlines l "clear all" -STARTLINE T "import dhPersp\ndhPersp.clear_lines(nuke.thisNode())"}
+ addUserKnob {6 use_add1 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add1 l "line 1  A" +HIDDEN}
+ add1 {1024 400}
+ addUserKnob {12 add1b l B -STARTLINE +HIDDEN}
+ add1b {1024 400}
+ addUserKnob {22 del1 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(1, nuke.thisNode())"}
+ addUserKnob {6 pin1 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin1 true
+ addUserKnob {6 use_add2 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add2 l "line 2  A" +HIDDEN}
+ add2 {1024 400}
+ addUserKnob {12 add2b l B -STARTLINE +HIDDEN}
+ add2b {1024 400}
+ addUserKnob {22 del2 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(2, nuke.thisNode())"}
+ addUserKnob {6 pin2 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin2 true
+ addUserKnob {6 use_add3 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add3 l "line 3  A" +HIDDEN}
+ add3 {1024 400}
+ addUserKnob {12 add3b l B -STARTLINE +HIDDEN}
+ add3b {1024 400}
+ addUserKnob {22 del3 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(3, nuke.thisNode())"}
+ addUserKnob {6 pin3 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin3 true
+ addUserKnob {6 use_add4 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add4 l "line 4  A" +HIDDEN}
+ add4 {1024 400}
+ addUserKnob {12 add4b l B -STARTLINE +HIDDEN}
+ add4b {1024 400}
+ addUserKnob {22 del4 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(4, nuke.thisNode())"}
+ addUserKnob {6 pin4 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin4 true
+ addUserKnob {6 use_add5 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add5 l "line 5  A" +HIDDEN}
+ add5 {1024 400}
+ addUserKnob {12 add5b l B -STARTLINE +HIDDEN}
+ add5b {1024 400}
+ addUserKnob {22 del5 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(5, nuke.thisNode())"}
+ addUserKnob {6 pin5 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin5 true
+ addUserKnob {6 use_add6 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add6 l "line 6  A" +HIDDEN}
+ add6 {1024 400}
+ addUserKnob {12 add6b l B -STARTLINE +HIDDEN}
+ add6b {1024 400}
+ addUserKnob {22 del6 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(6, nuke.thisNode())"}
+ addUserKnob {6 pin6 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin6 true
+ addUserKnob {6 use_add7 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add7 l "line 7  A" +HIDDEN}
+ add7 {1024 400}
+ addUserKnob {12 add7b l B -STARTLINE +HIDDEN}
+ add7b {1024 400}
+ addUserKnob {22 del7 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(7, nuke.thisNode())"}
+ addUserKnob {6 pin7 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin7 true
+ addUserKnob {6 use_add8 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add8 l "line 8  A" +HIDDEN}
+ add8 {1024 400}
+ addUserKnob {12 add8b l B -STARTLINE +HIDDEN}
+ add8b {1024 400}
+ addUserKnob {22 del8 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(8, nuke.thisNode())"}
+ addUserKnob {6 pin8 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin8 true
+ addUserKnob {6 use_add9 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add9 l "line 9  A" +HIDDEN}
+ add9 {1024 400}
+ addUserKnob {12 add9b l B -STARTLINE +HIDDEN}
+ add9b {1024 400}
+ addUserKnob {22 del9 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(9, nuke.thisNode())"}
+ addUserKnob {6 pin9 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin9 true
+ addUserKnob {6 use_add10 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add10 l "line 10  A" +HIDDEN}
+ add10 {1024 400}
+ addUserKnob {12 add10b l B -STARTLINE +HIDDEN}
+ add10b {1024 400}
+ addUserKnob {22 del10 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(10, nuke.thisNode())"}
+ addUserKnob {6 pin10 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin10 true
+ addUserKnob {6 use_add11 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add11 l "line 11  A" +HIDDEN}
+ add11 {1024 400}
+ addUserKnob {12 add11b l B -STARTLINE +HIDDEN}
+ add11b {1024 400}
+ addUserKnob {22 del11 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(11, nuke.thisNode())"}
+ addUserKnob {6 pin11 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin11 true
+ addUserKnob {6 use_add12 l "" -STARTLINE +HIDDEN}
+ addUserKnob {12 add12 l "line 12  A" +HIDDEN}
+ add12 {1024 400}
+ addUserKnob {12 add12b l B -STARTLINE +HIDDEN}
+ add12b {1024 400}
+ addUserKnob {22 del12 l delete -STARTLINE +HIDDEN T "import dhPersp\ndhPersp.del_line(12, nuke.thisNode())"}
+ addUserKnob {6 pin12 l "follows the vanishing point" t "On, this line runs out from the vanishing point through its one point: a prediction of where an edge should lie, useful for checking the fit against another feature. It cannot move the vanishing point, because it was drawn from it.\n\nOff, it has two points and is a line in its own right, and it votes on the vanishing point along with the others. More lines traced well give a better answer; a line traced badly makes a worse one, so trace it along a real edge or leave this on." +HIDDEN +STARTLINE}
+ pin12 true
+ addUserKnob {20 howto l "How to use"}
+ addUserKnob {26 howto_h l "" +STARTLINE T "<b>dhPerspGuide marks one direction in the scene</b>"}
+ addUserKnob {26 howto_s l "" +STARTLINE T "<b>1.</b> Put this under your plate.<br><b>2.</b> Find two edges that are parallel in real life but converge on screen. Drag <i>line 1</i> onto one and <i>line 2</i> onto the other. They do not have to be on the ground, and longer is better than shorter.<br><b>3.</b> Set <i>these lines are</i>: <b>ground</b> for a direction running away from you, <b>across</b> for one running left to right in front of you, <b>vertical</b> for upright edges.<br><b>4.</b> Add a second guide for the other level direction, at right angles to the first. Add a third on the uprights if you like; it makes the solve better and it is recognized on its own.<br><b>5.</b> Drop a <b>dhPerspSolve</b> under the last one."}
+ addUserKnob {26 howto_d l "" +STARTLINE}
+ addUserKnob {26 howto_n l "" +STARTLINE T "<b>Picking edges.</b> The two lines must follow the same real direction. Two curbs on opposite sides of a street, the top and bottom of the same wall, two window sills on the same facade. Two edges that only look parallel will give a confident wrong answer.<br><br><b>Longer is better.</b> A short line placed a pixel out swings its vanishing point a long way. Trace the longest clean run of the edge you can find.<br><br><b>Lens distortion, if you ever need it.</b> A lens bends straight edges a little, most in the corners of frame and most on a wide one, and this fits a straight line to whatever you trace. Usually too small to be worth a thought. On a wide plate that will not settle, trace nearer the middle of frame, and if that is not enough put a LensDistortion above the guides.<br><br><b>Height does not matter.</b> Every level edge running the same way shares a vanishing point whatever height it is at, so a roofline works as well as a curb and is usually easier to trace.<br><br><b>More than two lines.</b> <i>add line</i> on the PerspLines tab draws extra lines out through the same vanishing point, for checking the fit against other edges in the plate. They do not change the solve."}
+ addUserKnob {7 _La1 +INVISIBLE}
+ _La1 {{"p1a.y - p1b.y"}}
+ addUserKnob {7 _Lb1 +INVISIBLE}
+ _Lb1 {{"p1b.x - p1a.x"}}
+ addUserKnob {7 _Lc1 +INVISIBLE}
+ _Lc1 {{"p1a.x*p1b.y - p1b.x*p1a.y"}}
+ addUserKnob {7 _Ln1 +INVISIBLE}
+ _Ln1 {{"_La1*_La1 + _Lb1*_Lb1"}}
+ addUserKnob {7 _Lw1 +INVISIBLE}
+ _Lw1 {{"(1 && _Ln1 > 1e-9) ? 1/_Ln1 : 0"}}
+ addUserKnob {7 _La2 +INVISIBLE}
+ _La2 {{"p2a.y - p2b.y"}}
+ addUserKnob {7 _Lb2 +INVISIBLE}
+ _Lb2 {{"p2b.x - p2a.x"}}
+ addUserKnob {7 _Lc2 +INVISIBLE}
+ _Lc2 {{"p2a.x*p2b.y - p2b.x*p2a.y"}}
+ addUserKnob {7 _Ln2 +INVISIBLE}
+ _Ln2 {{"_La2*_La2 + _Lb2*_Lb2"}}
+ addUserKnob {7 _Lw2 +INVISIBLE}
+ _Lw2 {{"(1 && _Ln2 > 1e-9) ? 1/_Ln2 : 0"}}
+ addUserKnob {7 _La3 +INVISIBLE}
+ _La3 {{"add1.y - add1b.y"}}
+ addUserKnob {7 _Lb3 +INVISIBLE}
+ _Lb3 {{"add1b.x - add1.x"}}
+ addUserKnob {7 _Lc3 +INVISIBLE}
+ _Lc3 {{"add1.x*add1b.y - add1b.x*add1.y"}}
+ addUserKnob {7 _Ln3 +INVISIBLE}
+ _Ln3 {{"_La3*_La3 + _Lb3*_Lb3"}}
+ addUserKnob {7 _Lw3 +INVISIBLE}
+ _Lw3 {{"(use_add1 && !pin1 && _Ln3 > 1e-9) ? 1/_Ln3 : 0"}}
+ addUserKnob {7 _La4 +INVISIBLE}
+ _La4 {{"add2.y - add2b.y"}}
+ addUserKnob {7 _Lb4 +INVISIBLE}
+ _Lb4 {{"add2b.x - add2.x"}}
+ addUserKnob {7 _Lc4 +INVISIBLE}
+ _Lc4 {{"add2.x*add2b.y - add2b.x*add2.y"}}
+ addUserKnob {7 _Ln4 +INVISIBLE}
+ _Ln4 {{"_La4*_La4 + _Lb4*_Lb4"}}
+ addUserKnob {7 _Lw4 +INVISIBLE}
+ _Lw4 {{"(use_add2 && !pin2 && _Ln4 > 1e-9) ? 1/_Ln4 : 0"}}
+ addUserKnob {7 _La5 +INVISIBLE}
+ _La5 {{"add3.y - add3b.y"}}
+ addUserKnob {7 _Lb5 +INVISIBLE}
+ _Lb5 {{"add3b.x - add3.x"}}
+ addUserKnob {7 _Lc5 +INVISIBLE}
+ _Lc5 {{"add3.x*add3b.y - add3b.x*add3.y"}}
+ addUserKnob {7 _Ln5 +INVISIBLE}
+ _Ln5 {{"_La5*_La5 + _Lb5*_Lb5"}}
+ addUserKnob {7 _Lw5 +INVISIBLE}
+ _Lw5 {{"(use_add3 && !pin3 && _Ln5 > 1e-9) ? 1/_Ln5 : 0"}}
+ addUserKnob {7 _La6 +INVISIBLE}
+ _La6 {{"add4.y - add4b.y"}}
+ addUserKnob {7 _Lb6 +INVISIBLE}
+ _Lb6 {{"add4b.x - add4.x"}}
+ addUserKnob {7 _Lc6 +INVISIBLE}
+ _Lc6 {{"add4.x*add4b.y - add4b.x*add4.y"}}
+ addUserKnob {7 _Ln6 +INVISIBLE}
+ _Ln6 {{"_La6*_La6 + _Lb6*_Lb6"}}
+ addUserKnob {7 _Lw6 +INVISIBLE}
+ _Lw6 {{"(use_add4 && !pin4 && _Ln6 > 1e-9) ? 1/_Ln6 : 0"}}
+ addUserKnob {7 _La7 +INVISIBLE}
+ _La7 {{"add5.y - add5b.y"}}
+ addUserKnob {7 _Lb7 +INVISIBLE}
+ _Lb7 {{"add5b.x - add5.x"}}
+ addUserKnob {7 _Lc7 +INVISIBLE}
+ _Lc7 {{"add5.x*add5b.y - add5b.x*add5.y"}}
+ addUserKnob {7 _Ln7 +INVISIBLE}
+ _Ln7 {{"_La7*_La7 + _Lb7*_Lb7"}}
+ addUserKnob {7 _Lw7 +INVISIBLE}
+ _Lw7 {{"(use_add5 && !pin5 && _Ln7 > 1e-9) ? 1/_Ln7 : 0"}}
+ addUserKnob {7 _La8 +INVISIBLE}
+ _La8 {{"add6.y - add6b.y"}}
+ addUserKnob {7 _Lb8 +INVISIBLE}
+ _Lb8 {{"add6b.x - add6.x"}}
+ addUserKnob {7 _Lc8 +INVISIBLE}
+ _Lc8 {{"add6.x*add6b.y - add6b.x*add6.y"}}
+ addUserKnob {7 _Ln8 +INVISIBLE}
+ _Ln8 {{"_La8*_La8 + _Lb8*_Lb8"}}
+ addUserKnob {7 _Lw8 +INVISIBLE}
+ _Lw8 {{"(use_add6 && !pin6 && _Ln8 > 1e-9) ? 1/_Ln8 : 0"}}
+ addUserKnob {7 _La9 +INVISIBLE}
+ _La9 {{"add7.y - add7b.y"}}
+ addUserKnob {7 _Lb9 +INVISIBLE}
+ _Lb9 {{"add7b.x - add7.x"}}
+ addUserKnob {7 _Lc9 +INVISIBLE}
+ _Lc9 {{"add7.x*add7b.y - add7b.x*add7.y"}}
+ addUserKnob {7 _Ln9 +INVISIBLE}
+ _Ln9 {{"_La9*_La9 + _Lb9*_Lb9"}}
+ addUserKnob {7 _Lw9 +INVISIBLE}
+ _Lw9 {{"(use_add7 && !pin7 && _Ln9 > 1e-9) ? 1/_Ln9 : 0"}}
+ addUserKnob {7 _La10 +INVISIBLE}
+ _La10 {{"add8.y - add8b.y"}}
+ addUserKnob {7 _Lb10 +INVISIBLE}
+ _Lb10 {{"add8b.x - add8.x"}}
+ addUserKnob {7 _Lc10 +INVISIBLE}
+ _Lc10 {{"add8.x*add8b.y - add8b.x*add8.y"}}
+ addUserKnob {7 _Ln10 +INVISIBLE}
+ _Ln10 {{"_La10*_La10 + _Lb10*_Lb10"}}
+ addUserKnob {7 _Lw10 +INVISIBLE}
+ _Lw10 {{"(use_add8 && !pin8 && _Ln10 > 1e-9) ? 1/_Ln10 : 0"}}
+ addUserKnob {7 _La11 +INVISIBLE}
+ _La11 {{"add9.y - add9b.y"}}
+ addUserKnob {7 _Lb11 +INVISIBLE}
+ _Lb11 {{"add9b.x - add9.x"}}
+ addUserKnob {7 _Lc11 +INVISIBLE}
+ _Lc11 {{"add9.x*add9b.y - add9b.x*add9.y"}}
+ addUserKnob {7 _Ln11 +INVISIBLE}
+ _Ln11 {{"_La11*_La11 + _Lb11*_Lb11"}}
+ addUserKnob {7 _Lw11 +INVISIBLE}
+ _Lw11 {{"(use_add9 && !pin9 && _Ln11 > 1e-9) ? 1/_Ln11 : 0"}}
+ addUserKnob {7 _La12 +INVISIBLE}
+ _La12 {{"add10.y - add10b.y"}}
+ addUserKnob {7 _Lb12 +INVISIBLE}
+ _Lb12 {{"add10b.x - add10.x"}}
+ addUserKnob {7 _Lc12 +INVISIBLE}
+ _Lc12 {{"add10.x*add10b.y - add10b.x*add10.y"}}
+ addUserKnob {7 _Ln12 +INVISIBLE}
+ _Ln12 {{"_La12*_La12 + _Lb12*_Lb12"}}
+ addUserKnob {7 _Lw12 +INVISIBLE}
+ _Lw12 {{"(use_add10 && !pin10 && _Ln12 > 1e-9) ? 1/_Ln12 : 0"}}
+ addUserKnob {7 _La13 +INVISIBLE}
+ _La13 {{"add11.y - add11b.y"}}
+ addUserKnob {7 _Lb13 +INVISIBLE}
+ _Lb13 {{"add11b.x - add11.x"}}
+ addUserKnob {7 _Lc13 +INVISIBLE}
+ _Lc13 {{"add11.x*add11b.y - add11b.x*add11.y"}}
+ addUserKnob {7 _Ln13 +INVISIBLE}
+ _Ln13 {{"_La13*_La13 + _Lb13*_Lb13"}}
+ addUserKnob {7 _Lw13 +INVISIBLE}
+ _Lw13 {{"(use_add11 && !pin11 && _Ln13 > 1e-9) ? 1/_Ln13 : 0"}}
+ addUserKnob {7 _La14 +INVISIBLE}
+ _La14 {{"add12.y - add12b.y"}}
+ addUserKnob {7 _Lb14 +INVISIBLE}
+ _Lb14 {{"add12b.x - add12.x"}}
+ addUserKnob {7 _Lc14 +INVISIBLE}
+ _Lc14 {{"add12.x*add12b.y - add12b.x*add12.y"}}
+ addUserKnob {7 _Ln14 +INVISIBLE}
+ _Ln14 {{"_La14*_La14 + _Lb14*_Lb14"}}
+ addUserKnob {7 _Lw14 +INVISIBLE}
+ _Lw14 {{"(use_add12 && !pin12 && _Ln14 > 1e-9) ? 1/_Ln14 : 0"}}
+ addUserKnob {7 _Saa +INVISIBLE}
+ _Saa {{"_Lw1*_La1*_La1 + _Lw2*_La2*_La2 + _Lw3*_La3*_La3 + _Lw4*_La4*_La4 + _Lw5*_La5*_La5 + _Lw6*_La6*_La6 + _Lw7*_La7*_La7 + _Lw8*_La8*_La8 + _Lw9*_La9*_La9 + _Lw10*_La10*_La10 + _Lw11*_La11*_La11 + _Lw12*_La12*_La12 + _Lw13*_La13*_La13 + _Lw14*_La14*_La14"}}
+ addUserKnob {7 _Sab +INVISIBLE}
+ _Sab {{"_Lw1*_La1*_Lb1 + _Lw2*_La2*_Lb2 + _Lw3*_La3*_Lb3 + _Lw4*_La4*_Lb4 + _Lw5*_La5*_Lb5 + _Lw6*_La6*_Lb6 + _Lw7*_La7*_Lb7 + _Lw8*_La8*_Lb8 + _Lw9*_La9*_Lb9 + _Lw10*_La10*_Lb10 + _Lw11*_La11*_Lb11 + _Lw12*_La12*_Lb12 + _Lw13*_La13*_Lb13 + _Lw14*_La14*_Lb14"}}
+ addUserKnob {7 _Sbb +INVISIBLE}
+ _Sbb {{"_Lw1*_Lb1*_Lb1 + _Lw2*_Lb2*_Lb2 + _Lw3*_Lb3*_Lb3 + _Lw4*_Lb4*_Lb4 + _Lw5*_Lb5*_Lb5 + _Lw6*_Lb6*_Lb6 + _Lw7*_Lb7*_Lb7 + _Lw8*_Lb8*_Lb8 + _Lw9*_Lb9*_Lb9 + _Lw10*_Lb10*_Lb10 + _Lw11*_Lb11*_Lb11 + _Lw12*_Lb12*_Lb12 + _Lw13*_Lb13*_Lb13 + _Lw14*_Lb14*_Lb14"}}
+ addUserKnob {7 _Sac +INVISIBLE}
+ _Sac {{"_Lw1*_La1*_Lc1 + _Lw2*_La2*_Lc2 + _Lw3*_La3*_Lc3 + _Lw4*_La4*_Lc4 + _Lw5*_La5*_Lc5 + _Lw6*_La6*_Lc6 + _Lw7*_La7*_Lc7 + _Lw8*_La8*_Lc8 + _Lw9*_La9*_Lc9 + _Lw10*_La10*_Lc10 + _Lw11*_La11*_Lc11 + _Lw12*_La12*_Lc12 + _Lw13*_La13*_Lc13 + _Lw14*_La14*_Lc14"}}
+ addUserKnob {7 _Sbc +INVISIBLE}
+ _Sbc {{"_Lw1*_Lb1*_Lc1 + _Lw2*_Lb2*_Lc2 + _Lw3*_Lb3*_Lc3 + _Lw4*_Lb4*_Lc4 + _Lw5*_Lb5*_Lc5 + _Lw6*_Lb6*_Lc6 + _Lw7*_Lb7*_Lc7 + _Lw8*_Lb8*_Lc8 + _Lw9*_Lb9*_Lc9 + _Lw10*_Lb10*_Lc10 + _Lw11*_Lb11*_Lc11 + _Lw12*_Lb12*_Lc12 + _Lw13*_Lb13*_Lc13 + _Lw14*_Lb14*_Lc14"}}
+ addUserKnob {7 _Scc +INVISIBLE}
+ _Scc {{"_Lw1*_Lc1*_Lc1 + _Lw2*_Lc2*_Lc2 + _Lw3*_Lc3*_Lc3 + _Lw4*_Lc4*_Lc4 + _Lw5*_Lc5*_Lc5 + _Lw6*_Lc6*_Lc6 + _Lw7*_Lc7*_Lc7 + _Lw8*_Lc8*_Lc8 + _Lw9*_Lc9*_Lc9 + _Lw10*_Lc10*_Lc10 + _Lw11*_Lc11*_Lc11 + _Lw12*_Lc12*_Lc12 + _Lw13*_Lc13*_Lc13 + _Lw14*_Lc14*_Lc14"}}
+ addUserKnob {7 _Snum +INVISIBLE}
+ _Snum {{"max(_Saa + _Sbb, 1e-9)"}}
+ addUserKnob {7 _Sdet +INVISIBLE}
+ _Sdet {{"_Saa*_Sbb - _Sab*_Sab"}}
+ addUserKnob {7 _Spx +INVISIBLE}
+ _Spx {{"abs(_Sdet) < 1e-12 ? width/2 : (_Sab*_Sbc - _Sac*_Sbb)/_Sdet"}}
+ addUserKnob {7 _Spy +INVISIBLE}
+ _Spy {{"abs(_Sdet) < 1e-12 ? height/2 : (_Sac*_Sab - _Saa*_Sbc)/_Sdet"}}
+ addUserKnob {7 _Sdisc +INVISIBLE}
+ _Sdisc {{"sqrt(pow(_Saa-_Sbb,2) + 4*_Sab*_Sab)"}}
+ addUserKnob {7 _Slam +INVISIBLE}
+ _Slam {{"(_Saa + _Sbb - _Sdisc)/2"}}
+ addUserKnob {7 _Sn1 +INVISIBLE}
+ _Sn1 {{"_Sab*_Sab + (_Slam-_Saa)*(_Slam-_Saa)"}}
+ addUserKnob {7 _Sn2 +INVISIBLE}
+ _Sn2 {{"(_Slam-_Sbb)*(_Slam-_Sbb) + _Sab*_Sab"}}
+ addUserKnob {7 _Sdx +INVISIBLE}
+ _Sdx {{"_Sn1 >= _Sn2 ? _Sab : _Slam-_Sbb"}}
+ addUserKnob {7 _Sdy +INVISIBLE}
+ _Sdy {{"_Sn1 >= _Sn2 ? _Slam-_Saa : _Sab"}}
+ addUserKnob {7 _Sdn +INVISIBLE}
+ _Sdn {{"max(sqrt(_Sdx*_Sdx + _Sdy*_Sdy),1e-12)"}}
+ addUserKnob {7 _Sdot +INVISIBLE}
+ _Sdot {{"(_Spx - width/2)*_Sdx + (_Spy - height/2)*_Sdy"}}
+ addUserKnob {7 _Ssg +INVISIBLE}
+ _Ssg {{"abs(_Sdet) < 1e-12 ? (_Sdx < -1e-12 ? -1 : (_Sdx > 1e-12 ? 1 : (_Sdy < 0 ? -1 : 1))) : (_Sdot < 0 ? -1 : 1)"}}
+ addUserKnob {7 _Sdiag +INVISIBLE}
+ _Sdiag {{"sqrt(width*width + height*height)"}}
+ addUserKnob {7 _Srms +INVISIBLE}
+ _Srms {{"sqrt(max((_Scc + _Sac*_Spx + _Sbc*_Spy)/_Snum, 0))"}}
+ addUserKnob {7 _Sreach +INVISIBLE}
+ _Sreach {{"max(sqrt(pow(_Spx-width/2,2) + pow(_Spy-height/2,2)), _Sdiag)"}}
+ addUserKnob {7 _Sang +INVISIBLE}
+ _Sang {{_Srms/_Sreach}}
+ addUserKnob {7 _Sfar +INVISIBLE}
+ _Sfar {{"(abs(_Sdet) < 1e-12 || _Sreach > 100*_Sdiag || _Sang > 0.01) ? 1 : 0"}}
+}
+ Input {
+  inputs 0
+  name Input1
+ }
+set Nc9a09680 [stack 0]
+ Expression {
+  temp_name0 cov
+  temp_expr0 "(max(max(max(max(max(max(max(max(max(max(max(max(max(clamp((parent.linewidth/2 + 0.5) - (abs((parent.p1b.y-parent.p1a.y)*(x+0.5-parent.p1a.x) - (parent.p1b.x-parent.p1a.x)*(y+0.5-parent.p1a.y))/max(sqrt((parent.p1b.y-parent.p1a.y)*(parent.p1b.y-parent.p1a.y) + (parent.p1b.x-parent.p1a.x)*(parent.p1b.x-parent.p1a.x)),1e-6)),0,1),clamp((parent.linewidth/2 + 0.5) - (abs((parent.p2b.y-parent.p2a.y)*(x+0.5-parent.p2a.x) - (parent.p2b.x-parent.p2a.x)*(y+0.5-parent.p2a.y))/max(sqrt((parent.p2b.y-parent.p2a.y)*(parent.p2b.y-parent.p2a.y) + (parent.p2b.x-parent.p2a.x)*(parent.p2b.x-parent.p2a.x)),1e-6)),0,1)),(parent.use_add1 ? (parent.pin1 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add1.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add1.y-parent.vp.y,2) + pow(parent.add1.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln3 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add1.y-parent.add1b.y)*(x+0.5-parent.add1b.x) - (parent.add1.x-parent.add1b.x)*(y+0.5-parent.add1b.y))/max(sqrt(parent._Ln3),1e-6)),0,1) : 0)) : 0)),(parent.use_add2 ? (parent.pin2 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add2.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add2.y-parent.vp.y,2) + pow(parent.add2.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln4 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add2.y-parent.add2b.y)*(x+0.5-parent.add2b.x) - (parent.add2.x-parent.add2b.x)*(y+0.5-parent.add2b.y))/max(sqrt(parent._Ln4),1e-6)),0,1) : 0)) : 0)),(parent.use_add3 ? (parent.pin3 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add3.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add3.y-parent.vp.y,2) + pow(parent.add3.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln5 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add3.y-parent.add3b.y)*(x+0.5-parent.add3b.x) - (parent.add3.x-parent.add3b.x)*(y+0.5-parent.add3b.y))/max(sqrt(parent._Ln5),1e-6)),0,1) : 0)) : 0)),(parent.use_add4 ? (parent.pin4 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add4.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add4.y-parent.vp.y,2) + pow(parent.add4.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln6 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add4.y-parent.add4b.y)*(x+0.5-parent.add4b.x) - (parent.add4.x-parent.add4b.x)*(y+0.5-parent.add4b.y))/max(sqrt(parent._Ln6),1e-6)),0,1) : 0)) : 0)),(parent.use_add5 ? (parent.pin5 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add5.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add5.y-parent.vp.y,2) + pow(parent.add5.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln7 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add5.y-parent.add5b.y)*(x+0.5-parent.add5b.x) - (parent.add5.x-parent.add5b.x)*(y+0.5-parent.add5b.y))/max(sqrt(parent._Ln7),1e-6)),0,1) : 0)) : 0)),(parent.use_add6 ? (parent.pin6 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add6.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add6.y-parent.vp.y,2) + pow(parent.add6.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln8 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add6.y-parent.add6b.y)*(x+0.5-parent.add6b.x) - (parent.add6.x-parent.add6b.x)*(y+0.5-parent.add6b.y))/max(sqrt(parent._Ln8),1e-6)),0,1) : 0)) : 0)),(parent.use_add7 ? (parent.pin7 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add7.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add7.y-parent.vp.y,2) + pow(parent.add7.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln9 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add7.y-parent.add7b.y)*(x+0.5-parent.add7b.x) - (parent.add7.x-parent.add7b.x)*(y+0.5-parent.add7b.y))/max(sqrt(parent._Ln9),1e-6)),0,1) : 0)) : 0)),(parent.use_add8 ? (parent.pin8 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add8.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add8.y-parent.vp.y,2) + pow(parent.add8.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln10 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add8.y-parent.add8b.y)*(x+0.5-parent.add8b.x) - (parent.add8.x-parent.add8b.x)*(y+0.5-parent.add8b.y))/max(sqrt(parent._Ln10),1e-6)),0,1) : 0)) : 0)),(parent.use_add9 ? (parent.pin9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add9.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add9.y-parent.vp.y,2) + pow(parent.add9.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln11 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add9.y-parent.add9b.y)*(x+0.5-parent.add9b.x) - (parent.add9.x-parent.add9b.x)*(y+0.5-parent.add9b.y))/max(sqrt(parent._Ln11),1e-6)),0,1) : 0)) : 0)),(parent.use_add10 ? (parent.pin10 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add10.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add10.y-parent.vp.y,2) + pow(parent.add10.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln12 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add10.y-parent.add10b.y)*(x+0.5-parent.add10b.x) - (parent.add10.x-parent.add10b.x)*(y+0.5-parent.add10b.y))/max(sqrt(parent._Ln12),1e-6)),0,1) : 0)) : 0)),(parent.use_add11 ? (parent.pin11 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add11.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add11.y-parent.vp.y,2) + pow(parent.add11.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln13 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add11.y-parent.add11b.y)*(x+0.5-parent.add11b.x) - (parent.add11.x-parent.add11b.x)*(y+0.5-parent.add11b.y))/max(sqrt(parent._Ln13),1e-6)),0,1) : 0)) : 0)),(parent.use_add12 ? (parent.pin12 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.vp.y)*(x+0.5-parent.vp.x) - (parent.add12.x-parent.vp.x)*(y+0.5-parent.vp.y))/max(sqrt(pow(parent.add12.y-parent.vp.y,2) + pow(parent.add12.x-parent.vp.x,2)),1e-6)),0,1) : (parent._Ln14 > 1e-9 ? clamp((parent.linewidth/2 + 0.5) - (abs((parent.add12.y-parent.add12b.y)*(x+0.5-parent.add12b.x) - (parent.add12.x-parent.add12b.x)*(y+0.5-parent.add12b.y))/max(sqrt(parent._Ln14),1e-6)),0,1) : 0)) : 0))) * parent.opacity * parent.linecolor.a"
+  expr0 "parent.linecolor.r * cov"
+  expr1 "parent.linecolor.g * cov"
+  expr2 "parent.linecolor.b * cov"
+  expr3 cov
+  name lines
+ }
+set N4240000 [stack 0]
+push $N4240000
+push $Nc9a09680
+ Merge2 {
+  inputs 2
+  name overlay
+ }
+ Switch {
+  inputs 2
+  which {{parent.lines_only}}
+  name outmode
+ }
+ Output {
+  name Output1
+ }
+end_group
+Group {
+ name dhPerspSolve
+ help "Turns dhPerspGuide nodes into a camera.\n\nConnect it below two or three guides and it links itself. From their vanishing points it solves the focal length, the tilt, the pan and the roll, draws the horizon, and draws the ground plane through the solve so you can see whether it is right. If the grid lies flat on the floor in the plate, the camera is good.\n\nA photograph has no scale of its own, so set the camera height on the Scale tab. That is the one measurement that turns the solve into a real scene, and nothing else about the solve changes when you do it.\n\nThen press export camera. The exported camera stays linked, so it keeps following the guides, frame by frame if you have animated them, until you press bake values on it.\n\nWorth knowing: this reads a straight edge as a straight line, and a real lens bends them a little, most in the corners of frame and most on a wide lens. Usually too small to matter. If a wide plate gives an answer you cannot make sit right, undistorting it first is the thing to try."
+ onCreate "try:\n    import dhPersp\n    dhPersp.on_create_solve(nuke.thisNode())\nexcept Exception:\n    pass"
+ knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
+ xpos -40
+ ypos 272
+ addUserKnob {20 main l Horizon}
+ addUserKnob {7 _build l "" -STARTLINE +INVISIBLE}
+ _build 25
+ addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
+ show_horizon true
+ addUserKnob {19 horizoncolor l color}
+ horizoncolor {0 1 1 1}
+ addUserKnob {6 horizoncolor_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {7 horizonwidth l "line width" R 0.5 10}
+ horizonwidth 2
+ addUserKnob {26 d0 l "" +STARTLINE}
+ addUserKnob {26 t1 l "vanishing points"}
+ addUserKnob {12 vp1 l "vp 1" t "Expression-linked to a dhPerspGuide vp knob by the menu command."}
+ vp1 {{dhPerspGuide1.vp.x} {dhPerspGuide1.vp.y}}
+ addUserKnob {12 vp2 l "vp 2"}
+ vp2 {{dhPerspGuide.vp.x} {dhPerspGuide.vp.y}}
+ addUserKnob {12 vp3 l "vp 3 (vertical)" t "Vanishing point of the upright edges. Linked from a dhPerspGuide whose 'these lines are' is vertical. Leave the third guide off and the solve assumes the lens axis is at the center of frame, as before."}
+ vp3 {960 1000000000}
+ addUserKnob {6 use_vertical l "solve the lens axis from a vertical guide" t "With three mutually perpendicular vanishing points the principal point is the orthocenter of their triangle, so it is solved instead of assumed. Ignored automatically when the verticals are too close to parallel for their vanishing point to mean anything." +STARTLINE}
+ addUserKnob {26 axis_note l "" +STARTLINE T "lens axis: center of frame (no vertical guide)"}
+ addUserKnob {26 linked_to l "" t "Which dhPerspGuide drives each vanishing point. Selection order is not click order, so check here before wondering why moving a guide did nothing." +STARTLINE T "vp1 &larr; dhPerspGuide1   vp2 &larr; dhPerspGuide"}
+ addUserKnob {22 link_guides l "solve from guides" t "Normally automatic: two dhPerspGuide nodes anywhere in this node's input chain are picked up on their own, and moving them updates the camera live. Press this only to re-link, or to link two guides that are selected but not connected." T "import dhPersp\ndhPersp.link_guides(nuke.thisNode())" +STARTLINE}
+ addUserKnob {22 unlink_guides l unlink t "Keep the current vanishing points as plain numbers and stop following the guides." -STARTLINE T "import dhPersp\ndhPersp.unlink_guides(nuke.thisNode())"}
+ addUserKnob {26 status l "" +STARTLINE T ""}
+ addUserKnob {20 floor l "3D Floor"}
+ addUserKnob {6 show_floor l "show 3D floor" -STARTLINE}
+ show_floor true
+ addUserKnob {19 gridcolor l color}
+ gridcolor {1 0.65 0.1 1}
+ addUserKnob {6 gridcolor_panelDropped l "panel dropped state" -STARTLINE +HIDDEN}
+ addUserKnob {7 gridwidth l "line width" t "Thickness of the grid lines in pixels, held constant wherever they are on the ground." R 0.5 6}
+ gridwidth 1
+ addUserKnob {6 fade_far l "thin out lines too fine to draw" t "Off, the grid is drawn at full strength all the way to the horizon, and where the lines close up tighter than a pixel the ground fills in solid, which is what they really do. On, each direction dims in proportion to how far apart its own lines are, which keeps the far half of frame from turning into moire at the cost of the grid stopping short of the horizon." +STARTLINE}
+ addUserKnob {7 cellsize l "cell size" t "Size of one floor tile, in the working unit set on the Scale tab. The ground is drawn out to the horizon whatever this is; lines too fine to resolve fade out rather than alias." R 0.05 20}
+ cellsize 1
+ addUserKnob {13 gridoffset l "grid offset" t "Move the grid. X and Z slide it along the ground, in the two directions your guides marked. Y raises and lowers the ground itself: the camera stays at the height on the Scale tab and the ground sits at Y, so raising it brings the floor nearer and spreads the cells down the frame, and lowering it pushes the ground away and bunches them toward the horizon. Use it when the floor in the plate is not at the height the camera height implies."}
+ addUserKnob {26 d2 l "" +STARTLINE}
+ addUserKnob {4 axis_from l "ground X axis runs toward" t "The geometry cannot tell which horizontal direction is X and which is Z, so there are always two valid cameras. Their yaws are complementary and add up to ninety degrees. If the floor grid looks turned against the plate, switch this. The Horizon tab shows which guide feeds each vanishing point. Pin this to one of the two before animating: automatic decides again on every frame, and because the two answers are ninety degrees apart the frame where it changes its mind puts a ninety degree snap in the move." M {"auto (smaller turn)" "vanishing point 1" "vanishing point 2"}}
+ addUserKnob {26 axis_state l "" +STARTLINE T "<b>Not pinned.</b> Both guides are set to the same thing, so which way X and Z run is being guessed at. Set the one running left to right in front of the camera to 'across' and the one running away from you to 'ground'. It decides which way round the scene arrives in Maya, and on an animated solve the guess can flip ninety degrees mid shot."}
+ addUserKnob {20 scale_tab l Scale}
+ addUserKnob {26 t_scale l "" +STARTLINE T "A photograph has no scale of its own. Set the height the camera was at and everything else becomes real."}
+ addUserKnob {4 unit l "working unit" t "The unit every length on this node is in: camera height, cell size, grid size, distance and offset. Changing it converts the values you have already set, so the setup does not move." M {feet meters centimeters}}
+ addUserKnob {7 camera_height l "camera height" t "Height of the camera above the ground plane, in the working unit. This is the one measurement that gives the solve a real scale. Eye level is about 5.5 ft or 1.7 m, a tripod about 4.5 ft or 1.4 m." R 0.1 40}
+ camera_height 5.5
+ addUserKnob {26 scale_note l "" +STARTLINE T "1 cell = 1 feet   (0.3048 m / 1 ft).   Camera 5.5 feet above the ground   (1.676 m / 5.5 ft)."}
+ addUserKnob {26 t_dcc l "" +STARTLINE T "Set the same unit in your 3D package before importing: Maya Preferences, Settings, Linear. Blender Scene Properties, Units, Length."}
+ addUserKnob {7 _unit_was +INVISIBLE}
+ addUserKnob {20 solve l "Camera Solve"}
+ addUserKnob {6 use_known_focal l "I know the focal length" t "Use a measured focal length instead of solving one from the vanishing points. The vanishing points then only set the orientation." +STARTLINE}
+ addUserKnob {7 known_focal l "focal (mm)" t "Focal length from the camera report or lens metadata." R 4 300}
+ known_focal 35
+ addUserKnob {7 filmback l "film back (mm)" t "Horizontal sensor size. Needed to turn millimeters into pixels. Nuke's default 35mm Academy is 24.576." R 4 70}
+ filmback 24.576
+ addUserKnob {26 dsolve l "" +STARTLINE}
+ addUserKnob {26 tsolve l result}
+ addUserKnob {26 sanity l "" t "A very small focal length, or a roll of more than a few degrees, almost always means the two guides are not marking two perpendicular sets of parallel edges. Check that each guide's two lines lie along real receding edges in the plate, and that the two guides follow directions at right angles to each other on the ground." +STARTLINE T "A believable solve is roughly 10 to 100mm with roll near zero."}
+ addUserKnob {26 verdict l "" +STARTLINE T "<b>These two guides do not describe a camera.</b> For a real lens the two vanishing points have to sit on opposite sides of the lens axis along the horizon, and these do not. Usually one guide is following the same direction on the ground as the other, or one of its lines is not on a receding edge. On a shot square to a wall there may be no answer from two guides at all, because the wall's own horizontals barely converge: add a third guide along the upright edges, or tick 'I know the focal length'. The focal length below is a floor value, not a solve."}
+ addUserKnob {7 cam_focal l "focal (mm)" +DISABLED}
+ cam_focal {{"_f * sqrt(pow(cam.haperture,2)+pow(cam.vaperture,2)) / max(sqrt(width*width + height*height),1e-6)"}}
+ addUserKnob {7 cam_rx l "rotate X" +DISABLED}
+ cam_rx {{_rx}}
+ addUserKnob {7 cam_ry l "rotate Y" +DISABLED}
+ cam_ry {{_ry}}
+ addUserKnob {7 cam_rz l "rotate Z" +DISABLED}
+ cam_rz {{_rz}}
+ addUserKnob {26 d3 l "" +STARTLINE}
+ addUserKnob {22 export_cam l "export camera" t "Put a copy of the solved camera in the node graph. It stays linked to this node, and carries a 'bake values' button to freeze it." -STARTLINE T "import dhPersp\ndhPersp.export_camera(nuke.thisNode())"}
+ addUserKnob {6 _fitted l "" -STARTLINE +INVISIBLE}
+ _fitted true
+ addUserKnob {22 fitformat l "fit to format" t "Re-place the vanishing points against the current format." -STARTLINE T "import dhPersp\ndhPersp.fit_solve_to_format(nuke.thisNode(), quiet=False)"}
+ addUserKnob {7 _diag +INVISIBLE}
+ _diag {{"sqrt(width*width + height*height)"}}
+ addUserKnob {7 _v3d +INVISIBLE}
+ _v3d {{"sqrt(pow(vp3.x-width/2,2) + pow(vp3.y-height/2,2))"}}
+ addUserKnob {7 _v3use +INVISIBLE}
+ _v3use {{"(use_vertical && _v3d > 0.75*_diag && _v3d < 25*_diag) ? 1 : 0"}}
+ addUserKnob {7 _tri +INVISIBLE}
+ _tri {{"(sqrt(pow(vp1.x-width/2,2) + pow(vp1.y-height/2,2)) < 8*_diag && sqrt(pow(vp2.x-width/2,2) + pow(vp2.y-height/2,2)) < 8*_diag) ? 1 : 0"}}
+ addUserKnob {7 _oa1 +INVISIBLE}
+ _oa1 {{"vp2.x - vp3.x"}}
+ addUserKnob {7 _ob1 +INVISIBLE}
+ _ob1 {{"vp2.y - vp3.y"}}
+ addUserKnob {7 _oc1 +INVISIBLE}
+ _oc1 {{"_oa1*vp1.x + _ob1*vp1.y"}}
+ addUserKnob {7 _oa2 +INVISIBLE}
+ _oa2 {{"vp1.x - vp3.x"}}
+ addUserKnob {7 _ob2 +INVISIBLE}
+ _ob2 {{"vp1.y - vp3.y"}}
+ addUserKnob {7 _oc2 +INVISIBLE}
+ _oc2 {{"_oa2*vp2.x + _ob2*vp2.y"}}
+ addUserKnob {7 _odet +INVISIBLE}
+ _odet {{"_oa1*_ob2 - _oa2*_ob1"}}
+ addUserKnob {7 _ox +INVISIBLE}
+ _ox {{"abs(_odet) < 1e-9 ? width/2 : (_oc1*_ob2 - _oc2*_ob1)/_odet"}}
+ addUserKnob {7 _oy +INVISIBLE}
+ _oy {{"abs(_odet) < 1e-9 ? height/2 : (_oa1*_oc2 - _oa2*_oc1)/_odet"}}
+ addUserKnob {7 _v3ok +INVISIBLE}
+ _v3ok {{"(_v3use && _tri && sqrt(pow(_ox-width/2,2) + pow(_oy-height/2,2)) < 0.5*_diag) ? 1 : 0"}}
+ addUserKnob {7 _px +INVISIBLE}
+ _px {{"_v3ok ? _ox : width/2"}}
+ addUserKnob {7 _py +INVISIBLE}
+ _py {{"_v3ok ? _oy : height/2"}}
+ addUserKnob {7 _dx +INVISIBLE}
+ _dx {{"vp2.x - vp1.x"}}
+ addUserKnob {7 _dy +INVISIBLE}
+ _dy {{"vp2.y - vp1.y"}}
+ addUserKnob {7 _t +INVISIBLE}
+ _t {{"((_px - vp1.x)*_dx + (_py - vp1.y)*_dy) / (max(_dx*_dx + _dy*_dy, 1e-9))"}}
+ addUserKnob {7 _vix +INVISIBLE}
+ _vix {{"vp1.x + _t*_dx"}}
+ addUserKnob {7 _viy +INVISIBLE}
+ _viy {{"vp1.y + _t*_dy"}}
+ addUserKnob {7 _v1 +INVISIBLE}
+ _v1 {{"sqrt(pow(_vix-vp1.x,2) + pow(_viy-vp1.y,2))"}}
+ addUserKnob {7 _v2 +INVISIBLE}
+ _v2 {{"sqrt(pow(_vix-vp2.x,2) + pow(_viy-vp2.y,2))"}}
+ addUserKnob {7 _oivi +INVISIBLE}
+ _oivi {{"sqrt(pow(_px-_vix,2) + pow(_py-_viy,2))"}}
+ addUserKnob {7 _va +INVISIBLE}
+ _va {{"filmback * height / max(width,1e-6)"}}
+ addUserKnob {7 _fknown +INVISIBLE}
+ _fknown {{"known_focal * sqrt(width*width + height*height) / max(sqrt(filmback*filmback + _va*_va),1e-6)"}}
+ addUserKnob {7 _hlen +INVISIBLE}
+ _hlen {{"max(sqrt(_dx*_dx + _dy*_dy),1e-9)"}}
+ addUserKnob {7 _hsign +INVISIBLE}
+ _hsign {{"(_dx < -1e-9 ? -1 : (_dx > 1e-9 ? 1 : (_dy < 0 ? -1 : 1)))"}}
+ addUserKnob {7 _s1 +INVISIBLE}
+ _s1 {{"_hsign*((vp1.x-_vix)*_dx + (vp1.y-_viy)*_dy)/_hlen"}}
+ addUserKnob {7 _s2 +INVISIBLE}
+ _s2 {{"_hsign*((vp2.x-_vix)*_dx + (vp2.y-_viy)*_dy)/_hlen"}}
+ addUserKnob {7 _fmin +INVISIBLE}
+ _fmin {{pow(0.02*_diag,2)}}
+ addUserKnob {7 _d12 +INVISIBLE}
+ _d12 {{"-((vp1.x-_px)*(vp2.x-_px) + (vp1.y-_py)*(vp2.y-_py))"}}
+ addUserKnob {7 _d13 +INVISIBLE}
+ _d13 {{"-((vp1.x-_px)*(vp3.x-_px) + (vp1.y-_py)*(vp3.y-_py))"}}
+ addUserKnob {7 _d23 +INVISIBLE}
+ _d23 {{"-((vp2.x-_px)*(vp3.x-_px) + (vp2.y-_py)*(vp3.y-_py))"}}
+ addUserKnob {7 _rr1 +INVISIBLE}
+ _rr1 {{"sqrt(pow(vp1.x-_px,2) + pow(vp1.y-_py,2))"}}
+ addUserKnob {7 _rr2 +INVISIBLE}
+ _rr2 {{"sqrt(pow(vp2.x-_px,2) + pow(vp2.y-_py,2))"}}
+ addUserKnob {7 _rr3 +INVISIBLE}
+ _rr3 {{"sqrt(pow(vp3.x-_px,2) + pow(vp3.y-_py,2))"}}
+ addUserKnob {7 _q12 +INVISIBLE}
+ _q12 {{"_d12 > _fmin ? max(_rr1,_rr2) : 1e18"}}
+ addUserKnob {7 _q13 +INVISIBLE}
+ _q13 {{"(_v3use && _d13 > _fmin) ? max(_rr1,_rr3) : 1e18"}}
+ addUserKnob {7 _q23 +INVISIBLE}
+ _q23 {{"(_v3use && _d23 > _fmin) ? max(_rr2,_rr3) : 1e18"}}
+ addUserKnob {7 _qb +INVISIBLE}
+ _qb {{"min(_q12, min(_q13, _q23))"}}
+ addUserKnob {7 _pair +INVISIBLE}
+ _pair {{"_qb > 1e17 ? 0 : (_q12 <= _qb ? 12 : (_q13 <= _qb ? 13 : 23))"}}
+ addUserKnob {7 _ill +INVISIBLE}
+ _ill {{"(_qb > 8*_diag && _qb < 1e17) ? 1 : 0"}}
+ addUserKnob {7 _fsq +INVISIBLE}
+ _fsq {{"_pair == 13 ? _d13 : (_pair == 23 ? _d23 : _d12)"}}
+ addUserKnob {7 _solveok +INVISIBLE}
+ _solveok {{"(use_known_focal || _fsq > pow(0.02*_diag,2)) ? 1 : 0"}}
+ addUserKnob {7 _fsolved +INVISIBLE}
+ _fsolved {{"sqrt(max(_fsq, pow(0.02*_diag,2)))"}}
+ addUserKnob {7 _f +INVISIBLE}
+ _f {{"(use_known_focal ? _fknown : _fsolved)"}}
+ addUserKnob {7 _rx +INVISIBLE}
+ _rx {{"atan((_py - _viy)/_f)*180/3.14159265358979"}}
+ addUserKnob {7 _fh +INVISIBLE}
+ _fh {{"sqrt(_f*_f + _oivi*_oivi)"}}
+ addUserKnob {7 _ry +INVISIBLE}
+ _ry {{"atan((axis_from==0 ? (abs(_s2)<abs(_s1) ? _s2 : _s1) : (axis_from==1 ? _s2 : _s1))/_fh)*180/3.14159265358979"}}
+ addUserKnob {7 _rz +INVISIBLE}
+ _rz {{"(abs(_dx) > 1e-9 ? -atan(_dy/_dx)*180/3.14159265358979 : 0)"}}
+ addUserKnob {7 _r1x +INVISIBLE}
+ _r1x {{"(vp1.x - _px)/max(_f,1e-6)"}}
+ addUserKnob {7 _r1y +INVISIBLE}
+ _r1y {{"(vp1.y - _py)/max(_f,1e-6)"}}
+ addUserKnob {7 _l1 +INVISIBLE}
+ _l1 {{"max(sqrt(_r1x*_r1x + _r1y*_r1y + 1),1e-9)"}}
+ addUserKnob {7 _a1x +INVISIBLE}
+ _a1x {{_r1x/_l1}}
+ addUserKnob {7 _a1y +INVISIBLE}
+ _a1y {{_r1y/_l1}}
+ addUserKnob {7 _a1z +INVISIBLE}
+ _a1z {{-1/_l1}}
+ addUserKnob {7 _r2x +INVISIBLE}
+ _r2x {{"(vp2.x - _px)/max(_f,1e-6)"}}
+ addUserKnob {7 _r2y +INVISIBLE}
+ _r2y {{"(vp2.y - _py)/max(_f,1e-6)"}}
+ addUserKnob {7 _l2 +INVISIBLE}
+ _l2 {{"max(sqrt(_r2x*_r2x + _r2y*_r2y + 1),1e-9)"}}
+ addUserKnob {7 _a2x +INVISIBLE}
+ _a2x {{_r2x/_l2}}
+ addUserKnob {7 _a2y +INVISIBLE}
+ _a2y {{_r2y/_l2}}
+ addUserKnob {7 _a2z +INVISIBLE}
+ _a2z {{-1/_l2}}
+ addUserKnob {7 _cx +INVISIBLE}
+ _cx {{"_a1y*_a2z - _a1z*_a2y"}}
+ addUserKnob {7 _cy +INVISIBLE}
+ _cy {{"_a1z*_a2x - _a1x*_a2z"}}
+ addUserKnob {7 _cz +INVISIBLE}
+ _cz {{"_a1x*_a2y - _a1y*_a2x"}}
+ addUserKnob {7 _cl +INVISIBLE}
+ _cl {{"max(sqrt(_cx*_cx + _cy*_cy + _cz*_cz),1e-9) * (_cy < 0 ? -1 : 1)"}}
+ addUserKnob {7 _nx +INVISIBLE}
+ _nx {{_cx/_cl}}
+ addUserKnob {7 _ny +INVISIBLE}
+ _ny {{_cy/_cl}}
+ addUserKnob {7 _nz +INVISIBLE}
+ _nz {{_cz/_cl}}
+ addUserKnob {7 _e2x +INVISIBLE}
+ _e2x {{"_ny*_a1z - _nz*_a1y"}}
+ addUserKnob {7 _e2y +INVISIBLE}
+ _e2y {{"_nz*_a1x - _nx*_a1z"}}
+ addUserKnob {7 _e2z +INVISIBLE}
+ _e2z {{"_nx*_a1y - _ny*_a1x"}}
+ addUserKnob {7 _e2n +INVISIBLE}
+ _e2n {{"max(sqrt(_e2x*_e2x + _e2y*_e2y + _e2z*_e2z),1e-12) * ((_e2x*_a2x + _e2y*_a2y + _e2z*_a2z) < 0 ? -1 : 1)"}}
+ addUserKnob {7 _e1x +INVISIBLE}
+ _e1x {{"_ny*_a2z - _nz*_a2y"}}
+ addUserKnob {7 _e1y +INVISIBLE}
+ _e1y {{"_nz*_a2x - _nx*_a2z"}}
+ addUserKnob {7 _e1z +INVISIBLE}
+ _e1z {{"_nx*_a2y - _ny*_a2x"}}
+ addUserKnob {7 _e1n +INVISIBLE}
+ _e1n {{"max(sqrt(_e1x*_e1x + _e1y*_e1y + _e1z*_e1z),1e-12) * ((_e1x*_a1x + _e1y*_a1y + _e1z*_a1z) < 0 ? -1 : 1)"}}
+ addUserKnob {7 _keep1 +INVISIBLE}
+ _keep1 {{"_rr1 <= _rr2 ? 1 : 0"}}
+ addUserKnob {7 _u1x +INVISIBLE}
+ _u1x {{"_keep1 ? _a1x : _e1x/_e1n"}}
+ addUserKnob {7 _u1y +INVISIBLE}
+ _u1y {{"_keep1 ? _a1y : _e1y/_e1n"}}
+ addUserKnob {7 _u1z +INVISIBLE}
+ _u1z {{"_keep1 ? _a1z : _e1z/_e1n"}}
+ addUserKnob {7 _u2x +INVISIBLE}
+ _u2x {{"_keep1 ? _e2x/_e2n : _a2x"}}
+ addUserKnob {7 _u2y +INVISIBLE}
+ _u2y {{"_keep1 ? _e2y/_e2n : _a2y"}}
+ addUserKnob {7 _u2z +INVISIBLE}
+ _u2z {{"_keep1 ? _e2z/_e2n : _a2z"}}
+ addUserKnob {20 howto l "How to use"}
+ addUserKnob {26 howto_h l "" +STARTLINE T "<b>dhPerspSolve turns the guides into a camera</b>"}
+ addUserKnob {26 howto_s l "" +STARTLINE T "<b>1.</b> Connect this under two or three <b>dhPerspGuide</b> nodes. It links itself; the Horizon tab says which guide feeds which vanishing point.<br><b>2.</b> Read the verdict on the <b>Camera Solve</b> tab. It says whether the guides describe a camera that can exist, and what is wrong if not.<br><b>3.</b> Check the floor. If the grid lies flat on the ground in the plate and runs along the same directions, the solve is right. If it looks turned, set <i>these lines are</i> on your guides, or change <i>ground X axis runs toward</i>.<br><b>4.</b> Set the <b>camera height</b> on the Scale tab. Eye level is about 5.5 ft, a tripod about 4.5 ft. Set <i>cell size</i> to something you can measure in the plate and adjust the height until the cells match.<br><b>5.</b> Press <b>export camera</b>."}
+ addUserKnob {26 howto_d l "" +STARTLINE}
+ addUserKnob {26 howto_n l "" +STARTLINE T "<b>If the focal length looks wrong.</b> The verdict line says why. The usual cause is two guides following the same direction on the ground, or a line that is not on a receding edge. A shot looking straight down a street, where one direction barely converges, cannot be solved from guides alone: tick <i>I know the focal length</i> and let the guides set the orientation only.<br><br><b>Lens distortion, if you ever need it.</b> Every vanishing point here comes from a straight line, and a lens bends straight edges a little, most in the corners of frame and most on a wide one. Usually too small to matter. On a wide plate that will not settle, trace nearer the middle of frame, and if that is not enough put a LensDistortion above the guides.<br><br><b>Scale.</b> A photograph carries no scale, so camera height is the one measurement that gives it one. Changing it moves nothing in the solve: the focal length, the angles and the lens axis are identical at any height. It only decides how big the world is.<br><br><b>Before exporting to Maya or Blender.</b> Set the same linear unit at the other end, and set <i>these lines are</i> on both level guides so the X and Z axes are pinned rather than guessed.<br><br><b>Animation.</b> Key the guide points and the camera follows, frame by frame. Pin the axis first, or the automatic choice can flip ninety degrees mid shot. <i>bake values</i> keeps the whole move."}
+}
+ Input {
+  inputs 0
+  name Input1
+ }
+set Nc9a0a880 [stack 0]
+push $Nc9a0a880
+ Expression {
+  temp_name0 dx
+  temp_expr0 "(x + 0.5 - parent._px)/max(parent._f,1e-6)"
+  temp_name1 dy
+  temp_expr1 "(y + 0.5 - parent._py)/max(parent._f,1e-6)"
+  temp_name2 dd
+  temp_expr2 "dx*parent._nx + dy*parent._ny - parent._nz"
+  temp_name3 hh
+  temp_expr3 "max(parent.camera_height - parent.gridoffset.y,1e-9)"
+  expr0 "-hh*(dx*parent._a1x + dy*parent._a1y - parent._a1z)/(abs(dd) < 1e-9 ? 1e-9 : dd)"
+  expr1 "-hh*(dx*parent._a2x + dy*parent._a2y - parent._a2z)/(abs(dd) < 1e-9 ? 1e-9 : dd)"
+  expr2 dd
+  expr3 1
+  name groundxz
+ }
+ Expression {
+  temp_name0 px1
+  temp_expr0 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height - parent.gridoffset.y,1e-9)*max(sqrt(pow(parent._a1x + r*parent._nx/max(parent.camera_height - parent.gridoffset.y,1e-9),2) + pow(parent._a1y + r*parent._ny/max(parent.camera_height - parent.gridoffset.y,1e-9),2)),1e-12))"
+  temp_name1 pz1
+  temp_expr1 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height - parent.gridoffset.y,1e-9)*max(sqrt(pow(parent._a2x + g*parent._nx/max(parent.camera_height - parent.gridoffset.y,1e-9),2) + pow(parent._a2y + g*parent._ny/max(parent.camera_height - parent.gridoffset.y,1e-9),2)),1e-12))"
+  temp_name2 mx
+  temp_expr2 "parent.fade_far ? (clamp(parent.gridwidth/2 + 0.5 - abs(clamp((r - parent.gridoffset.x)/max(parent.cellsize,1e-6), -1e7, 1e7) - floor(clamp((r - parent.gridoffset.x)/max(parent.cellsize,1e-6), -1e7, 1e7) + 0.5))*px1, 0, 1))*(clamp((sqrt(px1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1)) : ((clamp((px1 - 2*max(parent.gridwidth,0.1))/(2*max(parent.gridwidth,0.1)), 0, 1))*(clamp(parent.gridwidth/2 + 0.5 - abs(clamp((r - parent.gridoffset.x)/max(parent.cellsize,1e-6), -1e7, 1e7) - floor(clamp((r - parent.gridoffset.x)/max(parent.cellsize,1e-6), -1e7, 1e7) + 0.5))*px1, 0, 1)) + (1 - (clamp((px1 - 2*max(parent.gridwidth,0.1))/(2*max(parent.gridwidth,0.1)), 0, 1)))*(clamp(parent.gridwidth/max(px1,1e-9), 0, 1)))"
+  temp_name3 mz
+  temp_expr3 "parent.fade_far ? (clamp(parent.gridwidth/2 + 0.5 - abs(clamp((g - parent.gridoffset.z)/max(parent.cellsize,1e-6), -1e7, 1e7) - floor(clamp((g - parent.gridoffset.z)/max(parent.cellsize,1e-6), -1e7, 1e7) + 0.5))*pz1, 0, 1))*(clamp((sqrt(pz1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1)) : ((clamp((pz1 - 2*max(parent.gridwidth,0.1))/(2*max(parent.gridwidth,0.1)), 0, 1))*(clamp(parent.gridwidth/2 + 0.5 - abs(clamp((g - parent.gridoffset.z)/max(parent.cellsize,1e-6), -1e7, 1e7) - floor(clamp((g - parent.gridoffset.z)/max(parent.cellsize,1e-6), -1e7, 1e7) + 0.5))*pz1, 0, 1)) + (1 - (clamp((pz1 - 2*max(parent.gridwidth,0.1))/(2*max(parent.gridwidth,0.1)), 0, 1)))*(clamp(parent.gridwidth/max(pz1,1e-9), 0, 1)))"
+  expr0 "b < 0 ? max(mx,mz) : 0"
+  expr1 "b < 0 ? max(mx,mz) : 0"
+  expr2 "b < 0 ? max(mx,mz) : 0"
+  expr3 "b < 0 ? max(mx,mz) : 0"
+  name gridmask
+ }
+ Multiply {
+  value {{parent.gridcolor.r} {parent.gridcolor.g} {parent.gridcolor.b} {parent.gridcolor.a}}
+  name gridtint
+ }
+push $Nc9a0a880
+ Merge2 {
+  inputs 2
+  name overlay
+ }
+ Switch {
+  inputs 2
+  which {{!parent.show_floor}}
+  name floor_onoff
+ }
+ Expression {
+  temp_name0 hz
+  temp_expr0 "(parent.show_horizon ? clamp((parent.horizonwidth/2 + 0.5) - (abs((parent.vp2.y-parent.vp1.y)*(x+0.5-parent.vp1.x) - (parent.vp2.x-parent.vp1.x)*(y+0.5-parent.vp1.y))/max(sqrt((parent.vp2.y-parent.vp1.y)*(parent.vp2.y-parent.vp1.y) + (parent.vp2.x-parent.vp1.x)*(parent.vp2.x-parent.vp1.x)),1e-6)),0,1) : 0) * parent.horizoncolor.a"
+  expr0 "parent.horizoncolor.r*hz + r*(1-hz)"
+  expr1 "parent.horizoncolor.g*hz + g*(1-hz)"
+  expr2 "parent.horizoncolor.b*hz + b*(1-hz)"
+  expr3 "max(hz, a)"
+  name horizon_line
+ }
+ Output {
+  name Output1
+ }
+ Camera {
+  inputs 0
+  translate {0 {parent.camera_height} 0}
+  rotate {{parent._rx} {parent._ry} {parent._rz}}
+  focal {{"parent._f * sqrt(pow(haperture,2)+pow(vaperture,2)) / max(sqrt(parent.width*parent.width + parent.height*parent.height),1e-6)"}}
+  haperture {{parent.filmback}}
+  vaperture {{parent._va}}
+  win_translate {{"2*(parent._px - parent.width/2)/parent.width"} {"2*(parent._py - parent.height/2)/parent.height"}}
+  name cam
+ }
+end_group
+Viewer {
+ frame 1
+ frame_range 1-100
+ gain 1.38
+ monitorOutNDISenderName "NukeX - untitled - Viewer1"
+ monitorOutOutputTransform rec709
+ name Viewer1
+ xpos -40
+ ypos -10
+}
