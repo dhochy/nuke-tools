@@ -348,7 +348,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 31
+BUILD = 32
 
 NL = chr(10)
 WARN_BLANK = (
@@ -1254,8 +1254,13 @@ def update_nodes(nodes=None, quiet=False):
     These are Groups so the render farm can run them without the gizmo
     installed, and the price of that is that an existing node keeps the
     internals it was created with. This makes a fresh one, copies the user
-    knobs across (expressions included, so a linked solve stays linked),
-    reconnects it and puts it back where the old one was.
+    knobs across and reconnects it, and puts it back where the old one was.
+
+    What gets copied is what the user set. Anything the fresh node already
+    drives by expression is the gizmo's own arithmetic and is left alone: it is
+    the whole point of the rebuild. Copying it back is how every expression fix
+    from build 26 to build 31 reached new nodes only, while existing ones went
+    on running build 25 under a label that said 31.
     """
     nodes = nodes if nodes is not None else stale_nodes()
     nodes = [n for n in nodes if _class_of(n)]
@@ -1320,6 +1325,25 @@ def update_nodes(nodes=None, quiet=False):
                 k = new.knobs().get(nm)
                 if k is None:
                     continue
+                # A knob the FRESH node already drives by expression belongs to
+                # the gizmo, not to the user: it is the solve. Copying the old
+                # node's version of it puts the old arithmetic back and silently
+                # undoes the update, which is what was happening to the whole
+                # solve chain. A knob the fresh node does NOT drive is one the
+                # user or link_guides set, and that is what has to survive.
+                try:
+                    size = k.arraySize() if hasattr(k, "arraySize") else 1
+                except Exception:
+                    size = 1
+                built_in = set()
+                for idx in range(size):
+                    try:
+                        if k.hasExpression(idx):
+                            built_in.add(idx)
+                    except Exception:
+                        pass
+                if len(built_in) >= size:
+                    continue
                 if entry.get("enum") is not None:
                     label, idx = entry["enum"]
                     try:
@@ -1333,12 +1357,15 @@ def update_nodes(nodes=None, quiet=False):
                             k.setValue(max(0, min(idx, len(options) - 1)))
                     except Exception:
                         pass
-                elif entry["value"] is not None and not entry["exprs"]:
+                elif (entry["value"] is not None and not entry["exprs"]
+                      and not built_in):
                     try:
                         k.setValue(entry["value"])
                     except Exception:
                         pass
                 for idx, ex in entry["exprs"].items():
+                    if idx in built_in:
+                        continue
                     try:
                         k.setExpression(ex, idx)
                     except Exception:

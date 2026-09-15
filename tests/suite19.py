@@ -200,10 +200,19 @@ if os.path.isfile(FIX):
           now is not None and now["pin1"].value(), "")
     check("so it carries no weight", now["_Lw3"].value() == 0.0,
           "weight %.3g" % now["_Lw3"].value())
-    check("and the answer is bit for bit what it was before the rebuild",
-          tuple(now["vp"].value()) == want,
-          "%s against %s" % ([round(v) for v in now["vp"].value()],
-                             [round(v) for v in want]))
+    # This asked for bit for bit equality, and got it, because the rebuild used
+    # to copy the old node's own expressions back over the new build: the answer
+    # was identical because it was literally the same arithmetic. Build 32 keeps
+    # the new build's expressions, which compute the same vanishing point in a
+    # different order of operations, so the last bits can differ. The finding is
+    # that the rebuild does not MOVE the answer, and a thousandth of a pixel is
+    # far below anything that could matter while still catching a real change.
+    # Measured here it moves by 4.6e-13 of a pixel.
+    check("and the answer does not move across the rebuild",
+          max(abs(now["vp"].value()[i] - want[i]) for i in (0, 1)) < 1e-6,
+          "%.10g, %.10g against %.10g, %.10g  (moved %.3g, %.3g)"
+          % (now["vp"].value()[0], now["vp"].value()[1], want[0], want[1],
+             now["vp"].value()[0] - want[0], now["vp"].value()[1] - want[1]))
     check("point A is where it was", abs(now["add1"].value()[0] - 420.0) < 1e-6,
           str(now["add1"].value()))
 else:

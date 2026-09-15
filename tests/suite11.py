@@ -115,6 +115,51 @@ check("it is still wired into the chain",
       again is not None and again.input(0) is not None, "")
 check("nothing is left stale after the load", not dhPersp.stale_nodes(),
       "%d stale" % len(dhPersp.stale_nodes()))
+
+# THE ONE THAT MATTERS. The rebuild copies the old node's knobs onto a fresh
+# one so a linked solve stays linked, and it used to copy all of them, which is
+# almost the whole node: _f, _px, _a1x, _u1x and eighty more ARE the solve. Each
+# came back from the old node and landed on top of the new build's version, so
+# update_nodes announced the new build and restored the old arithmetic beneath
+# it. David's plate still read 0.59 mm on build 31 and Nuke printed
+# "_u1x: Nothing is named _e1x", a build 27 knob driven by a build 25
+# expression naming a knob that no longer exists.
+#
+# Asked without a list of knob names, because a list would go stale the first
+# time anyone added one: every expression the gizmo itself defines has to match
+# a node created fresh from the current gizmo.
+fresh = nuke.createNode("dhPerspSolve", inpanel=False)
+for n in nuke.allNodes():
+    n.setSelected(False)
+differ, checked = [], 0
+for k in fresh.knobs().values():
+    nm = k.name()
+    mine = again.knobs().get(nm) if again else None
+    if mine is None:
+        continue
+    try:
+        size = k.arraySize() if hasattr(k, "arraySize") else 1
+    except Exception:
+        size = 1
+    for i in range(size):
+        try:
+            if not k.hasExpression(i):
+                continue                    # not the gizmo's own, user territory
+            checked += 1
+            want = k.animation(i).expression()
+            got = (mine.animation(i).expression()
+                   if mine.hasExpression(i) else "<none>")
+        except Exception:
+            continue
+        if want != got:
+            differ.append("%s[%d]" % (nm, i))
+check("there are gizmo expressions to compare, or this proves nothing",
+      checked > 50, "%d expression slots the gizmo defines" % checked)
+check("THE ONE THAT MATTERS: the updated node runs the NEW build's arithmetic, "
+      "not the old node's",
+      not differ, "%d of %d differ%s"
+      % (len(differ), checked, (": " + ", ".join(differ[:6])) if differ else ""))
+nuke.delete(fresh)
 check("and the script is not left dirty, so nobody is asked to save a change "
       "they did not make", not nuke.root().modified(), "")
 

@@ -8,7 +8,7 @@ If the guides do not describe a camera at all, the node says so and falls back t
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 31
+ _build 32
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
