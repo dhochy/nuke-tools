@@ -348,7 +348,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 28
+BUILD = 29
 
 NL = chr(10)
 WARN_BLANK = (

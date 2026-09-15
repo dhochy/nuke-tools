@@ -6,7 +6,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 28
+ _build 29
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -286,17 +286,17 @@ push $Nbff08000
   temp_expr2 "dx*parent._nx + dy*parent._ny - parent._nz"
   temp_name3 hh
   temp_expr3 "max(parent.camera_height - parent.gridoffset.y,1e-9)"
-  expr0 "-hh*(dx*parent._a1x + dy*parent._a1y - parent._a1z)/(abs(dd) < 1e-9 ? 1e-9 : dd)"
-  expr1 "-hh*(dx*parent._a2x + dy*parent._a2y - parent._a2z)/(abs(dd) < 1e-9 ? 1e-9 : dd)"
+  expr0 "-hh*(dx*parent._u1x + dy*parent._u1y - parent._u1z)/(abs(dd) < 1e-9 ? 1e-9 : dd)"
+  expr1 "-hh*(dx*parent._u2x + dy*parent._u2y - parent._u2z)/(abs(dd) < 1e-9 ? 1e-9 : dd)"
   expr2 dd
   expr3 1
   name groundxz
  }
  Expression {
   temp_name0 px1
-  temp_expr0 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height - parent.gridoffset.y,1e-9)*max(sqrt(pow(parent._a1x + r*parent._nx/max(parent.camera_height - parent.gridoffset.y,1e-9),2) + pow(parent._a1y + r*parent._ny/max(parent.camera_height - parent.gridoffset.y,1e-9),2)),1e-12))"
+  temp_expr0 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height - parent.gridoffset.y,1e-9)*max(sqrt(pow(parent._u1x + r*parent._nx/max(parent.camera_height - parent.gridoffset.y,1e-9),2) + pow(parent._u1y + r*parent._ny/max(parent.camera_height - parent.gridoffset.y,1e-9),2)),1e-12))"
   temp_name1 pz1
-  temp_expr1 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height - parent.gridoffset.y,1e-9)*max(sqrt(pow(parent._a2x + g*parent._nx/max(parent.camera_height - parent.gridoffset.y,1e-9),2) + pow(parent._a2y + g*parent._ny/max(parent.camera_height - parent.gridoffset.y,1e-9),2)),1e-12))"
+  temp_expr1 "parent.cellsize*max(parent._f,1e-6)*abs(b)/(max(parent.camera_height - parent.gridoffset.y,1e-9)*max(sqrt(pow(parent._u2x + g*parent._nx/max(parent.camera_height - parent.gridoffset.y,1e-9),2) + pow(parent._u2y + g*parent._ny/max(parent.camera_height - parent.gridoffset.y,1e-9),2)),1e-12))"
   temp_name2 mx
   temp_expr2 "parent.fade_far ? (clamp(parent.gridwidth/2 + 0.5 - abs(clamp((r - parent.gridoffset.x)/max(parent.cellsize,1e-6), -1e7, 1e7) - floor(clamp((r - parent.gridoffset.x)/max(parent.cellsize,1e-6), -1e7, 1e7) + 0.5))*px1, 0, 1))*(clamp((sqrt(px1/max(parent.gridwidth,0.1)) - 1.2)/3.2, 0, 1)) : ((clamp((px1 - 2*max(parent.gridwidth,0.1))/(2*max(parent.gridwidth,0.1)), 0, 1))*(clamp(parent.gridwidth/2 + 0.5 - abs(clamp((r - parent.gridoffset.x)/max(parent.cellsize,1e-6), -1e7, 1e7) - floor(clamp((r - parent.gridoffset.x)/max(parent.cellsize,1e-6), -1e7, 1e7) + 0.5))*px1, 0, 1)) + (1 - (clamp((px1 - 2*max(parent.gridwidth,0.1))/(2*max(parent.gridwidth,0.1)), 0, 1)))*(clamp(parent.gridwidth/max(px1,1e-9), 0, 1)))"
   temp_name3 mz
