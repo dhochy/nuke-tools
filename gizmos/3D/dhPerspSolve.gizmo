@@ -6,7 +6,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l Horizon}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 29
+ _build 30
  addUserKnob {6 show_horizon l "show horizon line" -STARTLINE}
  show_horizon true
  addUserKnob {19 horizoncolor l color}
@@ -318,12 +318,12 @@ push $Nbff08000
  }
  Switch {
   inputs 2
-  which {{!parent.show_floor}}
+  which {{"!parent.show_floor || !parent._solveok"}}
   name floor_onoff
  }
  Expression {
   temp_name0 hz
-  temp_expr0 "(parent.show_horizon ? clamp((parent.horizonwidth/2 + 0.5) - (abs((parent.vp2.y-parent.vp1.y)*(x+0.5-parent.vp1.x) - (parent.vp2.x-parent.vp1.x)*(y+0.5-parent.vp1.y))/max(sqrt((parent.vp2.y-parent.vp1.y)*(parent.vp2.y-parent.vp1.y) + (parent.vp2.x-parent.vp1.x)*(parent.vp2.x-parent.vp1.x)),1e-6)),0,1) : 0) * parent.horizoncolor.a"
+  temp_expr0 "(parent.show_horizon && parent._solveok ? clamp((parent.horizonwidth/2 + 0.5) - (abs((parent.vp2.y-parent.vp1.y)*(x+0.5-parent.vp1.x) - (parent.vp2.x-parent.vp1.x)*(y+0.5-parent.vp1.y))/max(sqrt((parent.vp2.y-parent.vp1.y)*(parent.vp2.y-parent.vp1.y) + (parent.vp2.x-parent.vp1.x)*(parent.vp2.x-parent.vp1.x)),1e-6)),0,1) : 0) * parent.horizoncolor.a"
   expr0 "parent.horizoncolor.r*hz + r*(1-hz)"
   expr1 "parent.horizoncolor.g*hz + g*(1-hz)"
   expr2 "parent.horizoncolor.b*hz + b*(1-hz)"

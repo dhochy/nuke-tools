@@ -7,7 +7,7 @@ Group {
  knobChanged "try:\n    import dhPersp\n    dhPersp.on_knob_changed(nuke.thisNode(), nuke.thisKnob())\nexcept Exception:\n    pass"
  addUserKnob {20 main l PerspLines}
  addUserKnob {7 _build l "" +INVISIBLE}
- _build 29
+ _build 30
  addUserKnob {4 role l "these lines are" t "Which direction in the scene these two lines follow.
 
 ground: runs away from you into the picture. Curbs, road markings, the seams in paving, the long side of a building going away from you.

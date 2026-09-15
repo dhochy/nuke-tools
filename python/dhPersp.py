@@ -348,7 +348,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 29
+BUILD = 30
 
 NL = chr(10)
 WARN_BLANK = (
@@ -1621,7 +1621,8 @@ def set_verdict(node=None):
             "there may be no answer from two guides at all, because the wall's "
             "own horizontals barely converge: add a third guide along the "
             "upright edges, or tick 'I know the focal length'. The focal length "
-            "below is a floor value, not a solve."
+            "below is a floor value, not a solve, and the floor and horizon are "
+            "not being drawn because there is no camera to draw them from."
             % ("" if fsq < 0 else " by enough to leave room for a focal length"))
         return False
     warn = []

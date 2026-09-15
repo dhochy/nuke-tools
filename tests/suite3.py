@@ -206,15 +206,25 @@ _, _, off = render(s, "horizon_off")
 check("horizon toggle really removes it", not cyan_rows(off, W),
       "%d rows when off" % len(cyan_rows(off, W)))
 s["show_horizon"].setValue(True)
-# control: moving the guides must move it
+# Control: moving the guides must move it. They have to go on describing a
+# camera while they move. Dragging one line somewhere arbitrary used to serve,
+# but a refused solve draws no horizon at all now, so that would only have been
+# measuring the horizon disappearing, which is not the same finding as it
+# following. Laying the same floor lines out under a camera pitched eight
+# degrees shallower moves the horizon for the stated reason, and keeps it
+# in frame: eight degrees the other way puts it about 384 rows up, off the top
+# of the plate, where "no cyan" would again mean nothing.
 before = mid
-a["p1a"].setValue([100.0, 100.0])
-a["p1b"].setValue([1800.0, 500.0])
+cam2 = make_cam(35.0, -2.0, 38.0)
+lay_on_floor(a, b, cam2)
+check("the moved guides still describe a camera",
+      s["_solveok"].value() > 0.5, "%.2f mm" % s["cam_focal"].value())
 _, _, moved = render(s, "horizon_moved")
 hm = cyan_rows(moved, W)
 check("horizon follows the guides live",
       hm and abs(((min(hm) + max(hm)) / 2.0) - before) > 5,
       "%.1f -> %.1f" % (before, (min(hm) + max(hm)) / 2.0 if hm else -1))
+nuke.delete(cam2)
 nuke.delete(cam)
 
 # ------------------------------------------------- 16. guide lines are drawn
