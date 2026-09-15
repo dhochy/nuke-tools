@@ -95,15 +95,39 @@ MAX_LINES = 12
 SLOT_DEFAULT = (1024.0, 400.0)
 
 
-def _slot_knobs(node, i):
+def _put(knob, text):
+    """Write a text knob, but only when the text is actually different.
+
+    Writing a knob dirties the node, and dirtying the node throws away Nuke's
+    cached value for every expression on it, so the next read of cam_focal
+    re-evaluates the whole chain from the guide points up. set_verdict and
+    set_axis_note run on every knob change and used to write unconditionally,
+    which meant each one paid for a full re-evaluation in order to store the
+    string it had already stored. Measured at 2.15 ms a call, nine tenths of it
+    that.
+    """
+    try:
+        if knob.value() == text:
+            return False
+    except Exception:
+        pass
+    knob.setValue(text)
+    return True
+
+
+def _slot_knobs(node, i, kn=None):
     """The knobs that appear and disappear with a slot.
 
     Point B is not in this list. It belongs to the slot but it is only meaningful
     for a line that stands on its own, so its visibility follows the switch
     rather than the slot.
+
+    `kn` is the node's knob dictionary if the caller already has it. knobs()
+    rebuilds that dictionary from scratch every time it is called, and this used
+    to call it three times per slot.
     """
-    return (node.knobs().get("add%d" % i), node.knobs().get("pin%d" % i),
-            node.knobs().get("del%d" % i))
+    kn = node.knobs() if kn is None else kn
+    return (kn.get("add%d" % i), kn.get("pin%d" % i), kn.get("del%d" % i))
 
 
 def _refresh_panel(node):
@@ -131,22 +155,26 @@ def sync_lines(node, refresh=False):
     Doing work in updateUI risks a redraw loop, so nothing is set unless it is
     actually wrong. On every redraw after the first this touches nothing.
     """
+    # knobs() rebuilds a dictionary of every knob on the node, and this node has
+    # about two hundred. Asked once here instead of a hundred and twenty times
+    # through the loop, which was 93 per cent of this function.
+    kn = node.knobs()
     changed = 0
     for i in range(1, MAX_LINES + 1):
-        use = node.knobs().get("use_add%d" % i)
+        use = kn.get("use_add%d" % i)
         if use is None:
             continue
         on = bool(use.value())
-        pin = node.knobs().get("pin%d" % i)
+        pin = kn.get("pin%d" % i)
         want = {"use_add%d" % i: False}
-        for k in _slot_knobs(node, i):
+        for k in _slot_knobs(node, i, kn):
             if k is not None:
                 want[k.name()] = on
         # B belongs to the slot but only means anything for a line that stands
         # on its own, so it follows the switch rather than the slot
         want["add%db" % i] = on and not (pin is not None and pin.value())
         for nm, vis in want.items():
-            k = node.knobs().get(nm)
+            k = kn.get(nm)
             if k is not None and k.visible() != vis:
                 changed += 1
                 k.setVisible(vis)
@@ -348,7 +376,7 @@ VP_LIMIT = 1e7          # beyond this the vanishing point is effectively at infi
 
 # Bumped whenever the internals of either gizmo change. A Group carries its own
 # copy of those internals, so a node created before a fix keeps the old ones.
-BUILD = 32
+BUILD = 33
 
 NL = chr(10)
 WARN_BLANK = (
@@ -1553,11 +1581,11 @@ def set_axis_note(node):
     if k is None:
         return
     if "use_vertical" not in node.knobs() or not node["use_vertical"].value():
-        k.setValue("lens axis: center of frame (no vertical guide)")
+        _put(k, "lens axis: center of frame (no vertical guide)")
         return
     ok = node["_v3ok"].value() > 0.5
     if ok:
-        k.setValue("lens axis solved from the vertical guide: %.1f, %.1f  "
+        _put(k, "lens axis solved from the vertical guide: %.1f, %.1f  "
                    "(center of frame is %.1f, %.1f)"
                    % (node["_px"].value(), node["_py"].value(),
                       node.width() / 2.0, node.height() / 2.0))
@@ -1569,13 +1597,13 @@ def set_axis_note(node):
         d = math.hypot(node["vp3"].value()[0] - node.width() / 2.0,
                        node["vp3"].value()[1] - node.height() / 2.0)
         if d < node["_diag"].value():
-            k.setValue("<b>The vertical guide has not been placed. Its two "
+            _put(k, "<b>The vertical guide has not been placed. Its two "
                        "lines still cross at the center of frame, so there is "
                        "no vanishing point to solve from and the lens axis is "
                        "being assumed at the center. Draw its lines along two "
                        "upright edges in the plate.</b>")
         else:
-            k.setValue("<b>The vertical guide is too close to parallel to be "
+            _put(k, "<b>The vertical guide is too close to parallel to be "
                        "used. Its vanishing point is off at infinity, where the "
                        "orthocenter is meaningless, so the lens axis is being "
                        "assumed at the center of frame. A camera tilted up or "
@@ -1635,11 +1663,11 @@ def set_verdict(node=None):
 
     if node.knobs().get("use_known_focal") is not None and \
             node["use_known_focal"].value():
-        k.setValue("Focal length is being taken as given, %.4g mm. The guides "
+        _put(k, "Focal length is being taken as given, %.4g mm. The guides "
                    "are only setting the orientation." % focal)
         return True
     if not ok:
-        k.setValue(
+        _put(k, 
             "<b>These two guides do not describe a camera.</b> For a real lens "
             "the two vanishing points have to sit on opposite sides of the lens "
             "axis along the horizon, and these do not%s. Usually one guide is "
@@ -1662,12 +1690,12 @@ def set_verdict(node=None):
         warn.append("the camera is rolled %.1f degrees, which is rare unless "
                     "the shot really is tilted" % roll)
     if warn:
-        k.setValue("<b>Solved, but check it: %s.</b>%s"
+        _put(k, "<b>Solved, but check it: %s.</b>%s"
                    % (", and ".join(warn), from_pair))
         return True
     moving = animated_guides(node)
     if moving and int(round(node["axis_from"].getValue())) == 0:
-        k.setValue(
+        _put(k, 
             "Solved: %.4g mm, roll %.2f degrees.<br><b>The guides are animated "
             "and the ground axis is on automatic.</b> Automatic picks whichever "
             "vanishing point needs the smaller turn, and it picks again every "
@@ -1678,12 +1706,12 @@ def set_verdict(node=None):
             % (focal, roll))
         return True
     if moving:
-        k.setValue("Solved: %.4g mm, roll %.2f degrees, animated from %d guide%s. "
+        _put(k, "Solved: %.4g mm, roll %.2f degrees, animated from %d guide%s. "
                    "The camera follows them frame by frame.%s"
                    % (focal, roll, len(moving), "" if len(moving) == 1 else "s",
                       from_pair))
         return True
-    k.setValue("Solved: %.4g mm, roll %.2f degrees. That is a believable "
+    _put(k, "Solved: %.4g mm, roll %.2f degrees. That is a believable "
                "camera.%s" % (focal, roll, from_pair))
     return True
 

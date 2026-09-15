@@ -254,6 +254,49 @@ check("THE ONE THAT MATTERS: vertical is still vertical, though its index moved 
 check("and dhPersp agrees", dhPersp.guide_role(new_v) == dhPersp.VERTICAL,
       str(dhPersp.guide_role(new_v)))
 
+# ------------------------- the panel must not rewrite what it already says
+print("")
+print("=== 92. the panel writes only when the words change ===")
+# Writing a knob dirties the node, and dirtying the node throws away Nuke's
+# cached value for every expression on it, so the next read of cam_focal
+# re-evaluates the whole chain up from the guide points. set_verdict runs on
+# every knob change, and while it wrote unconditionally it paid for that
+# re-evaluation in order to store the string it had stored the time before:
+# 2.15 ms a call, nine tenths of it that. Same shape in sync_lines, 1.33 ms of
+# which 93 per cent was knobs() rebuilding a two hundred entry dictionary a
+# hundred and twenty times per call. These are invariants, not micro
+# optimizations, and both would go quietly if nobody asked.
+check("_put writes text that is different",
+      dhPersp._put(s["verdict"], "something else") is True, "")
+check("and does not write text that is already there",
+      dhPersp._put(s["verdict"], "something else") is False, "")
+# root().modified() does not notice a Text_Knob write, so asking it whether the
+# script got dirty passes whatever set_verdict does. Count the writes instead.
+dhPersp.set_verdict(s)
+said = s["verdict"].value()
+writes, real_put = [], dhPersp._put
+
+
+def counting_put(knob, text):
+    wrote = real_put(knob, text)
+    writes.append(wrote)
+    return wrote
+
+
+dhPersp._put = counting_put
+try:
+    dhPersp.set_verdict(s)
+    dhPersp.set_verdict(s)
+finally:
+    dhPersp._put = real_put
+check("THE ONE THAT MATTERS: saying the same thing again writes nothing, so "
+      "the expression cache survives it",
+      writes and not any(writes) and s["verdict"].value() == said,
+      "%d calls, %d of them wrote" % (len(writes), writes.count(True)))
+first = dhPersp.sync_lines(g2)
+check("and sync_lines reports nothing to do when nothing is wrong",
+      dhPersp.sync_lines(g2) == 0, "the pass before it changed %d" % first)
+
 print("\n" + "=" * 88)
 npass = sum(1 for _, ok, _ in RESULTS if ok)
 print("part 15: %d of %d passed" % (npass, len(RESULTS)))
